@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% block meta %}{% endblock %}
+    {% include "base_css.html" %}
+    {% block local_css %}{% endblock %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  {% block body %}
+  <body class="flexbody">
+
+    <main>{% block content %}{% endblock %}</main>
+
+  </body>
+  {% endblock %}
+</html>

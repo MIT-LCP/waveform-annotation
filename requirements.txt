@@ -1,0 +1,137 @@
+#### Requirements for running the server ####
+
+chardet==3.0.4 \
+ --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
+Django==2.2.13 \
+ --hash=sha256:e8fe3c2b2212dce6126becab7a693157f1a441a07b62ec994c046c76af5bb66d \
+ --hash=sha256:84f370f6acedbe1f3c41e1a02de44ac206efda3355e427139ecb785b5f596d80
+django-autocomplete-light==3.3.4 \
+ --hash=sha256:cff0b1cad0e233e49c8cce08dff22868951123cbb79a7c1768eda78845044568
+django-background-tasks==1.2.0 \
+ --hash=sha256:35a9a54961f3e4486ab2f9482d1e8ac63ab4f47e5e0b7e654a22f7002299ffae
+django-ckeditor==5.7.1 \
+ --hash=sha256:0147f8905dc64747e45157a185feedee4e39973fa4b571c9c82ad10d9d4b8974
+Pillow==7.0.0 \
+ --hash=sha256:c5ed816632204a2fc9486d784d8e0d0ae754347aba99c811458d69fcdfd2a2f9 \
+ --hash=sha256:5bfef0b1cdde9f33881c913af14e43db69815c7e8df429ceda4c70a5e529210f \
+ --hash=sha256:0a628977ac2e01ca96aaae247ec2bd38e729631ddf2221b4b715446fd45505be
+python-decouple==3.1 \
+ --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
+pytz==2018.3 \
+ --hash=sha256:07edfc3d4d2705a20a6e99d97f0c4b61c800b8232dc1c04d87e8554f130148dd
+
+#### Requirements for development and testing ####
+
+django-debug-toolbar==1.9.1 \
+ --hash=sha256:4af2a4e1e932dadbda197b18585962d4fc20172b4e5a479490bc659fe998864d
+requests==2.21.0 \
+ --hash=sha256:7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b
+
+#### Indirect requirements ####
+
+six==1.12.0 \
+ --hash=sha256:3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c
+
+# required by Django 2.2.3
+sqlparse==0.2.4 \
+ --hash=sha256:d9cf190f51cbb26da0412247dfe4fb5f4098edb73db84e02f9fc21fdca31fed4
+
+# required by django-ckeditor 5.7.1
+django-js-asset==0.1.1 \
+ --hash=sha256:0dd2c5f64f2b24eb8a7270a6a59cb914a03f205335bd0eb6207bf61cf7410828
+
+# required by django-background-tasks 1.2.0
+django-compat==1.0.15 \
+ --hash=sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b
+
+# required by requests 2.21.0
+certifi==2019.6.16 \
+ --hash=sha256:046832c04d4e752f37383b628bc601a7ea7211496b4638f6514d0e5b9acc4939
+idna==2.8 \
+ --hash=sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c
+urllib3==1.24.3 \
+ --hash=sha256:a637e5fae88995b256e3409dc4d52c2e2e0ba32c42a6365fee8bbd2238de3cfb
+
+# required for wfdb
+wfdb==3.1.0 \
+ --hash=sha256:0c28d1be15c6202309ac07ceafe83820ec8fe793d91cef978b6388e8b9a85771
+cycler==0.10.0 \
+ --hash=sha256:1d8a5ae1ff6c5cf9b93e8811e581232ad8920aeec647c37316ceac982b08cb2d
+joblib==0.16.0 \
+ --hash=sha256:d348c5d4ae31496b2aa060d6d9b787864dd204f9480baaa52d18850cb43e9f49
+kiwisolver==1.2.0 \
+ --hash=sha256:c31bc3c8e903d60a1ea31a754c72559398d91b5929fcb329b1c3a3d3f6e72113\
+ --hash=sha256:603162139684ee56bcd57acc74035fceed7dd8d732f38c0959c8bd157f913fec
+matplotlib==3.3.0 \
+ --hash=sha256:ebb6168c9330309b1f3360d36c481d8cd621a490cf2a69c9d6625b2a76777c12\
+ --hash=sha256:19cf4db0272da286863a50406f6430101af129f288c421b1a7f33ddfc8d0180f
+mne==0.20.7 \
+ --hash=sha256:c6aea11d7b3a37f6ad8ca63c177b311a4eb3f057f995fe0417b8535dadfd35a9
+nose==1.3.7 \
+ --hash=sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac
+numpy==1.19.1 \
+ --hash=sha256:e45f8e981a0ab47103181773cc0a54e650b2aef8c7b6cd07405d0fa8d869444a\
+ --hash=sha256:ef71a1d4fd4858596ae80ad1ec76404ad29701f8ca7cdcebc50300178db14dfc
+pandas==1.1.0 \
+ --hash=sha256:0bc440493cf9dc5b36d5d46bbd5508f6547ba68b02a28234cd8e81fdce42744d\
+ --hash=sha256:16504f915f1ae424052f1e9b7cd2d01786f098fbb00fa4e0f69d42b22952d798
+pyparsing==2.4.7 \
+ --hash=sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b
+python-dateutil==2.8.1 \
+ --hash=sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a
+scikit-learn==0.23.1 \
+ --hash=sha256:0c3464e46ef8bd4f1bfa5c009648c6449412c8f7e9b3fc0c9e3d800139c48827
+ --hash=sha256:0e7b55f73b35537ecd0d19df29dd39aa9e076dba78f3507b8136c819d84611fd
+scipy==1.5.2 \
+ --hash=sha256:fc98f3eac993b9bfdd392e675dfe19850cc8c7246a8fd2b42443e506344be7d9\
+ --hash=sha256:eecf40fa87eeda53e8e11d265ff2254729d04000cd40bae648e76ff268885d66
+sklearn==0.0 \
+ --hash=sha256:e23001573aa194b834122d2b9562459bf5ae494a2d59ca6b8aa22c85a44c0e31
+threadpoolctl==2.1.0 \
+ --hash=sha256:38b74ca20ff3bb42caca8b00055111d74159ee95c4370882bbff2b93d24da725
+
+# required for data visualization
+django_plotly_dash==1.4.2 \
+ --hash=sha256:36169029a7f53a16b10d81147733b5143e0f3584150fd5920da26686856494e7
+dpd-components==0.1.0 \
+ --hash=sha256:613a6b17d3d7dd449be060e739e4ce36692b46fa012c3a86ee947f6337d09548
+dash-html-components==1.0.3 \
+ --hash=sha256:dafb54ae8ab601fffe50c74d72b32783dec2beea65fd1c7e7dd6a66e20e545ba
+dash==1.14.0 \
+ --hash=sha256:7a55e2f5381bf3323873a9b5e7dbb8112a5c8c5e7fe7e554bda2ed9d3f3e04fc
+dash-core-components==1.10.2 \
+ --hash=sha256:6152346ff2ac8a7fcdb76c8b8acbf3ee4e72f3822cd2a02a9f3a963db66f94a3
+dash-renderer==1.6.0 \
+ --hash=sha256:8e9c0c0c2efb8ea562489c37665417cd608c30bca20425ac4d847420b5bbc128
+dash-table==4.9.0 \
+ --hash=sha256:2f19000051730291100cd3a79b13fa62c478aea7908f2e4323c13b90f09e3320
+flask==1.1.2 \
+ --hash=sha256:8a4fdd8936eba2512e9c85df320a37e694c93945b33ef33c89946a340a238557
+plotly==4.9.0 \
+ --hash=sha256:7c7b613af8def74f48b1298f08a49086bb9792104119feb4a137f737533021e1
+
+# required by dash
+flask-compress==1.5.0 \
+ --hash=sha256:f367b2b46003dd62be34f7fb1379938032656dca56377a9bc90e7188e4289a7c
+future==0.18.2 \
+ --hash=sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d
+Jinja2==2.11.2 \
+ --hash=sha256:f0a4641d3cf955324a89c04f3d94663aa4d638abe8f733ecd3582848e1c37035
+itsdangerous==1.1.0 \
+ --hash=sha256:b12271b2047cb23eeb98c8b5622e2e5c5e9abd9784a153e9d8ef9cb4dd09d749
+Werkzeug==1.0.1 \
+ --hash=sha256:2de2a5db0baeae7b2d2664949077c2ac63fbd16d98da0ff71837f7d1dea3fd43
+click==7.1.2 \
+ --hash=sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc
+retrying==1.3.3 \
+ --hash=sha256:08c039560a6da2fe4f2c426d0766e284d3b736e355f8dd24b37367b0bb41973b
+
+# required by flask-compress
+brotli==1.0.7 \
+ --hash=sha256:71ceee286ea7ec613f1c36f1c6181864a6ca24ebb55e371276f33d6af8742834\
+ --hash=sha256:f192e6d3556714105c10486bbd6d045e38a0c04d9da3cef21e0a8dfd8e162df4
+
+# required by Jinja2
+MarkupSafe==1.1.1 \
+ --hash=sha256:6788b695d50a51edb699cb55e35487e430fa21f1ed838122d722e0ff0ac5ba15\
+ --hash=sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6
