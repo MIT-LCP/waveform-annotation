@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+404: Not Found
+{% endblock %}
+
+{% block content %}
+<div class="container" align='center'>
+  <h1>Page Not Found<br />(404)</h1>
+  <br /><br />
+  <p>
+    The following URL is missing from the website:
+    {{ request.get_raw_uri }}
+    {% if request.META.HTTP_REFERER %}
+      This URL is linked from:
+      {{ request.META.HTTP_REFERER }}
+    {% endif %}
+  </p>
+</div>
+{% endblock %}
