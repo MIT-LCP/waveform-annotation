@@ -100,14 +100,17 @@ app.layout = html.Div([
 @app.callback(
     dash.dependencies.Output('reviewer_display', 'children'),
     [dash.dependencies.Input('submit_time', 'n_clicks_timestamp')],
-    [dash.dependencies.State('reviewer_decision', 'value'),
+    [dash.dependencies.State('dropdown_rec', 'value'),
+     dash.dependencies.State('dropdown_event', 'value'),
+     dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
-def reviewer_comment(submit_time, reviewer_decision, reviewer_comments):
+def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
+                     reviewer_decision, reviewer_comments):
     input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
     # Save the annotation to the database
     annotation = Annotation(
-        project = 'ge272',
-        record = 'example',
+        project = dropdown_rec,
+        record = dropdown_event,
         decision = reviewer_decision,
         comments = reviewer_comments,
         decision_date = input_time
