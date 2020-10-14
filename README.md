@@ -10,4 +10,8 @@ Platform for annotating physiological waveform data.
 - Set up environment: `cp .env.example .env`.
 - Within the `waveform-django` directory:
   - Run: `python manage.py runserver` to run the server.
+- To migrate new models:
+  - Run: `python manage.py migrate --run-syncdb`
+- To reset the database:
+  - Run: `python manage.py flush`
 - After finished, deactivate virtual python environment: `deactivate`
