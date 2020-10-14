@@ -115,7 +115,7 @@ def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
         comments = reviewer_comments,
         decision_date = input_time
     )
-    annotation.save()
+    annotation.update()
     return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
                                                          input_time,
                                                          reviewer_comments)
