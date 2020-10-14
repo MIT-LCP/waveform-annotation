@@ -12,9 +12,7 @@ def waveform_published_home(request):
     Returns
     -------
     N/A : HTML page / template variable
-        HTML webpage responsible for hosting the waveform plot. Also pass
-        through the project slug and version as variables for use both in
-        the template and the waveform app.
+        HTML webpage responsible for hosting the waveform plot.
 
     """
 

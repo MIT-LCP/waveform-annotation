@@ -14,6 +14,7 @@ handler500 = 'website.views.error_500'
 urlpatterns = [
 
     path('waveforms/', include('waveforms.urls')),
+    path('', include('export.urls')),
 
     # # Custom error pages for testing
     # path('403.html', views.error_403, name='error_403'),

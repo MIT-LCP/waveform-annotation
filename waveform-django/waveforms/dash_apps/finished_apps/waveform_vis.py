@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import django.core.cache
 from website.settings import base
+from waveforms.models import Annotation
 # Data analysis and visualization
 import dash
 import plotly.graph_objs as go
@@ -103,6 +104,15 @@ app.layout = html.Div([
      dash.dependencies.State('reviewer_comments', 'value')])
 def reviewer_comment(submit_time, reviewer_decision, reviewer_comments):
     input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
+    # Save the annotation to the database
+    annotation = Annotation(
+        project = 'ge272',
+        record = 'example',
+        decision = reviewer_decision,
+        comments = reviewer_comments,
+        decision_date = input_time
+    )
+    annotation.save()
     return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
                                                          input_time,
                                                          reviewer_comments)

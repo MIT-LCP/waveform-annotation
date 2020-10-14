@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 
+    'graphene_django',
+
+    'export',
     'waveforms',
 ]
 
