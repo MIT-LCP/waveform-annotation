@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <!-- The title header of the webpage -->
+  <h1>
+    Current Annotations
+  </h1>
+  <h4>
+    <a href="{% url 'waveform_published_home' %}">Edit annotations</a>
+  </h4>
+  <table style="width:100%">
+    <tr>
+      {% for cat in categories %}
+        <th>
+          {{ cat }}
+        </th>
+      {% endfor %}
+    </tr>
+    {% for val in values %}
+      <tr>
+        {% for v in val %}
+          <td>
+            {{ v }}
+          </td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
