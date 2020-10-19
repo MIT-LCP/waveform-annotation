@@ -2,13 +2,16 @@ from django.shortcuts import render
 from waveforms.models import Annotation
 
 
-def waveform_published_home(request):
+def waveform_published_home(request, set_record='', set_event=''):
     """
     Render waveform main page for published databases.
 
     Parameters
     ----------
-    N/A : N/A
+    set_record : string, optional
+        Preset record dropdown values used for page load.
+    set_event : string, optional
+        Preset event dropdown values used for page load.
 
     Returns
     -------
@@ -16,8 +19,13 @@ def waveform_published_home(request):
         HTML webpage responsible for hosting the waveform plot.
 
     """
+    dash_context = {
+        'set_record': {'value': set_record},
+        'set_event': {'value': set_event}
+    }
 
-    return render(request, 'waveforms/home.html')
+    return render(request, 'waveforms/home.html',
+        {'dash_context': dash_context})
 
 
 def render_annotations(request):
