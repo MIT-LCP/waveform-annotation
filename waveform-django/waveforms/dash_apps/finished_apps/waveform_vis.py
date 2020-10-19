@@ -37,7 +37,7 @@ app.layout = html.Div([
             searchable = True,
             placeholder = 'Please Select...',
             style = {"width": dropdown_width},
-            persistence = True,
+            persistence = False,#True,
             persistence_type = 'session',
         ),
     ], style={'display': 'inline-block'}),
@@ -51,7 +51,7 @@ app.layout = html.Div([
             searchable = True,
             placeholder = 'Please Select...',
             style = {"width": dropdown_width},
-            persistence = True,
+            persistence = False,#True,
             persistence_type = 'session',
         ),
     ], style={'display': 'inline-block'}),
@@ -64,6 +64,8 @@ app.layout = html.Div([
         html.Div(id = 'event_text')
     ]),
     # Hidden div inside the app that stores the project record and event
+    dcc.Input(id = 'set_record', type = 'hidden', value = ''),
+    dcc.Input(id = 'set_event', type = 'hidden', value = ''),
     dcc.Input(id = 'target_id', type = 'hidden', value = ''),
     # The reviewer decision and comment section
     html.Label(['Enter decision here:']),
@@ -132,9 +134,17 @@ def clear_text(dropdown_event):
 # Dynamically update the record dropdown settings using the project 
 # record and event
 @app.callback(
-    dash.dependencies.Output('dropdown_rec', 'options'),
-    [dash.dependencies.Input('target_id', 'value')])
-def get_records_options(target_id):
+    [dash.dependencies.Output('dropdown_rec', 'options'),
+     dash.dependencies.Output('dropdown_rec', 'value')],
+    [dash.dependencies.Input('target_id', 'value'),
+     dash.dependencies.Input('set_record', 'value')])
+def get_records_options(target_id, set_record):
+    # Set the value if provided
+    if set_record != '':
+        return_record = set_record
+    else:
+        return_record = None
+
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -143,25 +153,32 @@ def get_records_options(target_id):
     # Set the record options based on the current project
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
-    return options_rec
+    return options_rec, return_record
 
 
 # Dynamically update the signal dropdown settings using the record name, project 
 # slug, and version
 @app.callback(
-    dash.dependencies.Output('dropdown_event', 'options'),
+    [dash.dependencies.Output('dropdown_event', 'options'),
+     dash.dependencies.Output('dropdown_event', 'value')],
     [dash.dependencies.Input('dropdown_rec', 'value'),
-     dash.dependencies.Input('target_id', 'value')])
-def get_signal_options(dropdown_rec, target_id):
+     dash.dependencies.Input('set_event', 'value')])
+def get_signal_options(dropdown_rec, set_event):
+    # Set the value if provided
+    if set_event != '':
+        return_event = set_event
+    else:
+        return_event = None
+
     # Get the header file
     header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-    temp_rec = wfdb.rdheader(header_path).seg_name
-    temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
+    temp_event = wfdb.rdheader(header_path).seg_name
+    temp_event = [s for s in temp_event if s != (dropdown_rec+'_layout') and s != '~']
 
     # Set the options based on the annotated event times of the chosen record 
-    options_rec = [{'label': t, 'value': t} for t in temp_rec]
+    options_event = [{'label': t, 'value': t} for t in temp_event]
 
-    return options_rec
+    return options_event, return_event
 
 
 # Update the event text
