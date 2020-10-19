@@ -6,6 +6,8 @@ import pandas as pd
 import django.core.cache
 from website.settings import base
 from waveforms.models import Annotation
+# API query
+from schema import schema
 # Data analysis and visualization
 import dash
 import plotly.graph_objs as go
@@ -123,12 +125,50 @@ def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
                                                          reviewer_comments)
 
 
+# Preset reviewer decision if requested
+@app.callback(
+    dash.dependencies.Output('reviewer_decision', 'value'),
+    [dash.dependencies.Input('set_event', 'value')])
+def preset_decision(set_event):
+    if set_event != '':
+        query = """
+            {{
+                all_annotations(record:"{}"){{
+                    edges{{
+                        node{{
+                            decision
+                        }}
+                    }}
+                }}
+            }}
+        """.format(set_event)
+        res = schema.execute(query)
+        return res.data['all_annotations']['edges'][0]['node']['decision']
+    else:
+        return None
+
+
 # Clear reviewer comments
 @app.callback(
     dash.dependencies.Output('reviewer_comments', 'value'),
-    [dash.dependencies.Input('dropdown_event', 'value')])
-def clear_text(dropdown_event):
-    return ''
+    [dash.dependencies.Input('set_event', 'value')])
+def clear_text(set_event):
+    if set_event != '':
+        query = """
+            {{
+                all_annotations(record:"{}"){{
+                    edges{{
+                        node{{
+                            comments
+                        }}
+                    }}
+                }}
+            }}
+        """.format(set_event)
+        res = schema.execute(query)
+        return res.data['all_annotations']['edges'][0]['node']['comments']
+    else:
+        return ''
 
 
 # Dynamically update the record dropdown settings using the project 

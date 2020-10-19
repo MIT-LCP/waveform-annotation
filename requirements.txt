@@ -157,3 +157,5 @@ singledispatch==3.4.0.3 \
  --hash=sha256:833b46966687b3de7f438c761ac475213e53b306740f1abfaa86e1d1aae56aa8
 Unidecode==1.1.1 \
  --hash=sha256:1d7a042116536098d05d599ef2b8616759f02985c85b4fef50c78a5aaf10822a
+django-filter==2.4.0 \
+ --hash=sha256:e00d32cebdb3d54273c48f4f878f898dced8d5dfaad009438fe61ebdf535ace1
