@@ -26,7 +26,7 @@ PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 dropdown_width = "300px"
 
 # Initialize the Dash App
-app = DjangoDash(name='waveform_graph', id='target_id', assets_folder="assets")
+app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
 # Specify the app layout
 app.layout = html.Div([
     # The record dropdown
@@ -68,7 +68,6 @@ app.layout = html.Div([
     # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
-    dcc.Input(id = 'target_id', type = 'hidden', value = ''),
     # The reviewer decision and comment section
     html.Label(['Enter decision here:']),
     dcc.Dropdown(
@@ -96,7 +95,8 @@ app.layout = html.Div([
     ),
     html.Button('Submit', id = 'submit_time'),
     html.Div(id = 'reviewer_display',
-             children = 'Enter a value and press submit')
+             children = 'Enter a value and press submit'),
+    html.Button('Next Annotation', id = 'next_annotation'),
 ])
 
 
@@ -110,27 +110,32 @@ app.layout = html.Div([
      dash.dependencies.State('reviewer_comments', 'value')])
 def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
                      reviewer_decision, reviewer_comments):
-    input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
-    # Save the annotation to the database
-    annotation = Annotation(
-        project = dropdown_rec,
-        record = dropdown_event,
-        decision = reviewer_decision,
-        comments = reviewer_comments,
-        decision_date = input_time
-    )
-    annotation.update()
-    return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
-                                                         input_time,
-                                                         reviewer_comments)
+    if submit_time:
+        # Convert ms from epoch to datetime object
+        input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
+        # Save the annotation to the database
+        annotation = Annotation(
+            project = dropdown_rec,
+            record = dropdown_event,
+            decision = reviewer_decision,
+            comments = reviewer_comments,
+            decision_date = input_time
+        )
+        annotation.update()
+        return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
+                                                                        input_time,
+                                                                        reviewer_comments)
+    else:
+        return None
 
 
-# Preset reviewer decision if requested
+# Clear/preset reviewer decision and comments
 @app.callback(
-    dash.dependencies.Output('reviewer_decision', 'value'),
+    [dash.dependencies.Output('reviewer_decision', 'value'),
+     dash.dependencies.Output('reviewer_comments', 'value')],
     [dash.dependencies.Input('set_event', 'value')])
-def preset_decision(set_event):
-    if set_event != '':
+def clear_text(set_event):
+    if (set_event != '') and (set_event != None):
         query = """
             {{
                 all_annotations(record:"{}"){{
@@ -143,17 +148,8 @@ def preset_decision(set_event):
             }}
         """.format(set_event)
         res = schema.execute(query)
-        return res.data['all_annotations']['edges'][0]['node']['decision']
-    else:
-        return None
+        reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
 
-
-# Clear reviewer comments
-@app.callback(
-    dash.dependencies.Output('reviewer_comments', 'value'),
-    [dash.dependencies.Input('set_event', 'value')])
-def clear_text(set_event):
-    if set_event != '':
         query = """
             {{
                 all_annotations(record:"{}"){{
@@ -166,9 +162,12 @@ def clear_text(set_event):
             }}
         """.format(set_event)
         res = schema.execute(query)
-        return res.data['all_annotations']['edges'][0]['node']['comments']
+        reviewer_comments = res.data['all_annotations']['edges'][0]['node']['comments']
+
+        return reviewer_decision, reviewer_comments
+
     else:
-        return ''
+        return None, ''
 
 
 # Dynamically update the record dropdown settings using the project 
@@ -176,15 +175,11 @@ def clear_text(set_event):
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'options'),
      dash.dependencies.Output('dropdown_rec', 'value')],
-    [dash.dependencies.Input('target_id', 'value'),
-     dash.dependencies.Input('set_record', 'value')])
-def get_records_options(target_id, set_record):
-    # Set the value if provided
-    if set_record != '':
-        return_record = set_record
-    else:
-        return_record = None
-
+    [dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
+     dash.dependencies.Input('set_record', 'value')],
+    [dash.dependencies.State('dropdown_event', 'options'),
+     dash.dependencies.State('set_event', 'value')])
+def get_records_options(click_time, set_record, event_options, event_value):
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -192,6 +187,54 @@ def get_records_options(target_id, set_record):
 
     # Set the record options based on the current project
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
+
+    # Set the value if provided
+    if set_record != '':
+        ctx = dash.callback_context
+        # Determine if called from another event or just loaded
+        if len(ctx.triggered) > 0:
+            if ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
+                event_options = [e['value'] for e in event_options]
+                if event_options.index(event_value) < (len(event_options) - 1):
+                    # Event list not ended, keep record value the same
+                    return_record = set_record
+                else:
+                    idx = all_records.index(set_record)
+                    if idx == (len(all_records) - 1):
+                        # Reached the end of the list, go back to the beginning
+                        return_record = all_records[0]
+                    else:
+                        # Increment the record if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_record = all_records[idx+1]
+        else:
+            # Requested record
+            return_record = set_record
+    else:
+        if click_time:
+            time_now = datetime.datetime.now()
+            # Convert ms from epoch to datetime object
+            click_time = datetime.datetime.fromtimestamp(click_time / 1000.0)
+            # Consider next annotation desired if button was pressed in the
+            # last 3 seconds... change this?
+            # TODO: make this better
+            if (time_now - click_time).total_seconds() < 3:
+                event_options = [e['value'] for e in event_options]
+                if event_options.index(event_value) < (len(event_options) - 1):
+                    # Event list not ended, keep record value the same
+                    return_record = set_record
+                else:
+                    idx = all_records.index(set_record)
+                    if idx == (len(all_records) - 1):
+                        # Reached the end of the list, go back to the beginning
+                        return_record = all_records[0]
+                    else:
+                        # Increment the record if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_record = all_records[idx+1]
+        else:
+            # Keep blank if loading main page (no presets)
+            return_record = None
 
     return options_rec, return_record
 
@@ -201,15 +244,11 @@ def get_records_options(target_id, set_record):
 @app.callback(
     [dash.dependencies.Output('dropdown_event', 'options'),
      dash.dependencies.Output('dropdown_event', 'value')],
-    [dash.dependencies.Input('dropdown_rec', 'value'),
-     dash.dependencies.Input('set_event', 'value')])
-def get_signal_options(dropdown_rec, set_event):
-    # Set the value if provided
-    if set_event != '':
-        return_event = set_event
-    else:
-        return_event = None
-
+    [dash.dependencies.Input('dropdown_rec', 'value')],
+    [dash.dependencies.State('set_record', 'value'),
+     dash.dependencies.State('set_event', 'value'),
+     dash.dependencies.State('next_annotation', 'n_clicks_timestamp')])
+def get_event_options(dropdown_rec, set_record, set_event, click_time):
     # Get the header file
     header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
     temp_event = wfdb.rdheader(header_path).seg_name
@@ -218,36 +257,60 @@ def get_signal_options(dropdown_rec, set_event):
     # Set the options based on the annotated event times of the chosen record 
     options_event = [{'label': t, 'value': t} for t in temp_event]
 
+    # Set the value if provided, change if requested
+    if set_event != '':
+        ctx = dash.callback_context
+        if click_time:
+            idx = temp_event.index(set_event)
+            if idx == (len(set_event) - 1):
+                # Reached the end of the list, go back to the beginning
+                return_event = temp_event[0]
+            else:
+                # Increment the event if not the end of the list
+                # TODO: Increment to the next non-annotated waveform instead?
+                return_event = temp_event[idx+1]
+        else:
+            # Requested event
+            return_event = set_event
+    else:
+        # Keep blank if loading main page (no presets)
+        return_event = None
+
     return options_event, return_event
 
 
-# Update the event text
+# Update the event text and set_event
 @app.callback(
-    dash.dependencies.Output('event_text', 'children'),
+    [dash.dependencies.Output('event_text', 'children'),
+     dash.dependencies.Output('set_record', 'value'),
+     dash.dependencies.Output('set_event', 'value')],
     [dash.dependencies.Input('dropdown_rec', 'value'),
      dash.dependencies.Input('dropdown_event', 'value')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
-    header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-    temp_rec = wfdb.rdheader(header_path).seg_name
-    temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
-    # Get the annotation information
-    ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-    ann = wfdb.rdann(ann_path, 'cba')
-    ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
+    event_text = None
+    if dropdown_rec and dropdown_event:
+        header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
+        temp_rec = wfdb.rdheader(header_path).seg_name
+        temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
+        # Get the annotation information
+        ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
+        ann = wfdb.rdann(ann_path, 'cba')
+        ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
 
-    return [
-        html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
-    ]
+        event_text = [
+            html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
+        ]
+
+    return event_text, dropdown_rec, dropdown_event
 
 
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_rec', 'value'),
-     dash.dependencies.Input('dropdown_event', 'value'),
-     dash.dependencies.Input('target_id', 'value')])
-def update_graph(dropdown_rec, dropdown_event, target_id):
+     dash.dependencies.Input('dropdown_event', 'value')])
+def update_graph(dropdown_rec, dropdown_event):
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdrecord(record_path)
