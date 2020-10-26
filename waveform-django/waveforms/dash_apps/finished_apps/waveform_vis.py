@@ -421,10 +421,22 @@ def update_graph(dropdown_rec, dropdown_event):
         'hovermode': 'x'
     })
 
+    # Put all EKG signals before BP, then all others following
+    sig_order = []
+    if 'ABP' in record.sig_name:
+        for i,s in enumerate(record.sig_name):
+            if (s != 'PLETH') and (s != 'ABP'):
+                sig_order.append(i)
+        sig_order.append(record.sig_name.index('ABP'))
+        if 'PLETH' in record.sig_name:
+            sig_order.append(record.sig_name.index('PLETH'))
+    else:
+        sig_order = range(record.n_sig)
+
     # Name the axes to create the subplots
-    for r in range(record.n_sig):
-        x_string = 'x' + str(r+1)
-        y_string = 'y' + str(r+1)
+    for idx,r in enumerate(sig_order):
+        x_string = 'x' + str(idx+1)
+        y_string = 'y' + str(idx+1)
         # Generate the waveform x-values and y-values
         x_vals = [(i / record.fs) for i in range(record.sig_len)][time_start:time_stop:down_sample]
         y_vals = record.p_signal[:,r][time_start:time_stop:down_sample]
@@ -447,7 +459,7 @@ def update_graph(dropdown_rec, dropdown_event):
                 'width': 3
             },
             'name': record.sig_name[r]
-        }), row = r+1, col = 1)
+        }), row = idx+1, col = 1)
         # Display where the event is
         fig.add_shape({
             'type': 'line',
@@ -476,10 +488,10 @@ def update_graph(dropdown_rec, dropdown_event):
             #'zerolinecolor': gridzero_color,
             #'gridwidth': 1,
             'range': [min_y_vals, max_y_vals],
-        }, row = r+1, col = 1)
+        }, row = idx+1, col = 1)
 
         # Set the initial x-axis parameters
-        if r == record.n_sig-1:
+        if idx == record.n_sig-1:
             fig.update_xaxes({
                 'title': 'Time (s)',
                 'showgrid': True,
@@ -494,7 +506,7 @@ def update_graph(dropdown_rec, dropdown_event):
                 'rangeslider': {
                     'visible': False
                 }
-            }, row = r+1, col = 1)
+            }, row = idx+1, col = 1)
 
         else:
             fig.update_xaxes({
@@ -511,6 +523,6 @@ def update_graph(dropdown_rec, dropdown_event):
                 'rangeslider': {
                     'visible': False
                 }
-            }, row = r+1, col = 1)
+            }, row = idx+1, col = 1)
 
     return (fig)
