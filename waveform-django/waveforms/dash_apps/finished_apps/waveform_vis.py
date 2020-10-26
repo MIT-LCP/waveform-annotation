@@ -149,7 +149,10 @@ def clear_text(set_event):
             }}
         """.format(set_event)
         res = schema.execute(query)
-        reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
+        if res.data['all_annotations']['edges'] == []:
+            reviewer_decision = None
+        else:
+            reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
 
         query = """
             {{
@@ -163,7 +166,10 @@ def clear_text(set_event):
             }}
         """.format(set_event)
         res = schema.execute(query)
-        reviewer_comments = res.data['all_annotations']['edges'][0]['node']['comments']
+        if res.data['all_annotations']['edges'] == []:
+            reviewer_comments = ''
+        else:
+            reviewer_comments = res.data['all_annotations']['edges'][0]['node']['comments']
 
         return reviewer_decision, reviewer_comments
 
