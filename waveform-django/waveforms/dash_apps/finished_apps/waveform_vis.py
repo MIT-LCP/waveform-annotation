@@ -96,6 +96,7 @@ app.layout = html.Div([
     html.Button('Submit', id = 'submit_time'),
     html.Div(id = 'reviewer_display',
              children = 'Enter a value and press submit'),
+    html.Button('Previous Annotation', id = 'previous_annotation'),
     html.Button('Next Annotation', id = 'next_annotation'),
 ])
 
@@ -175,11 +176,12 @@ def clear_text(set_event):
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'options'),
      dash.dependencies.Output('dropdown_rec', 'value')],
-    [dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
+    [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
+     dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
     [dash.dependencies.State('dropdown_event', 'options'),
      dash.dependencies.State('set_event', 'value')])
-def get_records_options(click_time, set_record, event_options, event_value):
+def get_records_options(click_previous, click_next, set_record, event_options, event_value):
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -189,11 +191,26 @@ def get_records_options(click_time, set_record, event_options, event_value):
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
     # Set the value if provided
+    return_record = set_record
+    ctx = dash.callback_context
     if set_record != '':
-        ctx = dash.callback_context
         # Determine if called from another event or just loaded
         if len(ctx.triggered) > 0:
-            if ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
+            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+                event_options = [e['value'] for e in event_options]
+                if event_options.index(event_value) > 0:
+                    # Event list not ended, keep record value the same
+                    return_record = set_record
+                else:
+                    idx = all_records.index(set_record)
+                    if idx == 0:
+                        # Reached the end of the list, go back to the beginning
+                        return_record = all_records[0]
+                    else:
+                        # Increment the record if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_record = all_records[idx-1]
+            elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
                 event_options = [e['value'] for e in event_options]
                 if event_options.index(event_value) < (len(event_options) - 1):
                     # Event list not ended, keep record value the same
@@ -211,7 +228,13 @@ def get_records_options(click_time, set_record, event_options, event_value):
             # Requested record
             return_record = set_record
     else:
-        if click_time:
+        if click_previous or click_next:
+            # Determine which button was clicked
+            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+                click_time = click_previous
+            else:
+                click_time = click_next
+
             time_now = datetime.datetime.now()
             # Convert ms from epoch to datetime object
             click_time = datetime.datetime.fromtimestamp(click_time / 1000.0)
@@ -220,18 +243,35 @@ def get_records_options(click_time, set_record, event_options, event_value):
             # TODO: make this better
             if (time_now - click_time).total_seconds() < 3:
                 event_options = [e['value'] for e in event_options]
-                if event_options.index(event_value) < (len(event_options) - 1):
-                    # Event list not ended, keep record value the same
-                    return_record = set_record
-                else:
-                    idx = all_records.index(set_record)
-                    if idx == (len(all_records) - 1):
-                        # Reached the end of the list, go back to the beginning
-                        return_record = all_records[0]
+                if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+                    if event_options.index(event_value) > 0:
+                        # Event list not ended, keep record value the same
+                        return_record = set_record
                     else:
-                        # Increment the record if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_record = all_records[idx+1]
+                        idx = all_records.index(set_record)
+                        if idx == 0:
+                            # At the beginning of the list, go to the end
+                            return_record = all_records[-1]
+                        else:
+                            # Decrement the record if not the beginning of the list
+                            # TODO: Decrement to the next non-annotated waveform instead?
+                            return_record = all_records[idx-1]
+                else:
+                    if event_options.index(event_value) < (len(event_options) - 1):
+                        # Event list not ended, keep record value the same
+                        return_record = set_record
+                    else:
+                        idx = all_records.index(set_record)
+                        if idx == (len(all_records) - 1):
+                            # Reached the end of the list, go back to the beginning
+                            return_record = all_records[0]
+                        else:
+                            # Increment the record if not the end of the list
+                            # TODO: Increment to the next non-annotated waveform instead?
+                            return_record = all_records[idx+1]
+            else:
+                # Should theoretically never happen but here just in case
+                return_record = set_record
         else:
             # Keep blank if loading main page (no presets)
             return_record = None
@@ -247,8 +287,9 @@ def get_records_options(click_time, set_record, event_options, event_value):
     [dash.dependencies.Input('dropdown_rec', 'value')],
     [dash.dependencies.State('set_record', 'value'),
      dash.dependencies.State('set_event', 'value'),
+     dash.dependencies.State('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.State('next_annotation', 'n_clicks_timestamp')])
-def get_event_options(dropdown_rec, set_record, set_event, click_time):
+def get_event_options(dropdown_rec, set_record, set_event, click_previous, click_next):
     # Get the header file
     header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
     temp_event = wfdb.rdheader(header_path).seg_name
@@ -258,17 +299,42 @@ def get_event_options(dropdown_rec, set_record, set_event, click_time):
     options_event = [{'label': t, 'value': t} for t in temp_event]
 
     # Set the value if provided, change if requested
-    if set_event != '':
-        ctx = dash.callback_context
-        if click_time:
-            idx = temp_event.index(set_event)
-            if idx == (len(set_event) - 1):
-                # Reached the end of the list, go back to the beginning
-                return_event = temp_event[0]
+    if set_event != '' and set_event:
+        idx = temp_event.index(set_event)
+        if click_previous and click_next:
+            if click_previous > click_next:
+                if idx == 0:
+                    # At the beginning of the list, go to the end
+                    return_event = temp_event[-1]
+                else:
+                    # Decrement the record if not the beginning of the list
+                    # TODO: Decrement to the next non-annotated waveform instead?
+                    return_event = temp_event[idx-1]
             else:
-                # Increment the event if not the end of the list
-                # TODO: Increment to the next non-annotated waveform instead?
-                return_event = temp_event[idx+1]
+                if idx == (len(set_event) - 1):
+                    # Reached the end of the list, go back to the beginning
+                    return_event = temp_event[0]
+                else:
+                    # Increment the event if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_event = temp_event[idx+1]
+        elif click_previous or click_next:
+            if click_previous:
+                if idx == 0:
+                    # At the beginning of the list, go to the end
+                    return_event = temp_event[-1]
+                else:
+                    # Decrement the record if not the beginning of the list
+                    # TODO: Decrement to the next non-annotated waveform instead?
+                    return_event = temp_event[idx-1]
+            else:
+                if idx == (len(set_event) - 1):
+                    # Reached the end of the list, go back to the beginning
+                    return_event = temp_event[0]
+                else:
+                    # Increment the event if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_event = temp_event[idx+1]
         else:
             # Requested event
             return_event = set_event
