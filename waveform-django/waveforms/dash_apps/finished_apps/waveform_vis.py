@@ -2,6 +2,7 @@ import os
 import wfdb
 import math
 import datetime
+import numpy as np
 import pandas as pd
 import django.core.cache
 from website.settings import base
@@ -388,7 +389,7 @@ def update_graph(dropdown_rec, dropdown_event):
     record = wfdb.rdsamp(record_path)
 
     # Maybe down-sample signal if too slow?
-    down_sample = 1
+    down_sample = 4
     # Determine the time of the event (seconds)
     # `300` if standard 10 minute segment, `dropdown_event` otherwise
     event_time = 300
@@ -446,6 +447,8 @@ def update_graph(dropdown_rec, dropdown_event):
         # initial range of x-values
         index_start = record[1]['fs'] * (event_time - window_size)
         index_stop = record[1]['fs'] * (event_time + window_size)
+        # Remove outliers to prevent weird axes scaling
+        # temp_data = record[0][:,r][abs(record[0][:,r] - np.nanmean(record[0][:,r])) < 3 * np.nanstd(record[0][:,r])]
         min_y_vals = min(record[0][:,r][index_start:index_stop])
         max_y_vals = max(record[0][:,r][index_start:index_stop])
 
