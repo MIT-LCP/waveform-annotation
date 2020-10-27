@@ -385,7 +385,7 @@ def update_text(dropdown_rec, dropdown_event):
 def update_graph(dropdown_rec, dropdown_event):
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
-    record = wfdb.rdrecord(record_path)
+    record = wfdb.rdsamp(record_path)
 
     # Maybe down-sample signal if too slow?
     down_sample = 1
@@ -394,14 +394,14 @@ def update_graph(dropdown_rec, dropdown_event):
     event_time = 300
     # How much signal should be displayed before and after event (seconds)
     time_range = 60
-    time_start = record.fs * (event_time - time_range)
-    time_stop = record.fs * (event_time + time_range)
+    time_start = record[1]['fs'] * (event_time - time_range)
+    time_stop = record[1]['fs'] * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
-    window_size = 15
+    window_size = 10
     # Grid and zero-line color
-    # gridzero_color = 'rgb(255, 60, 60)'
+    gridzero_color = 'rgb(255, 60, 60)'
     # ECG gridlines parameters
-    # grid_delta_major = 0.2
+    grid_delta_major = 0.2
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -413,7 +413,7 @@ def update_graph(dropdown_rec, dropdown_event):
     fig.update_layout({
         'height': 750,
         'grid': {
-            'rows': record.n_sig,
+            'rows': record[1]['n_sig'],
             'columns': 1,
             'pattern': 'independent'
         },
@@ -423,29 +423,29 @@ def update_graph(dropdown_rec, dropdown_event):
 
     # Put all EKG signals before BP, then all others following
     sig_order = []
-    if 'ABP' in record.sig_name:
-        for i,s in enumerate(record.sig_name):
+    if 'ABP' in record[1]['sig_name']:
+        for i,s in enumerate(record[1]['sig_name']):
             if (s != 'PLETH') and (s != 'ABP'):
                 sig_order.append(i)
-        sig_order.append(record.sig_name.index('ABP'))
-        if 'PLETH' in record.sig_name:
-            sig_order.append(record.sig_name.index('PLETH'))
+        sig_order.append(record[1]['sig_name'].index('ABP'))
+        if 'PLETH' in record[1]['sig_name']:
+            sig_order.append(record[1]['sig_name'].index('PLETH'))
     else:
-        sig_order = range(record.n_sig)
+        sig_order = range(record[1]['n_sig'])
 
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
         y_string = 'y' + str(idx+1)
         # Generate the waveform x-values and y-values
-        x_vals = [(i / record.fs) for i in range(record.sig_len)][time_start:time_stop:down_sample]
-        y_vals = record.p_signal[:,r][time_start:time_stop:down_sample]
+        x_vals = [(i / record[1]['fs']) for i in range(record[1]['sig_len'])][time_start:time_stop:down_sample]
+        y_vals = record[0][:,r][time_start:time_stop:down_sample]
         # Set the initial display range of y-values based on values in
         # initial range of x-values
-        index_start = record.fs * (event_time - window_size)
-        index_stop = record.fs * (event_time + window_size)
-        min_y_vals = min(record.p_signal[:,r][index_start:index_stop])
-        max_y_vals = max(record.p_signal[:,r][index_start:index_stop])
+        index_start = record[1]['fs'] * (event_time - window_size)
+        index_stop = record[1]['fs'] * (event_time + window_size)
+        min_y_vals = min(record[0][:,r][index_start:index_stop])
+        max_y_vals = max(record[0][:,r][index_start:index_stop])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -458,8 +458,9 @@ def update_graph(dropdown_rec, dropdown_event):
                 'color': 'black',
                 'width': 3
             },
-            'name': record.sig_name[r]
+            'name': record[1]['sig_name'][r]
         }), row = idx+1, col = 1)
+
         # Display where the event is
         fig.add_shape({
             'type': 'line',
@@ -476,53 +477,102 @@ def update_graph(dropdown_rec, dropdown_event):
         })
 
         # Set the initial y-axis parameters
-        fig.update_yaxes({
-            'title': record.sig_name[r] + ' (' + record.units[r] + ')',
-            'fixedrange': False,
-            'showgrid': True,
-            #'dtick': grid_delta_major,
-            'showticklabels': True,
-            #'gridcolor': gridzero_color,
-            'zeroline': True,
-            #'zerolinewidth': 1,
-            #'zerolinecolor': gridzero_color,
-            #'gridwidth': 1,
-            'range': [min_y_vals, max_y_vals],
-        }, row = idx+1, col = 1)
+        if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
+            fig.update_yaxes({
+                'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
+                'fixedrange': False,
+                'showgrid': True,
+                'dtick': grid_delta_major,
+                'showticklabels': True,
+                'gridcolor': gridzero_color,
+                'zeroline': True,
+                'zerolinewidth': 1,
+                'zerolinecolor': gridzero_color,
+                'gridwidth': 1,
+                'range': [min_y_vals, max_y_vals],
+            }, row = idx+1, col = 1)
+        else:
+            fig.update_yaxes({
+                'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
+                'fixedrange': False,
+                'showgrid': False,
+                # 'dtick': grid_delta_major,
+                'showticklabels': True,
+                # 'gridcolor': gridzero_color,
+                'zeroline': False,
+                # 'zerolinewidth': 1,
+                # 'zerolinecolor': gridzero_color,
+                # 'gridwidth': 1,
+                'range': [min_y_vals, max_y_vals],
+            }, row = idx+1, col = 1)
 
         # Set the initial x-axis parameters
-        if idx == record.n_sig-1:
-            fig.update_xaxes({
-                'title': 'Time (s)',
-                'showgrid': True,
-                #'dtick': grid_delta_major,
-                'showticklabels': True,
-                #'gridcolor': gridzero_color,
-                'zeroline': True,
-                #'zerolinewidth': 1,
-                #'zerolinecolor': gridzero_color,
-                #'gridwidth': 1,
-                'range': [event_time - window_size, event_time + window_size],
-                'rangeslider': {
-                    'visible': False
-                }
-            }, row = idx+1, col = 1)
+        if idx == record[1]['n_sig']-1:
+            if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
+                fig.update_xaxes({
+                    'title': 'Time (s)',
+                    'showgrid': True,
+                    'dtick': grid_delta_major,
+                    'showticklabels': True,
+                    'gridcolor': gridzero_color,
+                    'zeroline': True,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [event_time - window_size, event_time + window_size],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = idx+1, col = 1)
+            else:
+                fig.update_xaxes({
+                    'title': 'Time (s)',
+                    'showgrid': False,
+                    # 'dtick': grid_delta_major,
+                    'showticklabels': True,
+                    # 'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    # 'zerolinewidth': 1,
+                    # 'zerolinecolor': gridzero_color,
+                    # 'gridwidth': 1,
+                    'range': [event_time - window_size, event_time + window_size],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = idx+1, col = 1)
 
         else:
-            fig.update_xaxes({
-                #'title': 'Time (s)',
-                'showgrid': True,
-                #'dtick': grid_delta_major,
-                'showticklabels': False,
-                #'gridcolor': gridzero_color,
-                'zeroline': True,
-                #'zerolinewidth': 1,
-                #'zerolinecolor': gridzero_color,
-                #'gridwidth': 1,
-                'range': [event_time - window_size, event_time + window_size],
-                'rangeslider': {
-                    'visible': False
-                }
-            }, row = idx+1, col = 1)
+            if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
+                fig.update_xaxes({
+                    #'title': 'Time (s)',
+                    'showgrid': True,
+                    'dtick': grid_delta_major,
+                    'showticklabels': False,
+                    'gridcolor': gridzero_color,
+                    'zeroline': True,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [event_time - window_size, event_time + window_size],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = idx+1, col = 1)
+            else:
+                fig.update_xaxes({
+                    #'title': 'Time (s)',
+                    'showgrid': False,
+                    # 'dtick': grid_delta_major,
+                    'showticklabels': False,
+                    # 'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    # 'zerolinewidth': 1,
+                    # 'zerolinecolor': gridzero_color,
+                    # 'gridwidth': 1,
+                    'range': [event_time - window_size, event_time + window_size],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = idx+1, col = 1)
 
     return (fig)
