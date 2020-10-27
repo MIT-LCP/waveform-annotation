@@ -423,13 +423,15 @@ def update_graph(dropdown_rec, dropdown_event):
 
     # Put all EKG signals before BP, then all others following
     sig_order = []
+    extra_sigs = ['ABP', 'PLETH']
     if 'ABP' in record[1]['sig_name']:
         for i,s in enumerate(record[1]['sig_name']):
-            if (s != 'PLETH') and (s != 'ABP'):
+            if s not in extra_sigs:
                 sig_order.append(i)
         sig_order.append(record[1]['sig_name'].index('ABP'))
-        if 'PLETH' in record[1]['sig_name']:
-            sig_order.append(record[1]['sig_name'].index('PLETH'))
+        for s in extra_sigs[1:]:
+            if s in record[1]['sig_name']:
+                sig_order.append(record[1]['sig_name'].index(s))
     else:
         sig_order = range(record[1]['n_sig'])
 
@@ -477,102 +479,61 @@ def update_graph(dropdown_rec, dropdown_event):
         })
 
         # Set the initial y-axis parameters
-        if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
-            fig.update_yaxes({
-                'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
-                'fixedrange': False,
-                'showgrid': True,
-                'dtick': grid_delta_major,
-                'showticklabels': True,
-                'gridcolor': gridzero_color,
-                'zeroline': True,
-                'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
-                'gridwidth': 1,
-                'range': [min_y_vals, max_y_vals],
-            }, row = idx+1, col = 1)
+        if record[1]['sig_name'][r] not in extra_sigs:
+            grid_state = True
+            dtick_state = grid_delta_major
+            zeroline_state = True
         else:
-            fig.update_yaxes({
-                'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
-                'fixedrange': False,
-                'showgrid': False,
-                # 'dtick': grid_delta_major,
-                'showticklabels': True,
-                # 'gridcolor': gridzero_color,
-                'zeroline': False,
-                # 'zerolinewidth': 1,
-                # 'zerolinecolor': gridzero_color,
-                # 'gridwidth': 1,
-                'range': [min_y_vals, max_y_vals],
-            }, row = idx+1, col = 1)
+            grid_state = False
+            dtick_state = None
+            zeroline_state = False
+
+        fig.update_yaxes({
+            'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
+            'fixedrange': False,
+            'showgrid': grid_state,
+            'dtick': dtick_state,
+            'showticklabels': True,
+            'gridcolor': gridzero_color,
+            'zeroline': zeroline_state,
+            'zerolinewidth': 1,
+            'zerolinecolor': gridzero_color,
+            'gridwidth': 1,
+            'range': [min_y_vals, max_y_vals],
+        }, row = idx+1, col = 1)
 
         # Set the initial x-axis parameters
         if idx == record[1]['n_sig']-1:
-            if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
-                fig.update_xaxes({
-                    'title': 'Time (s)',
-                    'showgrid': True,
-                    'dtick': grid_delta_major,
-                    'showticklabels': True,
-                    'gridcolor': gridzero_color,
-                    'zeroline': True,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [event_time - window_size, event_time + window_size],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = idx+1, col = 1)
-            else:
-                fig.update_xaxes({
-                    'title': 'Time (s)',
-                    'showgrid': False,
-                    # 'dtick': grid_delta_major,
-                    'showticklabels': True,
-                    # 'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    # 'zerolinewidth': 1,
-                    # 'zerolinecolor': gridzero_color,
-                    # 'gridwidth': 1,
-                    'range': [event_time - window_size, event_time + window_size],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = idx+1, col = 1)
-
+            fig.update_xaxes({
+                'title': 'Time (s)',
+                'showgrid': grid_state,
+                'dtick': dtick_state,
+                'showticklabels': True,
+                'gridcolor': gridzero_color,
+                'zeroline': zeroline_state,
+                'zerolinewidth': 1,
+                'zerolinecolor': gridzero_color,
+                'gridwidth': 1,
+                'range': [event_time - window_size, event_time + window_size],
+                'rangeslider': {
+                    'visible': False
+                }
+            }, row = idx+1, col = 1)
         else:
-            if (record[1]['sig_name'][r] != 'ABP') and (record[1]['sig_name'][r] != 'PLETH'):
-                fig.update_xaxes({
-                    #'title': 'Time (s)',
-                    'showgrid': True,
-                    'dtick': grid_delta_major,
-                    'showticklabels': False,
-                    'gridcolor': gridzero_color,
-                    'zeroline': True,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [event_time - window_size, event_time + window_size],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = idx+1, col = 1)
-            else:
-                fig.update_xaxes({
-                    #'title': 'Time (s)',
-                    'showgrid': False,
-                    # 'dtick': grid_delta_major,
-                    'showticklabels': False,
-                    # 'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    # 'zerolinewidth': 1,
-                    # 'zerolinecolor': gridzero_color,
-                    # 'gridwidth': 1,
-                    'range': [event_time - window_size, event_time + window_size],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = idx+1, col = 1)
+            fig.update_xaxes({
+                #'title': 'Time (s)',
+                'showgrid': grid_state,
+                'dtick': dtick_state,
+                'showticklabels': False,
+                'gridcolor': gridzero_color,
+                'zeroline': zeroline_state,
+                'zerolinewidth': 1,
+                'zerolinecolor': gridzero_color,
+                'gridwidth': 1,
+                'range': [event_time - window_size, event_time + window_size],
+                'rangeslider': {
+                    'visible': False
+                }
+            }, row = idx+1, col = 1)
 
     return (fig)
