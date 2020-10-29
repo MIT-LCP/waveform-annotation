@@ -6,11 +6,11 @@ from waveforms.models import Annotation
 
 
 # View results at:
-# http://localhost:8000/graphql?query={all_annotations{project,record,decision,comments,decision_date}}
+# http://localhost:8000/graphql?query={all_annotations{record,event,decision,comments,decision_date}}
 class AnnotationType(DjangoObjectType):
     class Meta:
         model = Annotation
-        filter_fields = ['project', 'record', 'decision', 'comments',
+        filter_fields = ['record', 'event', 'decision', 'comments',
                          'decision_date']
         interfaces = (graphene.relay.Node, )
 

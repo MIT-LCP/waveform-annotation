@@ -117,8 +117,8 @@ def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
         input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
         # Save the annotation to the database
         annotation = Annotation(
-            project = dropdown_rec,
-            record = dropdown_event,
+            record = dropdown_rec,
+            event = dropdown_event,
             decision = reviewer_decision,
             comments = reviewer_comments,
             decision_date = input_time
