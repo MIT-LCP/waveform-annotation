@@ -3,8 +3,8 @@ from django.db import models
 
 class Annotation(models.Model):
     # user = models.CharField(max_length=254, blank=False)
-    project = models.CharField(max_length=50, blank=False)
     record = models.CharField(max_length=50, blank=False)
+    event = models.CharField(max_length=50, blank=False)
     decision = models.CharField(max_length=9, blank=False)
     comments = models.TextField(default='')
     decision_date = models.DateTimeField(null=True, blank=False)
@@ -15,7 +15,7 @@ class Annotation(models.Model):
         for a in all_annotations:
             # Eventually add check for the same user too:
             # (self.user == a.user)
-            if (a.project == self.project) and (a.record == self.record):
+            if (a.record == self.record) and (a.event == self.event):
                 exists_already = True
                 a.decision = self.decision
                 a.comments = self.comments
