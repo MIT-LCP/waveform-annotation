@@ -246,9 +246,9 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
             # Convert ms from epoch to datetime object
             click_time = datetime.datetime.fromtimestamp(click_time / 1000.0)
             # Consider next annotation desired if button was pressed in the
-            # last 3 seconds... change this?
+            # last 1 second... change this?
             # TODO: make this better
-            if (time_now - click_time).total_seconds() < 3:
+            if (time_now - click_time).total_seconds() < 1:
                 event_options = [e['value'] for e in event_options]
                 if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
                     if event_options.index(event_value) > 0:
@@ -298,50 +298,74 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
      dash.dependencies.State('next_annotation', 'n_clicks_timestamp')])
 def get_event_options(dropdown_rec, set_record, set_event, click_previous, click_next):
     # Get the header file
-    header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-    temp_event = wfdb.rdheader(header_path).seg_name
-    temp_event = [s for s in temp_event if s != (dropdown_rec+'_layout') and s != '~']
+    options_event = []
+    if dropdown_rec:
+        header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
+        temp_event = wfdb.rdheader(header_path).seg_name
+        temp_event = [s for s in temp_event if s != (dropdown_rec+'_layout') and s != '~']
 
-    # Set the options based on the annotated event times of the chosen record 
-    options_event = [{'label': t, 'value': t} for t in temp_event]
+        # Set the options based on the annotated event times of the chosen record
+        options_event = [{'label': t, 'value': t} for t in temp_event]
 
     # Set the value if provided, change if requested
+    return_event = None
     if set_event != '' and set_event:
         idx = temp_event.index(set_event)
+        time_now = datetime.datetime.now()
+        # Convert ms from epoch to datetime object
+        if click_previous:
+            click_previous = datetime.datetime.fromtimestamp(click_previous / 1000.0)
+        if click_next:
+            click_next = datetime.datetime.fromtimestamp(click_next / 1000.0)
+        # Consider next annotation desired if button was pressed in the
+        # last 1 second... change this?
+        # TODO: make this better
         if click_previous and click_next:
-            if click_previous > click_next:
-                if idx == 0:
-                    # At the beginning of the list, go to the end
-                    return_event = temp_event[-1]
+            if (click_previous > click_next):
+                if (time_now - click_previous).total_seconds() < 1:
+                    if idx == 0:
+                        # At the beginning of the list, go to the end
+                        return_event = temp_event[-1]
+                    else:
+                        # Decrement the record if not the beginning of the list
+                        # TODO: Decrement to the next non-annotated waveform instead?
+                        return_event = temp_event[idx-1]
                 else:
-                    # Decrement the record if not the beginning of the list
-                    # TODO: Decrement to the next non-annotated waveform instead?
-                    return_event = temp_event[idx-1]
+                    return_event = set_event
             else:
-                if idx == (len(set_event) - 1):
-                    # Reached the end of the list, go back to the beginning
-                    return_event = temp_event[0]
+                if (time_now - click_next).total_seconds() < 1:
+                    if idx == (len(set_event) - 1):
+                        # Reached the end of the list, go back to the beginning
+                        return_event = temp_event[0]
+                    else:
+                        # Increment the event if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_event = temp_event[idx+1]
                 else:
-                    # Increment the event if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_event = temp_event[idx+1]
+                    return_event = set_event
         elif click_previous or click_next:
             if click_previous:
-                if idx == 0:
-                    # At the beginning of the list, go to the end
-                    return_event = temp_event[-1]
+                if (time_now - click_previous).total_seconds() < 1:
+                    if idx == 0:
+                        # At the beginning of the list, go to the end
+                        return_event = temp_event[-1]
+                    else:
+                        # Decrement the record if not the beginning of the list
+                        # TODO: Decrement to the next non-annotated waveform instead?
+                        return_event = temp_event[idx-1]
                 else:
-                    # Decrement the record if not the beginning of the list
-                    # TODO: Decrement to the next non-annotated waveform instead?
-                    return_event = temp_event[idx-1]
+                    return_event = set_event
             else:
-                if idx == (len(set_event) - 1):
-                    # Reached the end of the list, go back to the beginning
-                    return_event = temp_event[0]
+                if (time_now - click_next).total_seconds() < 1:
+                    if idx == (len(set_event) - 1):
+                        # Reached the end of the list, go back to the beginning
+                        return_event = temp_event[0]
+                    else:
+                        # Increment the event if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_event = temp_event[idx+1]
                 else:
-                    # Increment the event if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_event = temp_event[idx+1]
+                    return_event = set_event
         else:
             # Requested event
             return_event = set_event
@@ -381,9 +405,125 @@ def update_text(dropdown_rec, dropdown_event):
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
-    [dash.dependencies.Input('dropdown_rec', 'value'),
-     dash.dependencies.Input('dropdown_event', 'value')])
-def update_graph(dropdown_rec, dropdown_event):
+    [dash.dependencies.Input('dropdown_event', 'value')],
+    [dash.dependencies.State('dropdown_rec', 'value')])
+def update_graph(dropdown_event, dropdown_rec):
+    # Grid and zero-line color
+    gridzero_color = 'rgb(255, 60, 60)'
+    # ECG gridlines parameters
+    grid_delta_major = 0.2
+
+    # Set a blank plot if none is loaded
+    if not dropdown_rec or not dropdown_event:
+        fig = make_subplots(
+            rows = 4,
+            cols = 1,
+            shared_xaxes = True,
+            vertical_spacing = 0
+        )
+
+        fig.update_layout({
+            'height': 750,
+            'grid': {
+                'rows': 4,
+                'columns': 1,
+                'pattern': 'independent'
+            },
+            'showlegend': False,
+            'hovermode': 'x'
+        })
+
+        for i in range(4):
+            fig.add_trace(go.Scatter({
+                'x': [None],
+                'y': [None]
+            }), row = i+1, col = 1)
+
+            if (i == 0) or (i == 1):
+                fig.update_xaxes({
+                    'showgrid': True,
+                    'dtick': grid_delta_major,
+                    'showticklabels': False,
+                    'gridcolor': gridzero_color,
+                    'zeroline': True,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 20],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = i+1, col = 1)
+                fig.update_yaxes({
+                    'fixedrange': False,
+                    'showgrid': True,
+                    'dtick': grid_delta_major,
+                    'showticklabels': True,
+                    'gridcolor': gridzero_color,
+                    'zeroline': True,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 4],
+                }, row = i+1, col = 1)
+            elif i == 3:
+                fig.update_xaxes({
+                    'title': 'Time (s)',
+                    'showgrid': False,
+                    'dtick': None,
+                    'showticklabels': True,
+                    'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 20],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = i+1, col = 1)
+                fig.update_yaxes({
+                    'fixedrange': False,
+                    'showgrid': False,
+                    'dtick': None,
+                    'showticklabels': True,
+                    'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 4],
+                }, row = i+1, col = 1)
+            else:
+                fig.update_xaxes({
+                    'showgrid': False,
+                    'dtick': None,
+                    'showticklabels': False,
+                    'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 20],
+                    'rangeslider': {
+                        'visible': False
+                    }
+                }, row = i+1, col = 1)
+                fig.update_yaxes({
+                    'fixedrange': False,
+                    'showgrid': False,
+                    'dtick': None,
+                    'showticklabels': True,
+                    'gridcolor': gridzero_color,
+                    'zeroline': False,
+                    'zerolinewidth': 1,
+                    'zerolinecolor': gridzero_color,
+                    'gridwidth': 1,
+                    'range': [0, 4],
+                }, row = i+1, col = 1)
+
+        return (fig)
+
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path)
@@ -399,10 +539,6 @@ def update_graph(dropdown_rec, dropdown_event):
     time_stop = record[1]['fs'] * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
     window_size = 10
-    # Grid and zero-line color
-    gridzero_color = 'rgb(255, 60, 60)'
-    # ECG gridlines parameters
-    grid_delta_major = 0.2
 
     # Set the initial layout of the figure
     fig = make_subplots(
