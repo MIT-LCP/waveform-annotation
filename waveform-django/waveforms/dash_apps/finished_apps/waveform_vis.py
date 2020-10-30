@@ -24,81 +24,90 @@ FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
-dropdown_width = "300px"
+dropdown_width = '200px'
 
 # Initialize the Dash App
 app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
 # Specify the app layout
 app.layout = html.Div([
-    # The record dropdown
+    # Area to submit annotations
     html.Div([
-        html.Label(['Select Record to Plot']),
+        # The record dropdown
+        html.Div([
+            html.Label(['Select Record to Plot']),
+            dcc.Dropdown(
+                id = 'dropdown_rec',
+                multi = False,
+                clearable = False,
+                searchable = True,
+                persistence = False,
+                placeholder = 'Please Select...',
+                style = {'width': dropdown_width},
+            )
+        ], style={'display': 'inline-block'}),
+        # The event dropdown
+        html.Div([
+            html.Label(['Select Event to Plot']),
+            dcc.Dropdown(
+                id = 'dropdown_event',
+                multi = False,
+                clearable = False,
+                searchable = True,
+                persistence = False,
+                placeholder = 'Please Select...',
+                style = {'width': dropdown_width},
+            )
+        ]),
+        # The event display
+        html.Div(
+            id = 'event_text',
+            children = html.Span([html.Br(), html.Br(), ''], style={'fontSize': '36px'})
+        ),
+        # The reviewer decision section
+        html.Label(['Enter decision here:']),
         dcc.Dropdown(
-            id = 'dropdown_rec',
+            id = 'reviewer_decision',
+            options = [
+                {'label': 'True (alarm is correct)', 'value': 'True'},
+                {'label': 'False (alarm is incorrect)', 'value': 'False'},
+                {'label': 'Reject (remove from database)', 'value': 'Reject'},
+                {'label': 'Uncertain', 'value': 'Uncertain'}
+            ],
             multi = False,
             clearable = False,
-            searchable = True,
+            searchable = False,
             placeholder = 'Please Select...',
-            style = {"width": dropdown_width},
-            persistence = False,#True,
-            persistence_type = 'session',
+            style = {'width': dropdown_width},
+            persistence = False
         ),
-    ], style={'display': 'inline-block'}),
-    # The event dropdown
-    html.Div([
-        html.Label(['Select Event to Plot']),
-        dcc.Dropdown(
-            id = 'dropdown_event',
-            multi = False,
-            clearable = False,
-            searchable = True,
-            placeholder = 'Please Select...',
-            style = {"width": dropdown_width},
-            persistence = False,#True,
-            persistence_type = 'session',
+        # The reviewer comment section
+        html.Label(['Enter comments here:']),
+        html.Div(
+            dcc.Textarea(id = 'reviewer_comments',
+                        style = {
+                            'width': dropdown_width,
+                            'height': '300px'
+                        })
         ),
-    ], style={'display': 'inline-block'}),
+        # Select previous or next annotation
+        html.Button('Previous Annotation', id = 'previous_annotation'),
+        html.Button('Next Annotation', id = 'next_annotation'),
+    ], style={'display': 'inline-block', 'vertical-align': '125px'}),
     # The plot itself
     html.Div([
         dcc.Graph(id = 'the_graph'),
-    ]),
-    # The event display
+    ], style={'display': 'inline-block'}),
+    # Button used to submit new annotations
     html.Div([
-        html.Div(id = 'event_text')
-    ]),
+        html.Button('Submit', id = 'submit_time'),
+        html.Div(
+            id = 'reviewer_display',
+            children = 'Enter a value and press submit'
+        )
+    ], style={'display': 'block'}),
     # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
-    # The reviewer decision and comment section
-    html.Label(['Enter decision here:']),
-    dcc.Dropdown(
-        id = 'reviewer_decision',
-        options = [
-            {'label': 'True (alarm is correct)', 'value': 'True'},
-            {'label': 'False (alarm is incorrect)', 'value': 'False'},
-            {'label': 'Reject (remove from database)', 'value': 'Reject'},
-            {'label': 'Uncertain', 'value': 'Uncertain'}
-        ],
-        multi = False,
-        clearable = False,
-        searchable = False,
-        placeholder = 'Please Select...',
-        style = {"width": dropdown_width},
-        persistence = False
-    ),
-    html.Label(['Enter comments here:']),
-    html.Div(
-        dcc.Textarea(id = 'reviewer_comments',
-                     style = {
-                         'width': '1000px',
-                         'height': '100px'
-                     })
-    ),
-    html.Button('Submit', id = 'submit_time'),
-    html.Div(id = 'reviewer_display',
-             children = 'Enter a value and press submit'),
-    html.Button('Previous Annotation', id = 'previous_annotation'),
-    html.Button('Next Annotation', id = 'next_annotation'),
 ])
 
 
@@ -385,7 +394,7 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
      dash.dependencies.Input('dropdown_event', 'value')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
-    event_text = None
+    event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': '36px'})
     if dropdown_rec and dropdown_event:
         # Extract the records
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
@@ -397,7 +406,7 @@ def update_text(dropdown_rec, dropdown_event):
         ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
         # Update the annotation event text
         event_text = [
-            html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
+            html.Span([html.Br(), '{}'.format(ann_event)], style={'fontSize': '36px'})
         ]
 
     return event_text, dropdown_rec, dropdown_event
@@ -409,6 +418,9 @@ def update_text(dropdown_rec, dropdown_event):
     [dash.dependencies.Input('dropdown_event', 'value')],
     [dash.dependencies.State('dropdown_rec', 'value')])
 def update_graph(dropdown_event, dropdown_rec):
+    # The figure height and width
+    fig_height = 850
+    fig_width = 850
     # Grid and zero-line color
     gridzero_color = 'rgb(255, 60, 60)'
     # ECG gridlines parameters
@@ -425,7 +437,8 @@ def update_graph(dropdown_event, dropdown_rec):
         )
         # Update the layout to match the loaded state
         fig.update_layout({
-            'height': 750,
+            'height': fig_height,
+            'width': fig_width,
             'grid': {
                 'rows': 4,
                 'columns': 1,
@@ -548,7 +561,7 @@ def update_graph(dropdown_event, dropdown_rec):
     time_start = fs * (event_time - time_range)
     time_stop = fs * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
-    window_size = 10
+    window_size = 15
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -558,14 +571,17 @@ def update_graph(dropdown_event, dropdown_rec):
         vertical_spacing = 0
     )
     fig.update_layout({
-        'height': 750,
+        'height': fig_height,
+        'width': fig_width,
         'grid': {
             'rows': n_sig,
             'columns': 1,
             'pattern': 'independent'
         },
         'showlegend': False,
-        'hovermode': 'x'
+        'hovermode': 'x',
+        'plot_bgcolor': '#ffffff',
+        'paper_bgcolor': '#ffffff'
     })
 
     # Put all EKG signals before BP, then all others following
@@ -636,7 +652,9 @@ def update_graph(dropdown_event, dropdown_rec):
             min_tick = round(min_y_vals / grid_delta_major) * grid_delta_major
             max_tick = round(max_y_vals / grid_delta_major) * grid_delta_major
             tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
+            # Max text length to fit should be _
             tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
+
         else:
             grid_state = False
             dtick_state = None
