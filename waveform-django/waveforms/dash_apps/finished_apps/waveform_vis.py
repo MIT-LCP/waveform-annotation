@@ -300,10 +300,10 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
     # Get the header file
     options_event = []
     if dropdown_rec:
+        # Extract all the events
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         temp_event = wfdb.rdheader(header_path).seg_name
         temp_event = [s for s in temp_event if s != (dropdown_rec+'_layout') and s != '~']
-
         # Set the options based on the annotated event times of the chosen record
         options_event = [{'label': t, 'value': t} for t in temp_event]
 
@@ -387,6 +387,7 @@ def update_text(dropdown_rec, dropdown_event):
     # Get the header file
     event_text = None
     if dropdown_rec and dropdown_event:
+        # Extract the records
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         temp_rec = wfdb.rdheader(header_path).seg_name
         temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
@@ -394,7 +395,7 @@ def update_text(dropdown_rec, dropdown_event):
         ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         ann = wfdb.rdann(ann_path, 'cba')
         ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
-
+        # Update the annotation event text
         event_text = [
             html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
         ]
@@ -415,13 +416,14 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set a blank plot if none is loaded
     if not dropdown_rec or not dropdown_event:
+        # Create baseline figure with 4 subplots
         fig = make_subplots(
             rows = 4,
             cols = 1,
             shared_xaxes = True,
             vertical_spacing = 0
         )
-
+        # Update the layout to match the loaded state
         fig.update_layout({
             'height': 750,
             'grid': {
@@ -432,13 +434,15 @@ def update_graph(dropdown_event, dropdown_rec):
             'showlegend': False,
             'hovermode': 'x'
         })
-
+        # Update the Null signal and axes
         for i in range(4):
             fig.add_trace(go.Scatter({
                 'x': [None],
                 'y': [None]
             }), row = i+1, col = 1)
-
+            # Update axes based on signal type
+            tick_vals = [round(n,1) for n in np.arange(0, 4, grid_delta_major).tolist()]
+            tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
             if (i == 0) or (i == 1):
                 fig.update_xaxes({
                     'showgrid': True,
@@ -457,7 +461,8 @@ def update_graph(dropdown_event, dropdown_rec):
                 fig.update_yaxes({
                     'fixedrange': False,
                     'showgrid': True,
-                    'dtick': grid_delta_major,
+                    'tickvals': tick_vals,
+                    'ticktext': tick_text,
                     'showticklabels': True,
                     'gridcolor': gridzero_color,
                     'zeroline': True,
@@ -486,7 +491,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     'fixedrange': False,
                     'showgrid': False,
                     'dtick': None,
-                    'showticklabels': True,
+                    'showticklabels': False,
                     'gridcolor': gridzero_color,
                     'zeroline': False,
                     'zerolinewidth': 1,
@@ -513,7 +518,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     'fixedrange': False,
                     'showgrid': False,
                     'dtick': None,
-                    'showticklabels': True,
+                    'showticklabels': False,
                     'gridcolor': gridzero_color,
                     'zeroline': False,
                     'zerolinewidth': 1,
@@ -527,6 +532,11 @@ def update_graph(dropdown_event, dropdown_rec):
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path)
+    fs = record[1]['fs']
+    n_sig = record[1]['n_sig']
+    sig_name = record[1]['sig_name']
+    sig_len = record[1]['sig_len']
+    units = record[1]['units']
 
     # Maybe down-sample signal if too slow?
     down_sample = 4
@@ -535,8 +545,8 @@ def update_graph(dropdown_event, dropdown_rec):
     event_time = 300
     # How much signal should be displayed before and after event (seconds)
     time_range = 60
-    time_start = record[1]['fs'] * (event_time - time_range)
-    time_stop = record[1]['fs'] * (event_time + time_range)
+    time_start = fs * (event_time - time_range)
+    time_stop = fs * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
     window_size = 10
 
@@ -550,7 +560,7 @@ def update_graph(dropdown_event, dropdown_rec):
     fig.update_layout({
         'height': 750,
         'grid': {
-            'rows': record[1]['n_sig'],
+            'rows': n_sig,
             'columns': 1,
             'pattern': 'independent'
         },
@@ -561,32 +571,33 @@ def update_graph(dropdown_event, dropdown_rec):
     # Put all EKG signals before BP, then all others following
     sig_order = []
     extra_sigs = ['ABP', 'PLETH']
-    if 'ABP' in record[1]['sig_name']:
-        for i,s in enumerate(record[1]['sig_name']):
+    if 'ABP' in sig_name:
+        for i,s in enumerate(sig_name):
             if s not in extra_sigs:
                 sig_order.append(i)
-        sig_order.append(record[1]['sig_name'].index('ABP'))
+        sig_order.append(sig_name.index('ABP'))
         for s in extra_sigs[1:]:
-            if s in record[1]['sig_name']:
-                sig_order.append(record[1]['sig_name'].index(s))
+            if s in sig_name:
+                sig_order.append(sig_name.index(s))
     else:
-        sig_order = range(record[1]['n_sig'])
+        sig_order = range(n_sig)
 
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
         y_string = 'y' + str(idx+1)
         # Generate the waveform x-values and y-values
-        x_vals = [(i / record[1]['fs']) for i in range(record[1]['sig_len'])][time_start:time_stop:down_sample]
-        y_vals = record[0][:,r][time_start:time_stop:down_sample]
+        current_record = record[0][:,r]
+        x_vals = [(i / fs) for i in range(sig_len)][time_start:time_stop:down_sample]
+        y_vals = current_record[time_start:time_stop:down_sample]
         # Set the initial display range of y-values based on values in
         # initial range of x-values
-        index_start = record[1]['fs'] * (event_time - window_size)
-        index_stop = record[1]['fs'] * (event_time + window_size)
+        index_start = fs * (event_time - window_size)
+        index_stop = fs * (event_time + window_size)
         # Remove outliers to prevent weird axes scaling
-        # temp_data = record[0][:,r][abs(record[0][:,r] - np.nanmean(record[0][:,r])) < 3 * np.nanstd(record[0][:,r])]
-        min_y_vals = min(record[0][:,r][index_start:index_stop])
-        max_y_vals = max(record[0][:,r][index_start:index_stop])
+        # temp_data = current_record[abs(current_record - np.nanmean(current_record)) < 3 * np.nanstd(current_record)]
+        min_y_vals = min(current_record[index_start:index_stop])
+        max_y_vals = max(current_record[index_start:index_stop])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -599,7 +610,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'color': 'black',
                 'width': 3
             },
-            'name': record[1]['sig_name'][r]
+            'name': sig_name[r]
         }), row = idx+1, col = 1)
 
         # Display where the event is
@@ -618,21 +629,28 @@ def update_graph(dropdown_event, dropdown_rec):
         })
 
         # Set the initial y-axis parameters
-        if record[1]['sig_name'][r] not in extra_sigs:
+        if sig_name[r] not in extra_sigs:
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
+            min_tick = round(min_y_vals / grid_delta_major) * grid_delta_major
+            max_tick = round(max_y_vals / grid_delta_major) * grid_delta_major
+            tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
+            tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
         else:
             grid_state = False
             dtick_state = None
             zeroline_state = False
+            tick_vals = []
+            tick_text = []
 
         fig.update_yaxes({
-            'title': record[1]['sig_name'][r] + ' (' + record[1]['units'][r] + ')',
+            'title': sig_name[r] + ' (' + units[r] + ')',
             'fixedrange': False,
             'showgrid': grid_state,
-            'dtick': dtick_state,
             'showticklabels': True,
+            'tickvals': tick_vals,
+            'ticktext': tick_text,
             'gridcolor': gridzero_color,
             'zeroline': zeroline_state,
             'zerolinewidth': 1,
@@ -642,7 +660,7 @@ def update_graph(dropdown_event, dropdown_rec):
         }, row = idx+1, col = 1)
 
         # Set the initial x-axis parameters
-        if idx == record[1]['n_sig']-1:
+        if idx == n_sig-1:
             fig.update_xaxes({
                 'title': 'Time (s)',
                 'showgrid': grid_state,
