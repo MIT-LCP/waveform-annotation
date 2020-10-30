@@ -25,6 +25,7 @@ FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = '200px'
+event_fontsize = '36px'
 
 # Initialize the Dash App
 app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
@@ -61,7 +62,7 @@ app.layout = html.Div([
         # The event display
         html.Div(
             id = 'event_text',
-            children = html.Span([html.Br(), html.Br(), ''], style={'fontSize': '36px'})
+            children = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
         ),
         # The reviewer decision section
         html.Label(['Enter decision here:']),
@@ -394,7 +395,7 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
      dash.dependencies.Input('dropdown_event', 'value')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
-    event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': '36px'})
+    event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
     if dropdown_rec and dropdown_event:
         # Extract the records
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
@@ -406,7 +407,7 @@ def update_text(dropdown_rec, dropdown_event):
         ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
         # Update the annotation event text
         event_text = [
-            html.Span([html.Br(), '{}'.format(ann_event)], style={'fontSize': '36px'})
+            html.Span([html.Br(), '{}'.format(ann_event)], style={'fontSize': event_fontsize})
         ]
 
     return event_text, dropdown_rec, dropdown_event
