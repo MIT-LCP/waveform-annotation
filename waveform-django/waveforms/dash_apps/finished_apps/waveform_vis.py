@@ -113,7 +113,7 @@ def clear_text(set_event):
     if (set_event != '') and (set_event != None):
         query = """
             {{
-                all_annotations(record:"{}"){{
+                all_annotations(event:"{}"){{
                     edges{{
                         node{{
                             decision
@@ -130,7 +130,7 @@ def clear_text(set_event):
 
         query = """
             {{
-                all_annotations(record:"{}"){{
+                all_annotations(event:"{}"){{
                     edges{{
                         node{{
                             comments
