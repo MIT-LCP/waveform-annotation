@@ -474,8 +474,8 @@ def update_graph(dropdown_event, dropdown_rec):
                 'y': [None]
             }), row = i+1, col = 1)
             # Update axes based on signal type
-            tick_vals = [round(n,1) for n in np.arange(0, 4, grid_delta_major).tolist()]
-            tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
+            y_tick_vals = [round(n,1) for n in np.arange(0, 4, grid_delta_major).tolist()]
+            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
             if (i == 0) or (i == 1):
                 fig.update_xaxes({
                     'showgrid': True,
@@ -494,8 +494,8 @@ def update_graph(dropdown_event, dropdown_rec):
                 fig.update_yaxes({
                     'fixedrange': False,
                     'showgrid': True,
-                    'tickvals': tick_vals,
-                    'ticktext': tick_text,
+                    'tickvals': y_tick_vals,
+                    'ticktext': y_tick_text,
                     'showticklabels': True,
                     'gridcolor': gridzero_color,
                     'zeroline': True,
@@ -581,7 +581,7 @@ def update_graph(dropdown_event, dropdown_rec):
     time_start = fs * (event_time - time_range)
     time_stop = fs * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
-    window_size = 15
+    window_size = 5
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -600,6 +600,7 @@ def update_graph(dropdown_event, dropdown_rec):
         },
         'showlegend': False,
         'hovermode': 'x',
+        'spikedistance':  -1,
         'plot_bgcolor': '#ffffff',
         'paper_bgcolor': '#ffffff'
     })
@@ -669,26 +670,67 @@ def update_graph(dropdown_event, dropdown_rec):
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            min_tick = (round(min_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
-            max_tick = (round(max_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
-            tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
+            min_tick = (round(min(y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
+            max_tick = (round(max(y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
+            y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
             # Max text length to fit should be _
-            tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
-
+            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
             grid_state = False
             dtick_state = None
             zeroline_state = False
-            tick_vals = []
-            tick_text = []
+            x_tick_vals = []
+            x_tick_text = []
+            y_tick_vals = []
+            y_tick_text = []
 
+        # Set the initial x-axis parameters
+        x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
+        x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
+        if idx != (n_sig - 1):
+            fig.update_xaxes({
+                'title': None,
+                'dtick': 0.2,
+                'showticklabels': False,
+                'gridcolor': gridzero_color,
+                'gridwidth': 1,
+                'zeroline': zeroline_state,
+                'zerolinewidth': 1,
+                'zerolinecolor': gridzero_color,
+                'range': [event_time - window_size, event_time + window_size],
+                'showspikes': True,
+                'spikemode': 'across',
+                'spikesnap': 'cursor',
+                'showline': True,
+            }, row = idx+1, col = 1)
+        else:
+            # Add the x-axis title to the bottom figure
+            fig.update_xaxes({
+                'title': 'Time (s)',
+                'dtick': 0.2,
+                'showticklabels': True,
+                'tickvals': x_tick_vals,
+                'ticktext': x_tick_text,
+                'gridcolor': gridzero_color,
+                'gridwidth': 1,
+                'zeroline': zeroline_state,
+                'zerolinewidth': 1,
+                'zerolinecolor': gridzero_color,
+                'range': [event_time - window_size, event_time + window_size],
+                'showspikes': True,
+                'spikemode': 'across',
+                'spikesnap': 'cursor',
+                'showline': True,
+            }, row = idx+1, col = 1)
+
+        # Set the initial y-axis parameters
         fig.update_yaxes({
             'title': sig_name[r] + ' (' + units[r] + ')',
             'fixedrange': False,
             'showgrid': grid_state,
             'showticklabels': True,
-            'tickvals': tick_vals,
-            'ticktext': tick_text,
+            'tickvals': y_tick_vals,
+            'ticktext': y_tick_text,
             'gridcolor': gridzero_color,
             'zeroline': zeroline_state,
             'zerolinewidth': 1,
@@ -697,38 +739,6 @@ def update_graph(dropdown_event, dropdown_rec):
             'range': [min_y_vals, max_y_vals],
         }, row = idx+1, col = 1)
 
-        # Set the initial x-axis parameters
-        if idx == n_sig-1:
-            fig.update_xaxes({
-                'title': 'Time (s)',
-                'showgrid': grid_state,
-                'dtick': dtick_state,
-                'showticklabels': True,
-                'gridcolor': gridzero_color,
-                'zeroline': zeroline_state,
-                'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
-                'gridwidth': 1,
-                'range': [event_time - window_size, event_time + window_size],
-                'rangeslider': {
-                    'visible': False
-                }
-            }, row = idx+1, col = 1)
-        else:
-            fig.update_xaxes({
-                #'title': 'Time (s)',
-                'showgrid': grid_state,
-                'dtick': dtick_state,
-                'showticklabels': False,
-                'gridcolor': gridzero_color,
-                'zeroline': zeroline_state,
-                'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
-                'gridwidth': 1,
-                'range': [event_time - window_size, event_time + window_size],
-                'rangeslider': {
-                    'visible': False
-                }
-            }, row = idx+1, col = 1)
+        fig.update_traces(xaxis = x_string)
 
     return (fig)
