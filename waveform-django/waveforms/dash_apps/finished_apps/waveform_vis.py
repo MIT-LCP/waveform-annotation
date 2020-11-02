@@ -270,15 +270,47 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                     submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
                 elif (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation'):
                     submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
-                # Save the annotation to the database
-                annotation = Annotation(
-                    record = record_value,
-                    event = event_value,
-                    decision = decision_value,
-                    comments = comments_value,
-                    decision_date = submit_time
-                )
-                annotation.update()
+                # Save the annotation to the database only if changes
+                # were made or a new annotation
+                query = """
+                    {{
+                        all_annotations(event:"{}"){{
+                            edges{{
+                                node{{
+                                    record,
+                                    event,
+                                    decision,
+                                    comments,
+                                    decision_date
+                                }}
+                            }}
+                        }}
+                    }}
+                """.format(event_value)
+                res = schema.execute(query)
+                if res.data['all_annotations']['edges'] != []:
+                    current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
+                    proposed_annotation = [record_value, event_value, decision_value, comments_value]
+                    # Only save annotation if something has changed
+                    if current_annotation[:4] != proposed_annotation:
+                        annotation = Annotation(
+                            record = record_value,
+                            event = event_value,
+                            decision = decision_value,
+                            comments = comments_value,
+                            decision_date = submit_time
+                        )
+                        annotation.update()
+                else:
+                    # Create new annotation since none already exist
+                    annotation = Annotation(
+                        record = record_value,
+                        event = event_value,
+                        decision = decision_value,
+                        comments = comments_value,
+                        decision_date = submit_time
+                    )
+                    annotation.update()
 
     return options_rec, return_record
 
