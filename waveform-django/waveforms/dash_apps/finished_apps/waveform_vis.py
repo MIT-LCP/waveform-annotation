@@ -669,8 +669,8 @@ def update_graph(dropdown_event, dropdown_rec):
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            min_tick = round(min_y_vals / grid_delta_major) * grid_delta_major
-            max_tick = round(max_y_vals / grid_delta_major) * grid_delta_major
+            min_tick = (round(min_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
+            max_tick = (round(max_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
             tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
             # Max text length to fit should be _
             tick_text = [str(n) if n%1 == 0 else ' ' for n in tick_vals]
