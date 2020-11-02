@@ -98,47 +98,10 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(id = 'the_graph'),
     ], style={'display': 'inline-block'}),
-    # Button used to submit new annotations
-    html.Div([
-        html.Button('Submit', id = 'submit_time'),
-        html.Div(
-            id = 'reviewer_display',
-            children = 'Enter a value and press submit'
-        )
-    ], style={'display': 'block'}),
     # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
 ])
-
-
-# The reviewer decision and comment section
-@app.callback(
-    dash.dependencies.Output('reviewer_display', 'children'),
-    [dash.dependencies.Input('submit_time', 'n_clicks_timestamp')],
-    [dash.dependencies.State('dropdown_rec', 'value'),
-     dash.dependencies.State('dropdown_event', 'value'),
-     dash.dependencies.State('reviewer_decision', 'value'),
-     dash.dependencies.State('reviewer_comments', 'value')])
-def reviewer_comment(submit_time, dropdown_rec, dropdown_event,
-                     reviewer_decision, reviewer_comments):
-    if submit_time:
-        # Convert ms from epoch to datetime object
-        input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
-        # Save the annotation to the database
-        annotation = Annotation(
-            record = dropdown_rec,
-            event = dropdown_event,
-            decision = reviewer_decision,
-            comments = reviewer_comments,
-            decision_date = input_time
-        )
-        annotation.update()
-        return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
-                                                                        input_time,
-                                                                        reviewer_comments)
-    else:
-        return None
 
 
 # Clear/preset reviewer decision and comments
@@ -197,8 +160,11 @@ def clear_text(set_event):
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
     [dash.dependencies.State('dropdown_event', 'options'),
-     dash.dependencies.State('set_event', 'value')])
-def get_records_options(click_previous, click_next, set_record, event_options, event_value):
+     dash.dependencies.State('set_event', 'value'),
+     dash.dependencies.State('reviewer_decision', 'value'),
+     dash.dependencies.State('reviewer_comments', 'value')])
+def get_records_options(click_previous, click_next, record_value, event_options,
+                        event_value, decision_value, comments_value):
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -208,18 +174,18 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
     # Set the value if provided
-    return_record = set_record
+    return_record = record_value
     ctx = dash.callback_context
-    if set_record != '':
+    if record_value != '':
         # Determine if called from another event or just loaded
         if len(ctx.triggered) > 0:
             if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
                 event_options = [e['value'] for e in event_options]
                 if event_options.index(event_value) > 0:
                     # Event list not ended, keep record value the same
-                    return_record = set_record
+                    return_record = record_value
                 else:
-                    idx = all_records.index(set_record)
+                    idx = all_records.index(record_value)
                     if idx == 0:
                         # Reached the end of the list, go back to the beginning
                         return_record = all_records[0]
@@ -231,9 +197,9 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
                 event_options = [e['value'] for e in event_options]
                 if event_options.index(event_value) < (len(event_options) - 1):
                     # Event list not ended, keep record value the same
-                    return_record = set_record
+                    return_record = record_value
                 else:
-                    idx = all_records.index(set_record)
+                    idx = all_records.index(record_value)
                     if idx == (len(all_records) - 1):
                         # Reached the end of the list, go back to the beginning
                         return_record = all_records[0]
@@ -243,7 +209,7 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
                         return_record = all_records[idx+1]
         else:
             # Requested record
-            return_record = set_record
+            return_record = record_value
     else:
         if click_previous or click_next:
             # Determine which button was clicked
@@ -263,9 +229,9 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
                 if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
                     if event_options.index(event_value) > 0:
                         # Event list not ended, keep record value the same
-                        return_record = set_record
+                        return_record = record_value
                     else:
-                        idx = all_records.index(set_record)
+                        idx = all_records.index(record_value)
                         if idx == 0:
                             # At the beginning of the list, go to the end
                             return_record = all_records[-1]
@@ -276,9 +242,9 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
                 else:
                     if event_options.index(event_value) < (len(event_options) - 1):
                         # Event list not ended, keep record value the same
-                        return_record = set_record
+                        return_record = record_value
                     else:
-                        idx = all_records.index(set_record)
+                        idx = all_records.index(record_value)
                         if idx == (len(all_records) - 1):
                             # Reached the end of the list, go back to the beginning
                             return_record = all_records[0]
@@ -288,10 +254,31 @@ def get_records_options(click_previous, click_next, set_record, event_options, e
                             return_record = all_records[idx+1]
             else:
                 # Should theoretically never happen but here just in case
-                return_record = set_record
+                return_record = record_value
         else:
             # Keep blank if loading main page (no presets)
             return_record = None
+
+    # Update the annotations
+    if len(ctx.triggered) > 0:
+        if ((ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation') or
+                (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation')):
+            # Only save the annotations if a decision is made
+            if decision_value:
+                # Convert ms from epoch to datetime object
+                if (ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation'):
+                    submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
+                elif (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation'):
+                    submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
+                # Save the annotation to the database
+                annotation = Annotation(
+                    record = record_value,
+                    event = event_value,
+                    decision = decision_value,
+                    comments = comments_value,
+                    decision_date = submit_time
+                )
+                annotation.update()
 
     return options_rec, return_record
 
