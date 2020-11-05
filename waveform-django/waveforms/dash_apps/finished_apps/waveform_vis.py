@@ -582,6 +582,10 @@ def update_graph(dropdown_event, dropdown_rec):
     time_stop = fs * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
     window_size = 5
+    # Set the initial display range of y-values based on values in
+    # initial range of x-values
+    index_start = fs * (event_time - window_size)
+    index_stop = fs * (event_time + window_size)
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -619,6 +623,18 @@ def update_graph(dropdown_event, dropdown_rec):
     else:
         sig_order = range(n_sig)
 
+    # Find unified range for all EKG signals
+    total_y_vals = []
+    total_y_range_vals = []
+    for idx,r in enumerate(sig_order):
+        if sig_name[r] not in extra_sigs:
+            total_y_vals.append(record[0][:,r][time_start:time_stop:down_sample])
+            total_y_range_vals.append(record[0][:,r][index_start:index_stop])
+    min_y_vals = np.nanmin(total_y_range_vals)
+    max_y_vals = np.nanmax(total_y_range_vals)
+    min_tick = (round(np.nanmin(total_y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
+    max_tick = (round(np.nanmax(total_y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
+
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
@@ -627,14 +643,6 @@ def update_graph(dropdown_event, dropdown_rec):
         current_record = record[0][:,r]
         x_vals = [(i / fs) for i in range(sig_len)][time_start:time_stop:down_sample]
         y_vals = current_record[time_start:time_stop:down_sample]
-        # Set the initial display range of y-values based on values in
-        # initial range of x-values
-        index_start = fs * (event_time - window_size)
-        index_stop = fs * (event_time + window_size)
-        # Remove outliers to prevent weird axes scaling
-        # temp_data = current_record[abs(current_record - np.nanmean(current_record)) < 3 * np.nanstd(current_record)]
-        min_y_vals = np.nanmin(current_record[index_start:index_stop])
-        max_y_vals = np.nanmax(current_record[index_start:index_stop])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -670,12 +678,14 @@ def update_graph(dropdown_event, dropdown_rec):
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            min_tick = (round(np.nanmin(y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
-            max_tick = (round(np.nanmax(y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
             y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
             # Max text length to fit should be _
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
+            # Remove outliers to prevent weird axes scaling
+            # temp_data = current_record[abs(current_record - np.nanmean(current_record)) < 3 * np.nanstd(current_record)]
+            min_y_vals = np.nanmin(current_record[index_start:index_stop])
+            max_y_vals = np.nanmax(current_record[index_start:index_stop])
             grid_state = False
             dtick_state = None
             zeroline_state = False
