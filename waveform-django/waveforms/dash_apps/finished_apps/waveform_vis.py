@@ -633,8 +633,8 @@ def update_graph(dropdown_event, dropdown_rec):
         index_stop = fs * (event_time + window_size)
         # Remove outliers to prevent weird axes scaling
         # temp_data = current_record[abs(current_record - np.nanmean(current_record)) < 3 * np.nanstd(current_record)]
-        min_y_vals = min(current_record[index_start:index_stop])
-        max_y_vals = max(current_record[index_start:index_stop])
+        min_y_vals = np.nanmin(current_record[index_start:index_stop])
+        max_y_vals = np.nanmax(current_record[index_start:index_stop])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -654,9 +654,9 @@ def update_graph(dropdown_event, dropdown_rec):
         fig.add_shape({
             'type': 'line',
             'x0': event_time,
-            'y0': min(y_vals) - 0.5 * (max(y_vals) - min(y_vals)),
+            'y0': np.nanmin(y_vals) - 0.5 * (np.nanmax(y_vals) - np.nanmin(y_vals)),
             'x1': event_time,
-            'y1': max(y_vals) + 0.5 * (max(y_vals) - min(y_vals)),
+            'y1': np.nanmax(y_vals) + 0.5 * (np.nanmax(y_vals) - np.nanmin(y_vals)),
             'xref': x_string,
             'yref': y_string,
             'line': {
@@ -670,8 +670,8 @@ def update_graph(dropdown_event, dropdown_rec):
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            min_tick = (round(min(y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
-            max_tick = (round(max(y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
+            min_tick = (round(np.nanmin(y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
+            max_tick = (round(np.nanmax(y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
             y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
             # Max text length to fit should be _
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
