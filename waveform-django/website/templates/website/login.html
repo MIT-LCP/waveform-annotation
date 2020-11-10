@@ -1,0 +1,55 @@
+<!-- {% block content %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Login</button>
+  </form>
+  Don't have an account? <a href="{% url 'register' %}">Sign Up</a>
+{% endblock %} -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+</head>
+
+<body>
+  <div>
+    <div>
+      <div>
+
+        <div>
+          <h3>LOGIN</h3>
+        </div>
+
+        <div>
+          <form method="POST" action="">
+            {% csrf_token %}
+            <div>
+              <p>Enter username here: <input type="text" name="username" placeholder="Username..."></p>
+            </div>
+            <div>
+              <p>Enter password here: <input type="password" name="password" placeholder="Password..."></p>
+            </div>
+            <div>
+              <input type="submit" value="Login">
+            </div>
+          </form>
+        </div>
+
+        {% for message in messages %}
+          <p id="messages">{{message}}</p>
+        {% endfor %}	
+
+        <div>
+          <div>
+            Don't have an account? <a href="{% url 'register' %}">Sign Up</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

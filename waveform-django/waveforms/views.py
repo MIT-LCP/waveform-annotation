@@ -1,10 +1,13 @@
 import os
 import wfdb
 from website.settings import base
-from django.shortcuts import render
 from waveforms.models import Annotation
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
+
+@login_required
 def waveform_published_home(request, set_record='', set_event=''):
     """
     Render waveform main page for published databases.
@@ -31,6 +34,7 @@ def waveform_published_home(request, set_record='', set_event=''):
         {'dash_context': dash_context})
 
 
+@login_required
 def render_annotations(request):
     """
     Render all saved annotations to allow edits.

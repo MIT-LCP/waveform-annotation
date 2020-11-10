@@ -1,0 +1,56 @@
+<!-- {% block content %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Register</button>
+  </form>
+  If you already have an account, <a href="{% url 'login' %}">Login</a>
+{% endblock %} -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+</head>
+
+<body>
+  <div>
+    <div>
+      <div>
+
+        <div>
+          <h3>REGISTER ACCOUNT</h3>
+        </div>
+
+        <div>
+          <form method="POST" action="">
+            {% csrf_token %}
+            <div>
+              <p>Enter username here: {{form.username}}</p>
+            </div>
+            <div>
+              <p>Enter password here: {{form.password1}}</p>
+            </div>
+            <div>
+              <p>Re-enter password here: {{form.password2}}</p>
+            </div>
+            <div>
+              <input type="submit" value="Register Account">
+            </div>
+          </form>
+        </div>
+
+        {{form.errors}}
+
+        <div>
+          <div>
+            Already have an account? <a href="{% url 'login' %}">Login</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
