@@ -45,7 +45,7 @@ app.layout = html.Div([
                 placeholder = 'Please Select...',
                 style = {'width': dropdown_width},
             )
-        ], style={'display': 'inline-block'}),
+        ], style = {'display': 'inline-block'}),
         # The event dropdown
         html.Div([
             html.Label(['Select Event to Plot']),
@@ -93,12 +93,13 @@ app.layout = html.Div([
         # Select previous or next annotation
         html.Button('Previous Annotation', id = 'previous_annotation'),
         html.Button('Next Annotation', id = 'next_annotation'),
-    ], style={'display': 'inline-block', 'vertical-align': '125px'}),
+    ], style = {'display': 'inline-block', 'vertical-align': '125px'}),
     # The plot itself
     html.Div([
         dcc.Graph(id = 'the_graph'),
-    ], style={'display': 'inline-block'}),
-    # Hidden div inside the app that stores the project record and event
+    ], style = {'display': 'inline-block'}),
+    # Hidden div inside the app that stores the project user, record, and event
+    dcc.Input(id = 'current_user', type = 'hidden', value = ''),
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
 ])
@@ -108,12 +109,13 @@ app.layout = html.Div([
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('set_event', 'value')])
-def clear_text(set_event):
+    [dash.dependencies.Input('set_event', 'value')],
+    [dash.dependencies.State('current_user', 'value')])
+def clear_text(set_event, current_user):
     if (set_event != '') and (set_event != None):
         query = """
             {{
-                all_annotations(event:"{}"){{
+                all_annotations(user:"{}", event:"{}"){{
                     edges{{
                         node{{
                             decision
@@ -121,16 +123,15 @@ def clear_text(set_event):
                     }}
                 }}
             }}
-        """.format(set_event)
+        """.format(current_user, set_event)
         res = schema.execute(query)
         if res.data['all_annotations']['edges'] == []:
             reviewer_decision = None
         else:
             reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
-
         query = """
             {{
-                all_annotations(event:"{}"){{
+                all_annotations(user:"{}", event:"{}"){{
                     edges{{
                         node{{
                             comments
@@ -138,7 +139,7 @@ def clear_text(set_event):
                     }}
                 }}
             }}
-        """.format(set_event)
+        """.format(current_user, set_event)
         res = schema.execute(query)
         if res.data['all_annotations']['edges'] == []:
             reviewer_comments = ''
@@ -162,9 +163,10 @@ def clear_text(set_event):
     [dash.dependencies.State('dropdown_event', 'options'),
      dash.dependencies.State('set_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
-     dash.dependencies.State('reviewer_comments', 'value')])
+     dash.dependencies.State('reviewer_comments', 'value'),
+     dash.dependencies.State('current_user', 'value'),])
 def get_records_options(click_previous, click_next, record_value, event_options,
-                        event_value, decision_value, comments_value):
+                        event_value, decision_value, comments_value, current_user):
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -274,7 +276,7 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                 # were made or a new annotation
                 query = """
                     {{
-                        all_annotations(event:"{}"){{
+                        all_annotations(user:"{}", event:"{}"){{
                             edges{{
                                 node{{
                                     record,
@@ -286,14 +288,16 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                             }}
                         }}
                     }}
-                """.format(event_value)
+                """.format(current_user, event_value)
                 res = schema.execute(query)
                 if res.data['all_annotations']['edges'] != []:
                     current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
-                    proposed_annotation = [record_value, event_value, decision_value, comments_value]
+                    proposed_annotation = [record_value, event_value,
+                                           decision_value, comments_value]
                     # Only save annotation if something has changed
                     if current_annotation[:4] != proposed_annotation:
                         annotation = Annotation(
+                            user = current_user,
                             record = record_value,
                             event = event_value,
                             decision = decision_value,
@@ -304,6 +308,7 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                 else:
                     # Create new annotation since none already exist
                     annotation = Annotation(
+                        user = current_user,
                         record = record_value,
                         event = event_value,
                         decision = decision_value,

@@ -25,7 +25,9 @@ def waveform_published_home(request, set_record='', set_event=''):
         HTML webpage responsible for hosting the waveform plot.
 
     """
+    current_user = request.user.username
     dash_context = {
+        'current_user': {'value': current_user},
         'set_record': {'value': set_record},
         'set_event': {'value': set_event}
     }
@@ -55,12 +57,13 @@ def render_annotations(request):
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
-    all_information = {}
-
     # Get the record files
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
+
+    # Hold all of the record and event information
+    all_information = {}
 
     # Get the events
     for rec in all_records:
@@ -69,15 +72,9 @@ def render_annotations(request):
         all_events = [s for s in all_events if s != (rec+'_layout') and s != '~']
         all_information[rec] = all_events
 
-    categories = [
-        'record',
-        'event',
-        'decision',
-        'comments',
-        'decision_date'
-    ]
-
-    all_annotations = Annotation.objects.order_by('-decision_date')
+    # Get all the annotations for the requested user
+    current_user = request.user.username
+    all_annotations = Annotation.objects.filter(user=current_user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
     all_anns = []
@@ -97,6 +94,15 @@ def render_annotations(request):
                 temp_anns.append(evt)
                 temp_anns.extend(['-', '-', '-'])
             all_anns.append(temp_anns)
+
+    # Categories to display for the annotations
+    categories = [
+        'record',
+        'event',
+        'decision',
+        'comments',
+        'decision_date'
+    ]
 
     return render(request, 'waveforms/annotations.html',
         {'categories': categories,
