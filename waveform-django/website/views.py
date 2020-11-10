@@ -1,25 +1,63 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
+from .forms import CreateUserForm
+from waveforms import views
 
 
-def error_404(request, exception=None):
+def register_page(request):
     """
-    View for testing the 404 page. To test, uncomment the URL pattern
-        in urls.py.
+    Create a new account upon request.
     """
-    return render(request,'404.html', status=404)
+    if request.user.is_authenticated:
+        return redirect('waveform_published_home')
+    else:
+        form = CreateUserForm()
+        if request.method == 'POST':
+            form = CreateUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                user = form.cleaned_data.get('username')
+                messages.success(request, 'Account was created for ' + user)
+                return redirect('login')
+        return render(request, 'website/register.html', {'form': form})
 
 
-def error_403(request, exception=None):
+def login_page(request):
     """
-    View for testing the 404 page. To test, uncomment the URL pattern
-        in urls.py.
+    Login the user upon request.
     """
-    return render(request,'403.html', status=403)
+    if request.user.is_authenticated:
+        return redirect('waveform_published_home')
+    else:
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password =request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                if 'annotations' in request.environ['QUERY_STRING']:
+                    return redirect('render_annotations')
+                else:
+                    return redirect('waveform_published_home')
+            else:
+                messages.info(request, 'Username OR password is incorrect')
+                return render(request, 'website/login.html', {})
+        else:
+            if (request.GET.dict() == {}) or not (request.user.is_authenticated):
+                return render(request, 'website/login.html', {})
+            elif 'annotations' in request.GET.dict()['next']:
+                return redirect('render_annotations')
+            else:
+                return redirect('waveform_published_home')
 
 
-def error_500(request, exception=None):
+def logout_user(request):
     """
-    View for testing the 404 page. To test, uncomment the URL pattern
-        in urls.py.
+    Logout the user upon request.
     """
-    return render(request, "500.html", status=500)
+    logout(request)
+    messages.info(request, 'Logged out successfully!')
+    return redirect('login')

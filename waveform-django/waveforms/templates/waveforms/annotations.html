@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="container">
+  <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
   <!-- The title header of the webpage -->
   <h1>
     Current Annotations
