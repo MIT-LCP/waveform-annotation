@@ -13,6 +13,7 @@ class TestGraphQL(TestCase):
         query_correct = """
             query {
                 all_annotations {
+                    user
                     record
                     event
                     decision
@@ -24,6 +25,7 @@ class TestGraphQL(TestCase):
         query_incorrect = """
             query {
                 all_annotations {
+                    user
                     record
                     event
                     decision
@@ -34,6 +36,7 @@ class TestGraphQL(TestCase):
         correct_output = []
         for p in Annotation.objects.all():
             correct_output.append({
+                'user': p.user,
                 'record': p.record,
                 'event': p.event,
                 'slug': p.slug,
