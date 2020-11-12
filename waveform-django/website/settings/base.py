@@ -18,6 +18,7 @@ from decouple import config
 # Basic settings based on development environment
 DEBUG = True
 SESSION_COOKIE_SECURE = False
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 ALLOWED_HOSTS = ['*']
 
