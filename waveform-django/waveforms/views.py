@@ -25,9 +25,7 @@ def waveform_published_home(request, set_record='', set_event=''):
         HTML webpage responsible for hosting the waveform plot.
 
     """
-    current_user = request.user.username
     dash_context = {
-        'current_user': {'value': current_user},
         'set_record': {'value': set_record},
         'set_event': {'value': set_event}
     }
