@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 {% load plotly_dash %}
-{% block local_css %}
-<link rel="stylesheet" href="{% static 'css/waveform_vis.css' %}">
-{% endblock %}
-
 {% block content %}
+<style>
+.embed-responsive {
+    width: 1200px;
+    height: 1200px;
+}
+</style>
 <!-- Plotly-based waveform viewer -->
 <div class="container">
   <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
