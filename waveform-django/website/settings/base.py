@@ -22,12 +22,17 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 ALLOWED_HOSTS = ['*']
 
+def custom_show_toolbar(request):
+    return True
+
 DEBUG_TOOLBAR_CONFIG = {
     'JQUERY_URL': '',
+    # 'SHOW_TOOLBAR_CALLBACK': custom_show_toolbar,
 }
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(PROJECT_DIR)
 LOGIN_URL = 'login'
 
 # Quick-start development settings - unsuitable for production
@@ -135,9 +140,13 @@ MAX_ATTEMPTS = 5
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
+#USE_X_FORWARDED_HOST = True
+#FORCE_SCRIPT_NAME = '/waveform-annotation'
+
+STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+STATICFILES_DIRS = [os.path.join(PROJECT_DIR,'static')]
 STATICFILE_FINDERS = [
     'django.contrib.staticfiles.finder.FileSystemFinder',
     'django.contrib.staticfiles.finder.AppDirectoriesFinder',
