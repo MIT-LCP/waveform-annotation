@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import pandas as pd
 import django.core.cache
+from website.middleware import get_current_user
 from website.settings import base
 from waveforms.models import Annotation
 # API query
@@ -99,7 +100,6 @@ app.layout = html.Div([
         dcc.Graph(id = 'the_graph'),
     ], style = {'display': 'inline-block'}),
     # Hidden div inside the app that stores the project user, record, and event
-    dcc.Input(id = 'current_user', type = 'hidden', value = ''),
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
 ])
@@ -109,10 +109,10 @@ app.layout = html.Div([
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('set_event', 'value')],
-    [dash.dependencies.State('current_user', 'value')])
-def clear_text(set_event, current_user):
-    if (set_event != '') and (set_event != None):
+    [dash.dependencies.Input('set_event', 'value')])
+def clear_text(set_event):
+    current_user = get_current_user()
+    if (set_event != '') and (set_event != None) and (current_user != ''):
         query = """
             {{
                 all_annotations(user:"{}", event:"{}"){{
@@ -163,10 +163,9 @@ def clear_text(set_event, current_user):
     [dash.dependencies.State('dropdown_event', 'options'),
      dash.dependencies.State('set_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
-     dash.dependencies.State('reviewer_comments', 'value'),
-     dash.dependencies.State('current_user', 'value'),])
+     dash.dependencies.State('reviewer_comments', 'value')])
 def get_records_options(click_previous, click_next, record_value, event_options,
-                        event_value, decision_value, comments_value, current_user):
+                        event_value, decision_value, comments_value):
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -274,6 +273,7 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                     submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
                 # Save the annotation to the database only if changes
                 # were made or a new annotation
+                current_user = get_current_user()
                 query = """
                     {{
                         all_annotations(user:"{}", event:"{}"){{
