@@ -13,7 +13,7 @@ class Annotation(models.Model):
         all_annotations = Annotation.objects.all()
         exists_already = False
         for a in all_annotations:
-            if (a.user == self.user) and (a.record == self.record) and (a.event == self.event)::
+            if (a.user == self.user) and (a.record == self.record) and (a.event == self.event):
                 exists_already = True
                 a.decision = self.decision
                 a.comments = self.comments

@@ -144,7 +144,6 @@ MAX_ATTEMPTS = 5
 #FORCE_SCRIPT_NAME = '/waveform-annotation'
 
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(PROJECT_DIR,'static')]
 STATICFILE_FINDERS = [
