@@ -455,6 +455,16 @@ def update_graph(dropdown_event, dropdown_rec):
     gridzero_color = 'rgb(255, 60, 60)'
     # ECG gridlines parameters
     grid_delta_major = 0.2
+    # Down-sample signal to increase performance
+    # Average starting frequency = 250 Hz
+    down_sample = 8
+    # Determine the time of the event (seconds)
+    # `300` if standard 10 minute segment, `dropdown_event` otherwise
+    event_time = 300
+    # How much signal should be displayed before and after event (seconds)
+    time_range = 30
+    # Determine how much signal to display before and after event (seconds)
+    window_size = 5
 
     # Set a blank plot if none is loaded
     if not dropdown_rec or not dropdown_event:
@@ -488,7 +498,9 @@ def update_graph(dropdown_event, dropdown_rec):
                 'y': [None]
             }), row = i+1, col = 1)
             # Update axes based on signal type
-            y_tick_vals = [round(n,1) for n in np.arange(0, 4, grid_delta_major).tolist()]
+            x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
+            x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
+            y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
             if (i == 0) or (i == 1):
                 fig.update_xaxes({
@@ -500,7 +512,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 20],
+                    'range': [0, 10],
                     'rangeslider': {
                         'visible': False
                     }
@@ -516,20 +528,21 @@ def update_graph(dropdown_event, dropdown_rec):
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 4],
+                    'range': [0, 2.25],
                 }, row = i+1, col = 1)
             elif i == 3:
                 fig.update_xaxes({
                     'title': 'Time (s)',
-                    'showgrid': False,
-                    'dtick': None,
+                    'showgrid': True,
+                    'tickvals': x_tick_vals,
+                    'ticktext': x_tick_text,
                     'showticklabels': True,
                     'gridcolor': gridzero_color,
                     'zeroline': False,
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 20],
+                    'range': [0, 10],
                     'rangeslider': {
                         'visible': False
                     }
@@ -544,19 +557,19 @@ def update_graph(dropdown_event, dropdown_rec):
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 4],
+                    'range': [0, 2.25],
                 }, row = i+1, col = 1)
             else:
                 fig.update_xaxes({
-                    'showgrid': False,
-                    'dtick': None,
+                    'showgrid': True,
+                    'dtick': grid_delta_major,
                     'showticklabels': False,
                     'gridcolor': gridzero_color,
                     'zeroline': False,
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 20],
+                    'range': [0, 10],
                     'rangeslider': {
                         'visible': False
                     }
@@ -571,7 +584,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     'zerolinewidth': 1,
                     'zerolinecolor': gridzero_color,
                     'gridwidth': 1,
-                    'range': [0, 4],
+                    'range': [0, 2.25],
                 }, row = i+1, col = 1)
 
         return (fig)
@@ -585,20 +598,11 @@ def update_graph(dropdown_event, dropdown_rec):
     sig_len = record[1]['sig_len']
     units = record[1]['units']
 
-    # Maybe down-sample signal if too slow?
-    down_sample = 8
-    # Determine the time of the event (seconds)
-    # `300` if standard 10 minute segment, `dropdown_event` otherwise
-    event_time = 300
-    # How much signal should be displayed before and after event (seconds)
-    time_range = 30
-    time_start = fs * (event_time - time_range)
-    time_stop = fs * (event_time + time_range)
-    # Determine how much signal to display before and after event (seconds)
-    window_size = 5
     # Set the initial display range of y-values based on values in
     # initial range of x-values
+    time_start = fs * (event_time - time_range)
     index_start = fs * (event_time - window_size)
+    time_stop = fs * (event_time + time_range)
     index_stop = fs * (event_time + window_size)
 
     # Set the initial layout of the figure
@@ -661,7 +665,6 @@ def update_graph(dropdown_event, dropdown_rec):
         current_record = record[0][:,r]
         x_vals = [(i / fs) for i in range(sig_len)][time_start:time_stop:down_sample]
         y_vals = current_record[time_start:time_stop:down_sample]
-
         # Create the signal to plot
         fig.add_trace(go.Scatter({
             'x': x_vals,
@@ -675,7 +678,6 @@ def update_graph(dropdown_event, dropdown_rec):
             },
             'name': sig_name[r]
         }), row = idx+1, col = 1)
-
         # Display where the event is
         fig.add_shape({
             'type': 'line',
