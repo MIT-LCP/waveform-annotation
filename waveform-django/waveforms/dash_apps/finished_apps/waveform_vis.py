@@ -591,7 +591,7 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
-    record = wfdb.rdsamp(record_path)
+    record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
     n_sig = record[1]['n_sig']
     sig_name = record[1]['sig_name']
