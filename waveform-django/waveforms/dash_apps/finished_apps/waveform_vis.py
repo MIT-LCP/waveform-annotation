@@ -444,8 +444,13 @@ def update_text(dropdown_rec, dropdown_event):
     [dash.dependencies.State('dropdown_rec', 'value')])
 def update_graph(dropdown_event, dropdown_rec):
     # The figure height and width
-    fig_height = 850
-    fig_width = 850
+    fig_height = 725
+    fig_width = 875
+    # The figure margins
+    margin_left = 0
+    margin_top = 25
+    margin_right = 0
+    margin_bottom = 0
     # Grid and zero-line color
     gridzero_color = 'rgb(255, 60, 60)'
     # ECG gridlines parameters
@@ -464,6 +469,10 @@ def update_graph(dropdown_event, dropdown_rec):
         fig.update_layout({
             'height': fig_height,
             'width': fig_width,
+            'margin': {'l': margin_left,
+                       't': margin_top,
+                       'r': margin_right,
+                       'b': margin_bottom},
             'grid': {
                 'rows': 4,
                 'columns': 1,
@@ -602,6 +611,10 @@ def update_graph(dropdown_event, dropdown_rec):
     fig.update_layout({
         'height': fig_height,
         'width': fig_width,
+        'margin': {'l': margin_left,
+                    't': margin_top,
+                    'r': margin_right,
+                    'b': margin_bottom},
         'grid': {
             'rows': n_sig,
             'columns': 1,
