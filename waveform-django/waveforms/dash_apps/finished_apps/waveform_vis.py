@@ -577,12 +577,12 @@ def update_graph(dropdown_event, dropdown_rec):
     units = record[1]['units']
 
     # Maybe down-sample signal if too slow?
-    down_sample = 4
+    down_sample = 8
     # Determine the time of the event (seconds)
     # `300` if standard 10 minute segment, `dropdown_event` otherwise
     event_time = 300
     # How much signal should be displayed before and after event (seconds)
-    time_range = 60
+    time_range = 30
     time_start = fs * (event_time - time_range)
     time_stop = fs * (event_time + time_range)
     # Determine how much signal to display before and after event (seconds)
