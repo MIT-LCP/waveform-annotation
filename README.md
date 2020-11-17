@@ -15,3 +15,8 @@ Platform for annotating physiological waveform data.
 - To reset the database:
   - Run: `python manage.py flush`
 - After finished, deactivate virtual python environment: `deactivate`
+
+## Viewing current annotations in database
+
+- Using GraphQL API: Go to `http://localhost:8000/graphql?query={all_annotations{edges{node{user,record,event,decision,comments,decision_date}}}}` or other desired query as seen here ... `https://graphql.org/learn/queries/`
+- Using SQLite3: `cd waveform-django`, `sqlite3 db.sqlite3`, then `select * from waveforms_annotation;`
