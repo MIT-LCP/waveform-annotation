@@ -1,9 +1,9 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 
-from .forms import CreateUserForm
+from .forms import CreateUserForm, ResetPasswordForm
 from waveforms import views
 
 
@@ -54,6 +54,22 @@ def login_page(request):
                 return redirect('waveform_published_home')
 
 
+def reset_password(request):
+    form = ResetPasswordForm()
+    if request.method == 'POST':
+        form = ResetPasswordForm(request.POST)
+        # Check if form username is valid first
+        form.get_user(form.data['username'])
+        if form.is_valid():
+            form.save(
+                from_email = 'help@waveform-annotation.com',
+                request = request
+            )
+            return redirect('password_reset_done')
+    return render(request, 'registration/password_reset_form.html', {'form': form})
+
+
+@login_required
 def logout_user(request):
     """
     Logout the user upon request.

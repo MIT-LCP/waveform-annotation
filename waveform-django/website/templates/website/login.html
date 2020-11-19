@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block content %}
 
 <head>
   <title>Login</title>
 </head>
 
 <body>
-  <div>
+  <div class="container">
     <div>
       <div>
 
@@ -30,12 +30,17 @@
         </div>
 
         {% for message in messages %}
-          <p id="messages">{{message}}</p>
+          <p id="messages">
+            {{ message }}
+          </p>
         {% endfor %}	
 
         <div>
           <div>
             Don't have an account? <a href="{% url 'register' %}">Sign Up</a>
+          </div>
+          <div>
+            Forgot your password? <a href="{% url 'password_reset' %}">Reset Password</a>
           </div>
         </div>
 
@@ -43,4 +48,5 @@
     </div>
   </div>
 </body>
-</html>
+
+{% endblock %}
