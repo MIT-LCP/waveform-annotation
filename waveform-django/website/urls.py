@@ -11,13 +11,13 @@ urlpatterns = [
     # Debug toolbar
     path('__debug__/', include(debug_toolbar.urls)),
     # Account creation and handling pages
-	path('waveform-annotation/register/',
+    path('waveform-annotation/register/',
         views.register_page,
         name='register'),
-	path('waveform-annotation/login/',
+    path('waveform-annotation/login/',
         views.login_page,
         name='login'),
-	path('waveform-annotation/logout/',
+    path('waveform-annotation/logout/',
         views.logout_user,
         name='logout'),
     path('waveform-annotation/password_reset/',
