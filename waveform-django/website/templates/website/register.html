@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block content %}
 
 <head>
   <title>Login</title>
 </head>
 
 <body>
-  <div>
+  <div class="container">
     <div>
       <div>
 
@@ -18,13 +18,13 @@
           <form method="POST" action="">
             {% csrf_token %}
             <div>
-              <p>Enter username here: {{form.username}}</p>
+              <p>Enter username here: {{ form.username }}</p>
             </div>
             <div>
-              <p>Enter password here: {{form.password1}}</p>
+              <p>Enter password here: {{ form.password1 }}</p>
             </div>
             <div>
-              <p>Re-enter password here: {{form.password2}}</p>
+              <p>Re-enter password here: {{ form.password2 }}</p>
             </div>
             <div>
               <input type="submit" value="Register Account">
@@ -44,4 +44,5 @@
     </div>
   </div>
 </body>
-</html>
+
+{% endblock %}
