@@ -27,6 +27,21 @@ PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = '200px'
 event_fontsize = '36px'
+# Set the default configuration of the plot top buttons
+plot_config = {
+    'displayModeBar': True,
+    'modeBarButtonsToRemove': [
+        'hoverClosestCartesian',
+        'hoverCompareCartesian',
+        'toggleSpikelines'
+    ],
+    'modeBarButtonsToAdd': [
+        'sendDataToCloud',
+        'editInChartStudio',
+        'resetViews'
+    ]
+}
+
 
 # Initialize the Dash App
 app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
@@ -97,7 +112,10 @@ app.layout = html.Div([
     ], style = {'display': 'inline-block', 'vertical-align': '125px'}),
     # The plot itself
     html.Div([
-        dcc.Graph(id = 'the_graph'),
+        dcc.Graph(
+            id = 'the_graph',
+            config = plot_config
+        )
     ], style = {'display': 'inline-block'}),
     # Hidden div inside the app that stores the project user, record, and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
@@ -465,10 +483,18 @@ def update_graph(dropdown_event, dropdown_rec):
     time_range = 30
     # Determine how much signal to display before and after event (seconds)
     window_size = 5
+    # Standard deviation signal range
+    std_range = 2
+    # Set the initial dragmode (zoom, pan, etc.)
+    drag_mode = 'pan'
+    # Set the zoom restrictions
+    x_zoom_fixed = False
+    y_zoom_fixed = True
 
     # Set a blank plot if none is loaded
     if not dropdown_rec or not dropdown_event:
         # Create baseline figure with 4 subplots
+        # TODO: dynamic based on available signals
         fig = make_subplots(
             rows = 4,
             cols = 1,
@@ -489,7 +515,8 @@ def update_graph(dropdown_event, dropdown_rec):
                 'pattern': 'independent'
             },
             'showlegend': False,
-            'hovermode': 'x'
+            'hovermode': 'x',
+            'dragmode': drag_mode
         })
         # Update the Null signal and axes
         for i in range(4):
@@ -504,6 +531,7 @@ def update_graph(dropdown_event, dropdown_rec):
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
             if (i == 0) or (i == 1):
                 fig.update_xaxes({
+                    'fixedrange': x_zoom_fixed,
                     'showgrid': True,
                     'dtick': grid_delta_major,
                     'showticklabels': False,
@@ -518,7 +546,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     }
                 }, row = i+1, col = 1)
                 fig.update_yaxes({
-                    'fixedrange': False,
+                    'fixedrange': y_zoom_fixed,
                     'showgrid': True,
                     'tickvals': y_tick_vals,
                     'ticktext': y_tick_text,
@@ -533,6 +561,7 @@ def update_graph(dropdown_event, dropdown_rec):
             elif i == 3:
                 fig.update_xaxes({
                     'title': 'Time (s)',
+                    'fixedrange': x_zoom_fixed,
                     'showgrid': True,
                     'tickvals': x_tick_vals,
                     'ticktext': x_tick_text,
@@ -548,7 +577,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     }
                 }, row = i+1, col = 1)
                 fig.update_yaxes({
-                    'fixedrange': False,
+                    'fixedrange': y_zoom_fixed,
                     'showgrid': False,
                     'dtick': None,
                     'showticklabels': False,
@@ -561,6 +590,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 }, row = i+1, col = 1)
             else:
                 fig.update_xaxes({
+                    'fixedrange': x_zoom_fixed,
                     'showgrid': True,
                     'dtick': grid_delta_major,
                     'showticklabels': False,
@@ -575,7 +605,7 @@ def update_graph(dropdown_event, dropdown_rec):
                     }
                 }, row = i+1, col = 1)
                 fig.update_yaxes({
-                    'fixedrange': False,
+                    'fixedrange': y_zoom_fixed,
                     'showgrid': False,
                     'dtick': None,
                     'showticklabels': False,
@@ -601,9 +631,9 @@ def update_graph(dropdown_event, dropdown_rec):
     # Set the initial display range of y-values based on values in
     # initial range of x-values
     time_start = fs * (event_time - time_range)
-    index_start = fs * (event_time - window_size)
+    time_range_start = fs * (event_time - window_size)
     time_stop = fs * (event_time + time_range)
-    index_stop = fs * (event_time + window_size)
+    time_range_stop = fs * (event_time + window_size)
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -626,6 +656,7 @@ def update_graph(dropdown_event, dropdown_rec):
         },
         'showlegend': False,
         'hovermode': 'x',
+        'dragmode': drag_mode,
         'spikedistance':  -1,
         'plot_bgcolor': '#ffffff',
         'paper_bgcolor': '#ffffff'
@@ -647,15 +678,17 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Find unified range for all EKG signals
     total_y_vals = []
-    total_y_range_vals = []
     for idx,r in enumerate(sig_order):
         if sig_name[r] not in extra_sigs:
             total_y_vals.append(record[0][:,r][time_start:time_stop:down_sample])
-            total_y_range_vals.append(record[0][:,r][index_start:index_stop])
-    min_y_vals = np.nanmin(total_y_range_vals)
-    max_y_vals = np.nanmax(total_y_range_vals)
-    min_tick = (round(np.nanmin(total_y_vals) / grid_delta_major) * grid_delta_major) - grid_delta_major
-    max_tick = (round(np.nanmax(total_y_vals) / grid_delta_major) * grid_delta_major) + grid_delta_major
+
+    total_y_vals = np.stack(total_y_vals).flatten()
+    # Filter out extreme values from being shown on graph range
+    total_y_vals = total_y_vals[abs(total_y_vals - np.mean(total_y_vals[np.isfinite(total_y_vals)])) < std_range * np.nanstd(total_y_vals)]
+    min_y_vals = np.nanmin(total_y_vals)
+    max_y_vals = np.nanmax(total_y_vals)
+    min_tick = (round(min_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
+    max_tick = (round(max_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
@@ -703,9 +736,9 @@ def update_graph(dropdown_event, dropdown_rec):
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
             # Remove outliers to prevent weird axes scaling
-            # temp_data = current_record[abs(current_record - np.nanmean(current_record)) < 3 * np.nanstd(current_record)]
-            min_y_vals = np.nanmin(current_record[index_start:index_stop])
-            max_y_vals = np.nanmax(current_record[index_start:index_stop])
+            temp_data = y_vals[abs(y_vals - np.mean(y_vals[np.isfinite(y_vals)])) < std_range * np.nanstd(y_vals)]
+            min_y_vals = np.nanmin(temp_data)
+            max_y_vals = np.nanmax(temp_data)
             grid_state = False
             dtick_state = None
             zeroline_state = False
@@ -720,6 +753,7 @@ def update_graph(dropdown_event, dropdown_rec):
         if idx != (n_sig - 1):
             fig.update_xaxes({
                 'title': None,
+                'fixedrange': x_zoom_fixed,
                 'dtick': 0.2,
                 'showticklabels': False,
                 'gridcolor': gridzero_color,
@@ -737,6 +771,7 @@ def update_graph(dropdown_event, dropdown_rec):
             # Add the x-axis title to the bottom figure
             fig.update_xaxes({
                 'title': 'Time (s)',
+                'fixedrange': x_zoom_fixed,
                 'dtick': 0.2,
                 'showticklabels': True,
                 'tickvals': x_tick_vals,
@@ -756,7 +791,7 @@ def update_graph(dropdown_event, dropdown_rec):
         # Set the initial y-axis parameters
         fig.update_yaxes({
             'title': sig_name[r] + ' (' + units[r] + ')',
-            'fixedrange': False,
+            'fixedrange': y_zoom_fixed,
             'showgrid': grid_state,
             'showticklabels': True,
             'tickvals': y_tick_vals,
