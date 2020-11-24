@@ -9,4 +9,5 @@ urlpatterns = [
     path('', views.waveform_published_home, name='waveform_published_home'),
     path('<set_record>/<set_event>/', views.waveform_published_home, name='waveform_published_specific'),
     path('annotations/', views.render_annotations, name='render_annotations'),
+    path('annotations/delete/<set_record>/<set_event>/', views.delete_annotation, name='delete_annotation'),
 ]
