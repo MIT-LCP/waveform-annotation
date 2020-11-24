@@ -740,17 +740,24 @@ def update_graph(dropdown_event, dropdown_rec):
                 y_tick_vals = y_tick_vals[::2]
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
+            # Change data type to prevent overflow
+            y_vals = y_vals.astype('float32')
             # Remove outliers to prevent weird axes scaling
             temp_data = y_vals[abs(y_vals - np.mean(y_vals[np.isfinite(y_vals)])) < std_range * np.nanstd(y_vals)]
             min_y_vals = np.nanmin(temp_data)
             max_y_vals = np.nanmax(temp_data)
-            grid_state = False
+            grid_state = True
             dtick_state = None
             zeroline_state = False
             x_tick_vals = []
             x_tick_text = []
-            y_tick_vals = []
-            y_tick_text = []
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 10).tolist()]
+            # Max text length to fit should be ~8
+            # Multiply by (1/grid_delta_major) to account for fractions
+            while len(y_tick_vals) > 8:
+                y_tick_vals = y_tick_vals[::2]
+            y_tick_text = [str(n) for n in y_tick_vals]
+
 
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
