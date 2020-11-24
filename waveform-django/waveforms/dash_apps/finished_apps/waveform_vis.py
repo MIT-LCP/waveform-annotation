@@ -505,10 +505,12 @@ def update_graph(dropdown_event, dropdown_rec):
         fig.update_layout({
             'height': fig_height,
             'width': fig_width,
-            'margin': {'l': margin_left,
-                       't': margin_top,
-                       'r': margin_right,
-                       'b': margin_bottom},
+            'margin': {
+                'l': margin_left,
+                't': margin_top,
+                'r': margin_right,
+                'b': margin_bottom
+            },
             'grid': {
                 'rows': 4,
                 'columns': 1,
@@ -732,7 +734,10 @@ def update_graph(dropdown_event, dropdown_rec):
             dtick_state = grid_delta_major
             zeroline_state = True
             y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
-            # Max text length to fit should be _
+            # Max text length to fit should be ~8
+            # Multiply by (1/grid_delta_major) to account for fractions
+            while len(y_tick_vals) > (1/grid_delta_major)*8:
+                y_tick_vals = y_tick_vals[::2]
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
             # Remove outliers to prevent weird axes scaling
