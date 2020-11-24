@@ -758,7 +758,6 @@ def update_graph(dropdown_event, dropdown_rec):
                 y_tick_vals = y_tick_vals[::2]
             y_tick_text = [str(n) for n in y_tick_vals]
 
-
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]

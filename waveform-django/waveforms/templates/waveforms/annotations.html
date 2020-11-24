@@ -12,6 +12,7 @@
     <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
   </h4>
   <table style="width:100%">
+    <!-- Header names of the columns -->
     <tr>
       {% for cat in categories %}
         <th>
@@ -19,6 +20,7 @@
         </th>
       {% endfor %}
     </tr>
+    <!-- Values of each column -->
     {% for val in all_anns %}
       <tr>
         {% for v in val %}
@@ -29,9 +31,12 @@
         <td>
           <a href="{% url 'waveform_published_specific' val.0 val.1 %}">Edit annotation</a>
         </td>
-        <td>
-          <a href="{% url 'delete_annotation' val.0 val.1 %}">Delete annotation</a>
-        </td>
+        <!-- Only display if annotation (timestamp) is found -->
+        {% if val.4 != "-" %}
+          <td>
+            <a href="{% url 'delete_annotation' val.0 val.1 %}">Delete annotation</a>
+          </td>
+        {% endif %}
       </tr>
     {% endfor %}
   </table>
