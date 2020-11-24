@@ -105,3 +105,33 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
         {'categories': categories,
          'all_anns': all_anns})
+
+
+@login_required
+def delete_annotation(request, set_record, set_event):
+    """
+    Delete annotation.
+
+    Parameters
+    ----------
+    set_record : string
+        Desired record used to identify annotation to delete.
+    set_event : string
+        Desired event used to identify annotation to delete.
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for rendering the annotations.
+
+    """
+    try:
+        annotation = Annotation.objects.get(
+            user = request.user,
+            record = set_record,
+            event = set_event
+        )
+        annotation.delete()
+    except Annotation.DoesNotExist:
+        pass
+    return render_annotations(request)

@@ -29,6 +29,9 @@
         <td>
           <a href="{% url 'waveform_published_specific' val.0 val.1 %}">Edit annotation</a>
         </td>
+        <td>
+          <a href="{% url 'delete_annotation' val.0 val.1 %}">Delete annotation</a>
+        </td>
       </tr>
     {% endfor %}
   </table>
