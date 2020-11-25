@@ -1,0 +1,8 @@
+ge156_12m 4 250 150000
+ge156_12m.mat 16+24 3775.5409/mV 0 0 782 -14558 0 II
+ge156_12m.mat 16+24 7653.4046/mV 0 0 229 10661 0 V
+ge156_12m.mat 16+24 1559.0362/% 0 0 2429 -22491 0 PLETH
+ge156_12m.mat 16+24 23.7855/mmHg 0 0 1247 -29424 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge156_12

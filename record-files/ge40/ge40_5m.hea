@@ -1,0 +1,8 @@
+ge40_5m 4 250 150000
+ge40_5m.mat 16+24 3325.1607/mV 0 0 292 8019 0 II
+ge40_5m.mat 16+24 9755.8307/mV 0 0 832 19963 0 V
+ge40_5m.mat 16+24 2551.2406/% 0 0 4330 -21979 0 PLETH
+ge40_5m.mat 16+24 36553.5282/Imp 0 0 212 16419 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge40_5

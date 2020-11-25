@@ -1,0 +1,8 @@
+ge90_8m 4 250 150000
+ge90_8m.mat 16+24 2353.3542/mV 0 0 -585 -17199 0 II
+ge90_8m.mat 16+24 3910.2053/mV 0 0 -163 -25962 0 V
+ge90_8m.mat 16+24 1881.6048/% 0 0 3465 12269 0 PLETH
+ge90_8m.mat 16+24 40816.8848/Imp 0 0 240 -8509 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge90_8

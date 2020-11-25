@@ -1,0 +1,8 @@
+ge304_2m 4 250 150000
+ge304_2m.mat 16+24 2523.2128/mV 0 0 246 -17832 0 II
+ge304_2m.mat 16+24 8588.8192/mV 0 0 603 -29171 0 V
+ge304_2m.mat 16+24 6316.3296/% 0 0 11086 4378 0 PLETH
+ge304_2m.mat 16+24 49073.311/Imp 0 0 -47 25414 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge304_2

@@ -1,0 +1,8 @@
+ge339_2m 4 250 150000
+ge339_2m.mat 16+24 826.0803/mV 0 0 62 -7128 0 II
+ge339_2m.mat 16+24 944.1834/mV 0 0 -132 16130 0 V
+ge339_2m.mat 16+24 1814.3216/% 0 0 3725 4846 0 PLETH
+ge339_2m.mat 16+24 47.5169/mmHg 0 0 2358 -15917 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge339_2

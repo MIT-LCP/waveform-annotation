@@ -1,0 +1,8 @@
+ge249_16m 4 250 150000
+ge249_16m.mat 16+24 1006.9014/mV 0 0 -32768 -25160 0 II
+ge249_16m.mat 16+24 1383.6801/mV 0 0 -32768 -26490 0 V
+ge249_16m.mat 16+24 1537.7176/% 0 0 3419 -18217 0 PLETH
+ge249_16m.mat 16+24 69.3383/mmHg 0 0 5182 30536 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge249_16

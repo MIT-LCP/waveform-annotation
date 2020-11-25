@@ -1,0 +1,8 @@
+ge130_5m 4 250 150000
+ge130_5m.mat 16+24 4429.4908/mV 0 0 -364 1093 0 II
+ge130_5m.mat 16+24 18636.9914/mV 0 0 286 2395 0 V
+ge130_5m.mat 16+24 1380.976/% 0 0 3128 31355 0 PLETH
+ge130_5m.mat 16+24 45.0852/mmHg 0 0 4317 -24494 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge130_5

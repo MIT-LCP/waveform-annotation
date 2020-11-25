@@ -1,0 +1,8 @@
+ge92_22m 4 250 150000
+ge92_22m.mat 16+24 2119.6358/mV 0 0 -133 -32559 0 II
+ge92_22m.mat 16+24 835.9099/mV 0 0 -60 -7579 0 V
+ge92_22m.mat 16+24 1597.0214/% 0 0 3188 -11696 0 PLETH
+ge92_22m.mat 16+24 50.5279/mmHg 0 0 2303 -6197 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge92_22

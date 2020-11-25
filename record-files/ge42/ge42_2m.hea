@@ -1,0 +1,8 @@
+ge42_2m 4 250 150000
+ge42_2m.mat 16+24 1924.264/mV 0 0 -105 6099 0 II
+ge42_2m.mat 16+24 3423.4933/mV 0 0 -342 -14489 0 V
+ge42_2m.mat 16+24 1205.3551/% 0 0 1498 -8788 0 PLETH
+ge42_2m.mat 16+24 25242.5695/Imp 0 0 -564 9039 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge42_2

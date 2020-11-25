@@ -1,0 +1,8 @@
+ge256_9m 4 250 150000
+ge256_9m.mat 16+24 2808.1275/mV 0 0 -5029 325 0 II
+ge256_9m.mat 16+24 6356.6449/mV 0 0 0 -2053 0 V
+ge256_9m.mat 16+24 4355.291/% 0 0 9300 5550 0 PLETH
+ge256_9m.mat 16+24 57.7352/mmHg 0 0 3187 -10536 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge256_9

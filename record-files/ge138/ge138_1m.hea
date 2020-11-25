@@ -1,0 +1,8 @@
+ge138_1m 4 250 150000
+ge138_1m.mat 16+24 3228.6286/mV 0 0 -276 -25967 0 II
+ge138_1m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge138_1m.mat 16+24 1235.1411/% 0 0 1262 23695 0 PLETH
+ge138_1m.mat 16+24 63575.0012/Imp 0 0 73 2062 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge138_1

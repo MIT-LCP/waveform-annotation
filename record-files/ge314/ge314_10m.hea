@@ -1,0 +1,8 @@
+ge314_10m 4 250 150000
+ge314_10m.mat 16+24 3415.2568/mV 0 0 -83 29475 0 II
+ge314_10m.mat 16+24 172.1244/mV 0 0 2072 15686 0 V
+ge314_10m.mat 16+24 1187.3565/% 0 0 1410 22131 0 PLETH
+ge314_10m.mat 16+24 43013.737/Imp 0 0 271 -26411 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge314_10

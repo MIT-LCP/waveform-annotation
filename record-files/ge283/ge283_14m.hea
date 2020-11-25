@@ -1,0 +1,8 @@
+ge283_14m 4 250 150000
+ge283_14m.mat 16+24 1777.1551/mV 0 0 280 -2568 0 II
+ge283_14m.mat 16+24 1556.9692/mV 0 0 868 7320 0 V
+ge283_14m.mat 16+24 4506.0159/% 0 0 10116 -13245 0 PLETH
+ge283_14m.mat 16+24 10443.5873/Imp 0 0 -32768 0 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge283_14

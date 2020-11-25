@@ -1,0 +1,8 @@
+ge161_1m 4 250 150000
+ge161_1m.mat 16+24 907.0537/mV 0 0 -33 32673 0 II
+ge161_1m.mat 16+24 2179.259/mV 0 0 235 7174 0 V
+ge161_1m.mat 16+24 2303.7129/% 0 0 6207 13926 0 PLETH
+ge161_1m.mat 16+24 67063.5235/Imp 0 0 -279 -31619 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge161_1

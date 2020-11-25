@@ -1,0 +1,8 @@
+ge149_3m 4 250 150000
+ge149_3m.mat 16+24 5062.0823/mV 0 0 196 -27370 0 II
+ge149_3m.mat 16+24 3667.2152/mV 0 0 -109 -13892 0 V
+ge149_3m.mat 16+24 1482.7231/% 0 0 1703 -30144 0 PLETH
+ge149_3m.mat 16+24 36771.1501/Imp 0 0 -528 -15987 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge149_3

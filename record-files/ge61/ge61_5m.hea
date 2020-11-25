@@ -1,0 +1,8 @@
+ge61_5m 4 250 150000
+ge61_5m.mat 16+24 5025.5857/mV 0 0 -1069 2348 0 II
+ge61_5m.mat 16+24 5899.5528/mV 0 0 841 14630 0 V
+ge61_5m.mat 16+24 1234.4626/% 0 0 2323 26603 0 PLETH
+ge61_5m.mat 16+24 10145.2535/Imp 0 0 -1808 1130 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge61_5

@@ -1,0 +1,8 @@
+ge172_23m 4 250 150000
+ge172_23m.mat 16+24 4119.4421/mV 0 0 121 -14202 0 II
+ge172_23m.mat 16+24 3103.0045/mV 0 0 1671 -9463 0 V
+ge172_23m.mat 16+24 1601.6947/% 0 0 3742 9647 0 PLETH
+ge172_23m.mat 16+24 50.013/mmHg 0 0 1279 -27967 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge172_23

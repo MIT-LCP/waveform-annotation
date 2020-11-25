@@ -1,0 +1,8 @@
+ge85_6m 4 250 150000
+ge85_6m.mat 16+24 2897.6011/mV 0 0 2285 17521 0 II
+ge85_6m.mat 16+24 3515.2723/mV 0 0 -1764 -19259 0 V
+ge85_6m.mat 16+24 1466.7711/% 0 0 2150 26698 0 PLETH
+ge85_6m.mat 16+24 44.6961/mmHg 0 0 5636 26771 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge85_6

@@ -1,0 +1,8 @@
+ge300_2m 4 250 150000
+ge300_2m.mat 16+24 7405.085/mV 0 0 -465 31966 0 II
+ge300_2m.mat 16+24 4137.3336/mV 0 0 -32768 -12177 0 V
+ge300_2m.mat 16+24 1108.397/% 0 0 2640 475 0 PLETH
+ge300_2m.mat 16+24 110841.6139/Imp 0 0 -250 -3594 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge300_2

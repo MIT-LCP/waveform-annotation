@@ -1,0 +1,8 @@
+ge172_19m 4 250 150000
+ge172_19m.mat 16+24 3208.598/mV 0 0 -5603 7365 0 II
+ge172_19m.mat 16+24 2629.6266/mV 0 0 1549 -31300 0 V
+ge172_19m.mat 16+24 1628.1226/% 0 0 3830 28908 0 PLETH
+ge172_19m.mat 16+24 49.2036/mmHg 0 0 4104 -8291 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge172_19

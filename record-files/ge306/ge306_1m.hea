@@ -1,0 +1,8 @@
+ge306_1m 4 250 150000
+ge306_1m.mat 16+24 1317.6212/mV 0 0 33 13468 0 II
+ge306_1m.mat 16+24 3034.5738/mV 0 0 59 -28695 0 V
+ge306_1m.mat 16+24 4620.7471/% 0 0 8675 -217 0 PLETH
+ge306_1m.mat 16+24 73.9062/mmHg 0 0 3001 -11511 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge306_1

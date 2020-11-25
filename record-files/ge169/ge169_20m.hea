@@ -1,0 +1,8 @@
+ge169_20m 4 250 150000
+ge169_20m.mat 16+24 1618.3757/mV 0 0 1073 6145 0 II
+ge169_20m.mat 16+24 3653.5935/mV 0 0 -1456 12689 0 V
+ge169_20m.mat 16+24 6626.0803/% 0 0 12869 -23279 0 PLETH
+ge169_20m.mat 16+24 39457.2742/Imp 0 0 -361 -7380 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge169_20

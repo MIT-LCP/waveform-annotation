@@ -1,0 +1,8 @@
+ge303_11m 4 250 150000
+ge303_11m.mat 16+24 1337.0803/mV 0 0 -138 -3947 0 II
+ge303_11m.mat 16+24 584.9105/mV 0 0 329 -12946 0 V
+ge303_11m.mat 16+24 1479.1823/% 0 0 1680 -8342 0 PLETH
+ge303_11m.mat 16+24 13214.7307/Imp 0 0 -1383 30207 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge303_11

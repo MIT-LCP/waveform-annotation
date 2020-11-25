@@ -1,0 +1,8 @@
+ge38_3m 4 250 150000
+ge38_3m.mat 16+24 1040.6378/mV 0 0 50 -1872 0 II
+ge38_3m.mat 16+24 1087.4674/mV 0 0 -55 -20499 0 V
+ge38_3m.mat 16+24 1709.6485/% 0 0 3200 20742 0 PLETH
+ge38_3m.mat 16+24 17643.5255/Imp 0 0 -340 22466 0 RESP
+#Tachycardia,193>140
+#Creator: wfdb2mat
+#Source: record ge38_3

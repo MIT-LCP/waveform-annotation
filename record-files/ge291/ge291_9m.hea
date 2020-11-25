@@ -1,0 +1,8 @@
+ge291_9m 4 250 150000
+ge291_9m.mat 16+24 349.5226/mV 0 0 -2069 -22295 0 II
+ge291_9m.mat 16+24 857.8509/mV 0 0 1531 -7558 0 V
+ge291_9m.mat 16+24 1210.0367/% 0 0 1776 20462 0 PLETH
+ge291_9m.mat 16+24 16361.3635/Imp 0 0 -32768 4620 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge291_9

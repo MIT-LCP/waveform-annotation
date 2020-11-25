@@ -1,0 +1,8 @@
+ge303_4m 4 250 150000
+ge303_4m.mat 16+24 2417.8834/mV 0 0 -47 -22554 0 II
+ge303_4m.mat 16+24 1422.9173/mV 0 0 0 9218 0 V
+ge303_4m.mat 16+24 1140.238/% 0 0 2586 -28 0 PLETH
+ge303_4m.mat 16+24 19285.2874/Imp 0 0 -91 22713 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge303_4

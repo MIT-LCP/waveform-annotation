@@ -1,0 +1,8 @@
+ge187_8m 4 250 150000
+ge187_8m.mat 16+24 7284.7838/mV 0 0 713 23550 0 II
+ge187_8m.mat 16+24 9724.8501/mV 0 0 -429 -17608 0 V
+ge187_8m.mat 16+24 1269.6987/% 0 0 2451 -21451 0 PLETH
+ge187_8m.mat 16+24 34288.1577/Imp 0 0 450 32159 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge187_8

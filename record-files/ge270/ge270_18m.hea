@@ -1,0 +1,8 @@
+ge270_18m 4 250 150000
+ge270_18m.mat 16+24 6659.2555/mV 0 0 -471 -21385 0 II
+ge270_18m.mat 16+24 5166.6654/mV 0 0 205 26169 0 V
+ge270_18m.mat 16+24 1688.5667/% 0 0 3221 -26265 0 PLETH
+ge270_18m.mat 16+24 34.4681/mmHg 0 0 2121 2664 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge270_18

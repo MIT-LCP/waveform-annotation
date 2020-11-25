@@ -1,0 +1,8 @@
+ge96_5m 4 250 150000
+ge96_5m.mat 16+24 1955.9061/mV 0 0 -745 -6102 0 II
+ge96_5m.mat 16+24 1391.0606/mV 0 0 -274 -8112 0 V
+ge96_5m.mat 16+24 6496.1211/% 0 0 11747 -20414 0 PLETH
+ge96_5m.mat 16+24 87564.745/Imp 0 0 -409 -23822 0 RESP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge96_5

@@ -1,0 +1,8 @@
+ge307_7m 4 250 150000
+ge307_7m.mat 16+24 2973.7722/mV 0 0 -583 -10122 0 II
+ge307_7m.mat 16+24 3710.9172/mV 0 0 105 28499 0 V
+ge307_7m.mat 16+24 1774.1907/% 0 0 3821 25085 0 PLETH
+ge307_7m.mat 16+24 54.3331/mmHg 0 0 2840 -28007 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge307_7

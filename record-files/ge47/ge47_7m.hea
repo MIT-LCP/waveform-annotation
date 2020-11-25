@@ -1,0 +1,8 @@
+ge47_7m 4 250 150000
+ge47_7m.mat 16+24 3269.6954/mV 0 0 1833 9597 0 II
+ge47_7m.mat 16+24 2165.1626/mV 0 0 -654 -3406 0 V
+ge47_7m.mat 16+24 3395.8463/% 0 0 6631 -27580 0 PLETH
+ge47_7m.mat 16+24 190.744/mmHg 0 0 12409 -19384 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge47_7

@@ -1,0 +1,8 @@
+ge261_10m 4 250 150000
+ge261_10m.mat 16+24 5526.6199/mV 0 0 1456 -16675 0 II
+ge261_10m.mat 16+24 8044.6758/mV 0 0 1032 947 0 V
+ge261_10m.mat 16+24 1510.1445/% 0 0 4552 8667 0 PLETH
+ge261_10m.mat 16+24 44.8152/mmHg 0 0 6034 11828 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge261_10

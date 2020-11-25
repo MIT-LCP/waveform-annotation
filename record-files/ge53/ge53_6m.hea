@@ -1,0 +1,8 @@
+ge53_6m 4 250 150000
+ge53_6m.mat 16+24 4186.787/mV 0 0 83 -3890 0 II
+ge53_6m.mat 16+24 3873.3973/mV 0 0 -254 15285 0 V
+ge53_6m.mat 16+24 1329.451/% 0 0 1637 -17382 0 PLETH
+ge53_6m.mat 16+24 40.869/mmHg 0 0 1528 18956 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge53_6

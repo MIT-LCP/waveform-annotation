@@ -1,0 +1,8 @@
+ge1_7m 4 250 150000
+ge1_7m.mat 16+24 3169.8778/mV 0 0 2901 23633 0 II
+ge1_7m.mat 16+24 1961.7903/mV 0 0 1818 15400 0 V
+ge1_7m.mat 16+24 3194.9539/% 0 0 5458 -10352 0 PLETH
+ge1_7m.mat 16+24 87.4302/mmHg 0 0 3805 -10728 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge1_7

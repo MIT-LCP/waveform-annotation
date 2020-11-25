@@ -1,0 +1,8 @@
+ge173_2m 4 250 150000
+ge173_2m.mat 16+24 869.953/mV 0 0 55 -27934 0 II
+ge173_2m.mat 16+24 1399.2145/mV 0 0 -85 32614 0 V
+ge173_2m.mat 16+24 1298.085/% 0 0 2698 3468 0 PLETH
+ge173_2m.mat 16+24 13449.9414/Imp 0 0 -201 21933 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge173_2

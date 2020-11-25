@@ -1,0 +1,8 @@
+ge5_7m 4 250 150000
+ge5_7m.mat 16+24 2510.3873/mV 0 0 -688 -25449 0 II
+ge5_7m.mat 16+24 667.9451/mV 0 0 -32768 -6918 0 V
+ge5_7m.mat 16+24 5045.2338/% 0 0 8316 -28025 0 PLETH
+ge5_7m.mat 16+24 56311.6414/Imp 0 0 735 -31211 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge5_7

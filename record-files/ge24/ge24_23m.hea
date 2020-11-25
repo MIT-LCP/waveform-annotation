@@ -1,0 +1,8 @@
+ge24_23m 4 250 150000
+ge24_23m.mat 16+24 3563.9686/mV 0 0 371 12894 0 II
+ge24_23m.mat 16+24 4420.2493/mV 0 0 -52 29921 0 V
+ge24_23m.mat 16+24 6757.0769/% 0 0 14332 15360 0 PLETH
+ge24_23m.mat 16+24 130.6404/mmHg 0 0 9901 -8402 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge24_23

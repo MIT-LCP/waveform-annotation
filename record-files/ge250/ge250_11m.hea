@@ -1,0 +1,8 @@
+ge250_11m 4 250 150000
+ge250_11m.mat 16+24 2153.1348/mV 0 0 181 19964 0 II
+ge250_11m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge250_11m.mat 16+24 1488.859/% 0 0 3201 17822 0 PLETH
+ge250_11m.mat 16+24 1488.859/% 0 0 3201 17822 0 PLETH
+#VTach
+#Creator: wfdb2mat
+#Source: record ge250_11

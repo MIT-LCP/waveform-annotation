@@ -1,0 +1,8 @@
+ge208_24m 4 250 150000
+ge208_24m.mat 16+24 3993.299/mV 0 0 -837 23436 0 II
+ge208_24m.mat 16+24 2150.7916/mV 0 0 -32768 83 0 V
+ge208_24m.mat 16+24 1784.4271/% 0 0 3164 -23954 0 PLETH
+ge208_24m.mat 16+24 55.3529/mmHg 0 0 3150 -1061 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge208_24

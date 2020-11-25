@@ -1,0 +1,8 @@
+ge316_9m 4 250 150000
+ge316_9m.mat 16+24 3075.7778/mV 0 0 642 11911 0 II
+ge316_9m.mat 16+24 2953.5316/mV 0 0 96 -1521 0 V
+ge316_9m.mat 16+24 1579.2463/% 0 0 2384 -4719 0 PLETH
+ge316_9m.mat 16+24 16846.3959/Imp 0 0 -57 7291 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge316_9

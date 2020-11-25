@@ -1,0 +1,8 @@
+ge316_7m 4 250 150000
+ge316_7m.mat 16+24 444.3223/mV 0 0 -73 -2066 0 II
+ge316_7m.mat 16+24 1147.275/mV 0 0 -24 -31890 0 V
+ge316_7m.mat 16+24 2424.11/% 0 0 5222 23765 0 PLETH
+ge316_7m.mat 16+24 18199.1548/Imp 0 0 -139 -14193 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge316_7

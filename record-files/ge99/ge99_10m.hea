@@ -1,0 +1,8 @@
+ge99_10m 4 250 150000
+ge99_10m.mat 16+24 408.411/mV 0 0 140 -13060 0 II
+ge99_10m.mat 16+24 1028.2513/mV 0 0 437 -25377 0 V
+ge99_10m.mat 16+24 1415.2751/% 0 0 2732 -27794 0 PLETH
+ge99_10m.mat 16+24 3641.6287/Imp 0 0 -54 3948 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge99_10

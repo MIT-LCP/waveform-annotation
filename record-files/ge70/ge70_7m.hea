@@ -1,0 +1,8 @@
+ge70_7m 4 250 150000
+ge70_7m.mat 16+24 451.3736/mV 0 0 645 -23205 0 II
+ge70_7m.mat 16+24 1121.6757/mV 0 0 -597 28274 0 V
+ge70_7m.mat 16+24 5915.254/% 0 0 12349 5756 0 PLETH
+ge70_7m.mat 16+24 490.2644/Imp 0 0 -3051 5840 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge70_7

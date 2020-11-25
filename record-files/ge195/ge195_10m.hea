@@ -1,0 +1,8 @@
+ge195_10m 4 250 150000
+ge195_10m.mat 16+24 1743.3447/mV 0 0 1551 -25656 0 II
+ge195_10m.mat 16+24 627.6668/mV 0 0 -1279 21663 0 V
+ge195_10m.mat 16+24 1706.4351/% 0 0 2208 -8653 0 PLETH
+ge195_10m.mat 16+24 115.319/mmHg 0 0 8251 -6757 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge195_10

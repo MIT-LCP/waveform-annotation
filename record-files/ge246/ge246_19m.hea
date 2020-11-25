@@ -1,0 +1,8 @@
+ge246_19m 4 250 150000
+ge246_19m.mat 16+24 1737.0384/mV 0 0 -615 -1434 0 II
+ge246_19m.mat 16+24 2532.147/mV 0 0 802 23356 0 V
+ge246_19m.mat 16+24 4927.6891/% 0 0 10168 12161 0 PLETH
+ge246_19m.mat 16+24 44.4646/mmHg 0 0 2688 -23876 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge246_19

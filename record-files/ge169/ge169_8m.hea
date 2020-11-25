@@ -1,0 +1,8 @@
+ge169_8m 4 250 150000
+ge169_8m.mat 16+24 2235.848/mV 0 0 849 7945 0 II
+ge169_8m.mat 16+24 3286.4396/mV 0 0 -4 -9387 0 V
+ge169_8m.mat 16+24 2068.1746/% 0 0 4413 -21715 0 PLETH
+ge169_8m.mat 16+24 2068.1746/% 0 0 4413 -21715 0 PLETH
+#VTach
+#Creator: wfdb2mat
+#Source: record ge169_8

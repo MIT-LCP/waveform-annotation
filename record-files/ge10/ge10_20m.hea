@@ -1,0 +1,8 @@
+ge10_20m 4 250 150000
+ge10_20m.mat 16+24 6526.7207/mV 0 0 -146 20100 0 II
+ge10_20m.mat 16+24 9728.8765/mV 0 0 -308 -29792 0 V
+ge10_20m.mat 16+24 1480.2681/% 0 0 3422 12474 0 PLETH
+ge10_20m.mat 16+24 37841.1565/Imp 0 0 134 -13807 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge10_20

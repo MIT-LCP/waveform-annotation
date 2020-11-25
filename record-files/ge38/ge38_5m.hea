@@ -1,0 +1,8 @@
+ge38_5m 4 250 150000
+ge38_5m.mat 16+24 1344.6506/mV 0 0 667 13390 0 II
+ge38_5m.mat 16+24 3031.7746/mV 0 0 -85 -18230 0 V
+ge38_5m.mat 16+24 6256.7397/% 0 0 13392 -17776 0 PLETH
+ge38_5m.mat 16+24 4828.8356/mmHg 0 0 32767 -18928 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge38_5

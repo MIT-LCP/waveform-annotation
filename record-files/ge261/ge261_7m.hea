@@ -1,0 +1,8 @@
+ge261_7m 4 250 150000
+ge261_7m.mat 16+24 5552.8341/mV 0 0 -1959 24629 0 II
+ge261_7m.mat 16+24 8024.7433/mV 0 0 -262 4284 0 V
+ge261_7m.mat 16+24 1487.9417/% 0 0 1079 30741 0 PLETH
+ge261_7m.mat 16+24 44.9934/mmHg 0 0 2914 -23609 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge261_7

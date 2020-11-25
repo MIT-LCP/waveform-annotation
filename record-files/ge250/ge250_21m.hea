@@ -1,0 +1,8 @@
+ge250_21m 4 250 150000
+ge250_21m.mat 16+24 1625.7698/mV 0 0 -32768 7298 0 II
+ge250_21m.mat 16+24 2599.6236/mV 0 0 -32768 19447 0 V
+ge250_21m.mat 16+24 1902.1439/% 0 0 4443 22869 0 PLETH
+ge250_21m.mat 16+24 203.3116/mmHg 0 0 14436 23707 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge250_21

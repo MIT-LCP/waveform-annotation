@@ -1,0 +1,8 @@
+ge268_3m 4 250 150000
+ge268_3m.mat 16+24 5714.6339/mV 0 0 -753 -15062 0 II
+ge268_3m.mat 16+24 4920.7764/mV 0 0 497 -10406 0 V
+ge268_3m.mat 16+24 4616.6165/% 0 0 7507 -2 0 PLETH
+ge268_3m.mat 16+24 49199.2338/Imp 0 0 -1560 -21220 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge268_3

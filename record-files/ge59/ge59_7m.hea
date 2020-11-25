@@ -1,0 +1,8 @@
+ge59_7m 4 250 150000
+ge59_7m.mat 16+24 6159.1086/mV 0 0 -386 5663 0 II
+ge59_7m.mat 16+24 12288.8806/mV 0 0 -64 27236 0 V
+ge59_7m.mat 16+24 1338.5001/% 0 0 3938 15514 0 PLETH
+ge59_7m.mat 16+24 74213.0656/Imp 0 0 475 19803 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge59_7

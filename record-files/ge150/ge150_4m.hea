@@ -1,0 +1,8 @@
+ge150_4m 4 250 150000
+ge150_4m.mat 16+24 4253.6187/mV 0 0 40 -13063 0 II
+ge150_4m.mat 16+24 5909.8385/mV 0 0 -420 7723 0 V
+ge150_4m.mat 16+24 1597.5012/% 0 0 4515 -13318 0 PLETH
+ge150_4m.mat 16+24 54497.3259/Imp 0 0 474 -22080 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge150_4

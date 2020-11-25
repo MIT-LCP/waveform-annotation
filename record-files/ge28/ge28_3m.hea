@@ -1,0 +1,8 @@
+ge28_3m 4 250 150000
+ge28_3m.mat 16+24 1059.8157/mV 0 0 -127 307 0 II
+ge28_3m.mat 16+24 1604.6427/mV 0 0 214 -17819 0 V
+ge28_3m.mat 16+24 1449.224/% 0 0 2120 17618 0 PLETH
+ge28_3m.mat 16+24 23167.0673/Imp 0 0 27 2703 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge28_3

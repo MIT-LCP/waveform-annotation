@@ -1,0 +1,8 @@
+ge323_10m 4 250 150000
+ge323_10m.mat 16+24 2132.5387/mV 0 0 -420 32507 0 II
+ge323_10m.mat 16+24 1276.6199/mV 0 0 2200 23680 0 V
+ge323_10m.mat 16+24 1539.7917/% 0 0 2529 -26570 0 PLETH
+ge323_10m.mat 16+24 41.2228/mmHg 0 0 3155 9995 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge323_10

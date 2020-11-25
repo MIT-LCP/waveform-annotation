@@ -1,0 +1,8 @@
+ge320_1m 4 250 150000
+ge320_1m.mat 16+24 4430.837/mV 0 0 1134 -9785 0 II
+ge320_1m.mat 16+24 2048.8969/mV 0 0 32767 7582 0 V
+ge320_1m.mat 16+24 1766.1339/% 0 0 2833 -16785 0 PLETH
+ge320_1m.mat 16+24 101317.5379/Imp 0 0 93 21214 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge320_1

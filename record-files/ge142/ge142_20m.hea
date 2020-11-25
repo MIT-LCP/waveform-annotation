@@ -1,0 +1,8 @@
+ge142_20m 4 250 150000
+ge142_20m.mat 16+24 2334.835/mV 0 0 318 10910 0 II
+ge142_20m.mat 16+24 4588.3096/mV 0 0 -480 32015 0 V
+ge142_20m.mat 16+24 4790.8705/% 0 0 9104 -21681 0 PLETH
+ge142_20m.mat 16+24 29509.74/Imp 0 0 366 -13741 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge142_20

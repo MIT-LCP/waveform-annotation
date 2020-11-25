@@ -1,0 +1,8 @@
+ge70_2m 4 250 150000
+ge70_2m.mat 16+24 4032.5584/mV 0 0 -306 -7818 0 II
+ge70_2m.mat 16+24 5114.3968/mV 0 0 -61 9663 0 V
+ge70_2m.mat 16+24 5845.5238/% 0 0 11642 5402 0 PLETH
+ge70_2m.mat 16+24 28096.9662/Imp 0 0 -1206 -22243 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge70_2

@@ -1,0 +1,8 @@
+ge290_5m 4 250 150000
+ge290_5m.mat 16+24 8773.3511/mV 0 0 51 6407 0 II
+ge290_5m.mat 16+24 9044.8316/mV 0 0 0 32608 0 V
+ge290_5m.mat 16+24 2791.0421/% 0 0 6108 -27496 0 PLETH
+ge290_5m.mat 16+24 102880.1911/Imp 0 0 23 8691 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge290_5

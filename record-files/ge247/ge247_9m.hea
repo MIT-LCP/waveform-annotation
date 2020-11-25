@@ -1,0 +1,8 @@
+ge247_9m 4 250 150000
+ge247_9m.mat 16+24 3133.8992/mV 0 0 -186 -3519 0 II
+ge247_9m.mat 16+24 3118.6351/mV 0 0 891 25891 0 V
+ge247_9m.mat 16+24 2483.0467/% 0 0 4837 -6543 0 PLETH
+ge247_9m.mat 16+24 8758.8719/Imp 0 0 1365 16343 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge247_9

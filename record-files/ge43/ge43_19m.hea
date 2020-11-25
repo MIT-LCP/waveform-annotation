@@ -1,0 +1,8 @@
+ge43_19m 4 250 150000
+ge43_19m.mat 16+24 436.648/mV 0 0 -2807 10264 0 II
+ge43_19m.mat 16+24 632.2945/mV 0 0 -2105 -21691 0 V
+ge43_19m.mat 16+24 1315.9885/% 0 0 3422 -23645 0 PLETH
+ge43_19m.mat 16+24 480.6738/Imp 0 0 -2992 -16915 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge43_19

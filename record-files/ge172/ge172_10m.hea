@@ -1,0 +1,8 @@
+ge172_10m 4 250 150000
+ge172_10m.mat 16+24 3400.5772/mV 0 0 485 21375 0 II
+ge172_10m.mat 16+24 7563.4904/mV 0 0 -555 6015 0 V
+ge172_10m.mat 16+24 29934.5636/% 0 0 32767 -18928 0 PLETH
+ge172_10m.mat 16+24 47307.1451/Imp 0 0 -872 21910 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge172_10

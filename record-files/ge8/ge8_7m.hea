@@ -1,0 +1,8 @@
+ge8_7m 4 250 150000
+ge8_7m.mat 16+24 1414.7167/mV 0 0 -40 -32052 0 II
+ge8_7m.mat 16+24 1697.0198/mV 0 0 554 -17341 0 V
+ge8_7m.mat 16+24 1264.095/% 0 0 558 31424 0 PLETH
+ge8_7m.mat 16+24 16329.2438/Imp 0 0 -233 4330 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge8_7

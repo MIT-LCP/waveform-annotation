@@ -1,0 +1,8 @@
+ge32_1m 4 250 150000
+ge32_1m.mat 16+24 3161.1544/mV 0 0 176 3937 0 II
+ge32_1m.mat 16+24 5724.1651/mV 0 0 -222 -25072 0 V
+ge32_1m.mat 16+24 1266.3039/% 0 0 3975 -17960 0 PLETH
+ge32_1m.mat 16+24 37813.8861/Imp 0 0 -217 -13474 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge32_1

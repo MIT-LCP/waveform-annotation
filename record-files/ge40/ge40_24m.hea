@@ -1,0 +1,8 @@
+ge40_24m 4 250 150000
+ge40_24m.mat 16+24 8837.5769/mV 0 0 -369 20213 0 II
+ge40_24m.mat 16+24 2903.0117/mV 0 0 -109 -1471 0 V
+ge40_24m.mat 16+24 1465.5756/% 0 0 2020 -31598 0 PLETH
+ge40_24m.mat 16+24 51195.617/Imp 0 0 808 -23366 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge40_24

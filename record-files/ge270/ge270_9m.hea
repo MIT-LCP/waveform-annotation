@@ -1,0 +1,8 @@
+ge270_9m 4 250 150000
+ge270_9m.mat 16+24 7426.5057/mV 0 0 -288 31946 0 II
+ge270_9m.mat 16+24 4880.9691/mV 0 0 61 -30623 0 V
+ge270_9m.mat 16+24 5919.2113/% 0 0 11205 -18314 0 PLETH
+ge270_9m.mat 16+24 38.6979/mmHg 0 0 1555 -24200 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge270_9

@@ -1,0 +1,8 @@
+ge123_15m 4 250 150000
+ge123_15m.mat 16+24 1069.6942/mV 0 0 -649 -13095 0 II
+ge123_15m.mat 16+24 277.4574/mV 0 0 -32768 -283 0 V
+ge123_15m.mat 16+24 1242.4416/% 0 0 1684 -19006 0 PLETH
+ge123_15m.mat 16+24 34925.0343/Imp 0 0 -613 3882 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge123_15

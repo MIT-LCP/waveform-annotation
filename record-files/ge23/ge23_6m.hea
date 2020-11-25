@@ -1,0 +1,8 @@
+ge23_6m 4 250 150000
+ge23_6m.mat 16+24 3104.6705/mV 0 0 -690 -23098 0 II
+ge23_6m.mat 16+24 3880.7576/mV 0 0 1020 6166 0 V
+ge23_6m.mat 16+24 2257.1872/% 0 0 3732 17655 0 PLETH
+ge23_6m.mat 16+24 125619.0801/Imp 0 0 4628 30695 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge23_6

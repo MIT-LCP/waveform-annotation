@@ -1,0 +1,8 @@
+ge87_2m 4 250 150000
+ge87_2m.mat 16+24 2776.8004/mV 0 0 -22 10318 0 II
+ge87_2m.mat 16+24 3491.4629/mV 0 0 -19 -15615 0 V
+ge87_2m.mat 16+24 1615.5467/% 0 0 2233 -11212 0 PLETH
+ge87_2m.mat 16+24 25902.9842/Imp 0 0 113 31747 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge87_2

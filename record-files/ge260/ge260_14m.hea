@@ -1,0 +1,8 @@
+ge260_14m 4 250 150000
+ge260_14m.mat 16+24 2643.1026/mV 0 0 1491 23647 0 II
+ge260_14m.mat 16+24 6285.0358/mV 0 0 948 28956 0 V
+ge260_14m.mat 16+24 1575.7878/% 0 0 2382 8416 0 PLETH
+ge260_14m.mat 16+24 19630.2948/Imp 0 0 -1197 3504 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge260_14

@@ -1,0 +1,8 @@
+ge131_1m 4 250 150000
+ge131_1m.mat 16+24 810.9482/mV 0 0 104 9987 0 II
+ge131_1m.mat 16+24 1353.5922/mV 0 0 39 2705 0 V
+ge131_1m.mat 16+24 1316.0248/% 0 0 2674 27660 0 PLETH
+ge131_1m.mat 16+24 65.393/mmHg 0 0 4235 24693 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge131_1

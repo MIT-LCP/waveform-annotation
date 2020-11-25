@@ -1,0 +1,8 @@
+ge327_6m 4 250 150000
+ge327_6m.mat 16+24 1231.3599/mV 0 0 258 -17969 0 II
+ge327_6m.mat 16+24 3207.4463/mV 0 0 -164 25452 0 V
+ge327_6m.mat 16+24 1492.5689/% 0 0 3167 -15221 0 PLETH
+ge327_6m.mat 16+24 20106.6211/Imp 0 0 459 -10815 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge327_6

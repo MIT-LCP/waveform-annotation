@@ -1,0 +1,8 @@
+ge96_1m 4 250 150000
+ge96_1m.mat 16+24 1978.0108/mV 0 0 -191 134 0 II
+ge96_1m.mat 16+24 1380.73/mV 0 0 77 -17236 0 V
+ge96_1m.mat 16+24 6514.0424/% 0 0 13813 -23105 0 PLETH
+ge96_1m.mat 16+24 79334.5932/Imp 0 0 -183 25516 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge96_1

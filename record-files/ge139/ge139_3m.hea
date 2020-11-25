@@ -1,0 +1,8 @@
+ge139_3m 4 250 150000
+ge139_3m.mat 16+24 1337.8905/mV 0 0 4104 -8480 0 II
+ge139_3m.mat 16+24 2819.3605/mV 0 0 -4296 -30318 0 V
+ge139_3m.mat 16+24 3375.6991/% 0 0 7875 15543 0 PLETH
+ge139_3m.mat 16+24 18499.8486/Imp 0 0 1446 -30958 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge139_3

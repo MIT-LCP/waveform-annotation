@@ -1,0 +1,8 @@
+ge186_1m 4 250 150000
+ge186_1m.mat 16+24 4581.1353/mV 0 0 146 24287 0 II
+ge186_1m.mat 16+24 2803.0185/mV 0 0 -350 30091 0 V
+ge186_1m.mat 16+24 1666.1669/% 0 0 3859 14758 0 PLETH
+ge186_1m.mat 16+24 48172.872/Imp 0 0 684 17337 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge186_1

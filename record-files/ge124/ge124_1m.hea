@@ -1,0 +1,8 @@
+ge124_1m 4 250 150000
+ge124_1m.mat 16+24 3787.7171/mV 0 0 -220 -31399 0 II
+ge124_1m.mat 16+24 2539.3893/mV 0 0 -21 736 0 V
+ge124_1m.mat 16+24 1548.1739/% 0 0 4000 22254 0 PLETH
+ge124_1m.mat 16+24 22752.021/Imp 0 0 40 14264 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge124_1

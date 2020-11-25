@@ -1,0 +1,8 @@
+ge81_9m 4 250 150000
+ge81_9m.mat 16+24 4853.5141/mV 0 0 700 -32408 0 II
+ge81_9m.mat 16+24 1659.4557/mV 0 0 -128 -17388 0 V
+ge81_9m.mat 16+24 1542.0883/% 0 0 2044 19428 0 PLETH
+ge81_9m.mat 16+24 50.2249/mmHg 0 0 2467 3189 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge81_9

@@ -1,0 +1,8 @@
+ge336_4m 4 250 150000
+ge336_4m.mat 16+24 3457.5241/mV 0 0 -843 -15394 0 II
+ge336_4m.mat 16+24 3086.3924/mV 0 0 450 24992 0 V
+ge336_4m.mat 16+24 1423.022/% 0 0 2863 3991 0 PLETH
+ge336_4m.mat 16+24 59.0052/mmHg 0 0 4555 21753 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge336_4

@@ -1,0 +1,8 @@
+ge85_2m 4 250 150000
+ge85_2m.mat 16+24 418.0156/mV 0 0 0 -25839 0 II
+ge85_2m.mat 16+24 1039.2844/mV 0 0 0 -8132 0 V
+ge85_2m.mat 16+24 1548.9034/% 0 0 1627 22633 0 PLETH
+ge85_2m.mat 16+24 37.366/mmHg 0 0 2362 -12723 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge85_2

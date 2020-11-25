@@ -1,0 +1,8 @@
+ge116_1m 4 250 150000
+ge116_1m.mat 16+24 221.7832/mV 0 0 -454 12795 0 II
+ge116_1m.mat 16+24 392.996/mV 0 0 293 24113 0 V
+ge116_1m.mat 16+24 1652.8622/% 0 0 2867 27268 0 PLETH
+ge116_1m.mat 16+24 29.1288/mmHg 0 0 1643 24032 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge116_1

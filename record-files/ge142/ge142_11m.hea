@@ -1,0 +1,8 @@
+ge142_11m 4 250 150000
+ge142_11m.mat 16+24 5261.1647/mV 0 0 32767 -9692 0 II
+ge142_11m.mat 16+24 5864.0119/mV 0 0 32767 -9307 0 V
+ge142_11m.mat 16+24 3709.3016/% 0 0 7891 -13560 0 PLETH
+ge142_11m.mat 16+24 385.9225/mmHg 0 0 17543 -1982 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge142_11

@@ -1,0 +1,8 @@
+ge10_18m 4 250 150000
+ge10_18m.mat 16+24 6944.1577/mV 0 0 2281 9715 0 II
+ge10_18m.mat 16+24 9947.5455/mV 0 0 -2435 21398 0 V
+ge10_18m.mat 16+24 1470.852/% 0 0 4286 29109 0 PLETH
+ge10_18m.mat 16+24 38453.8682/Imp 0 0 -337 12019 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge10_18

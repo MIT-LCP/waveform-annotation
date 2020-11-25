@@ -1,0 +1,8 @@
+ge65_1m 4 250 150000
+ge65_1m.mat 16+24 3794.2017/mV 0 0 630 -3147 0 II
+ge65_1m.mat 16+24 4144.8215/mV 0 0 876 -12667 0 V
+ge65_1m.mat 16+24 1231.7072/% 0 0 1774 5867 0 PLETH
+ge65_1m.mat 16+24 35905.3026/Imp 0 0 -1800 -25707 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge65_1

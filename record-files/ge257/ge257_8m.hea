@@ -1,0 +1,8 @@
+ge257_8m 4 250 150000
+ge257_8m.mat 16+24 829.6671/mV 0 0 490 -7432 0 II
+ge257_8m.mat 16+24 1538.3095/mV 0 0 32767 -24749 0 V
+ge257_8m.mat 16+24 1243.7716/% 0 0 2233 -31301 0 PLETH
+ge257_8m.mat 16+24 6957.3785/Imp 0 0 302 7361 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge257_8

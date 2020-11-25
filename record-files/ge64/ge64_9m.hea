@@ -1,0 +1,8 @@
+ge64_9m 4 250 150000
+ge64_9m.mat 16+24 806.471/mV 0 0 -105 25831 0 II
+ge64_9m.mat 16+24 2370.8697/mV 0 0 82 -20069 0 V
+ge64_9m.mat 16+24 1917.5784/% 0 0 4617 21681 0 PLETH
+ge64_9m.mat 16+24 36.3235/mmHg 0 0 32767 -18928 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge64_9

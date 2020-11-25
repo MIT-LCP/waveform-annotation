@@ -1,0 +1,8 @@
+ge158_8m 4 250 150000
+ge158_8m.mat 16+24 1098.59/mV 0 0 221 -26991 0 II
+ge158_8m.mat 16+24 2897.4938/mV 0 0 -406 -30334 0 V
+ge158_8m.mat 16+24 1427.9371/% 0 0 3846 -5374 0 PLETH
+ge158_8m.mat 16+24 13045.6746/Imp 0 0 70 -6930 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge158_8

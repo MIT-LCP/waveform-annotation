@@ -1,0 +1,8 @@
+ge328_4m 4 250 150000
+ge328_4m.mat 16+24 2331.8786/mV 0 0 37 -28915 0 II
+ge328_4m.mat 16+24 5003.7768/mV 0 0 206 27257 0 V
+ge328_4m.mat 16+24 1856.7958/% 0 0 1953 23167 0 PLETH
+ge328_4m.mat 16+24 20904.6715/Imp 0 0 2537 -17667 0 RESP
+#Tachycardia,150>140
+#Creator: wfdb2mat
+#Source: record ge328_4

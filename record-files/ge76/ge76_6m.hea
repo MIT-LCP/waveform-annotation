@@ -1,0 +1,8 @@
+ge76_6m 4 250 150000
+ge76_6m.mat 16+24 1947.3897/mV 0 0 225 -3800 0 II
+ge76_6m.mat 16+24 1694.9238/mV 0 0 -690 2590 0 V
+ge76_6m.mat 16+24 1550.2673/% 0 0 3170 -22863 0 PLETH
+ge76_6m.mat 16+24 23158.2243/Imp 0 0 157 17944 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge76_6

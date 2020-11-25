@@ -1,0 +1,8 @@
+ge155_1m 4 250 150000
+ge155_1m.mat 16+24 1067.0109/mV 0 0 1652 -32075 0 II
+ge155_1m.mat 16+24 1753.3326/mV 0 0 -572 -14357 0 V
+ge155_1m.mat 16+24 1231.6715/% 0 0 2584 22330 0 PLETH
+ge155_1m.mat 16+24 39.9046/mmHg 0 0 1940 -996 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge155_1

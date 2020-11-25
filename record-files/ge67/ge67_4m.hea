@@ -1,0 +1,8 @@
+ge67_4m 4 250 150000
+ge67_4m.mat 16+24 5121.7236/mV 0 0 -367 -9224 0 II
+ge67_4m.mat 16+24 11362.4089/mV 0 0 981 -32185 0 V
+ge67_4m.mat 16+24 1160.774/% 0 0 3928 2833 0 PLETH
+ge67_4m.mat 16+24 63.1596/mmHg 0 0 1760 -31634 0 ABP
+#Bradycardia,39<40
+#Creator: wfdb2mat
+#Source: record ge67_4

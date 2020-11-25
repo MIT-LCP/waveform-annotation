@@ -1,0 +1,8 @@
+ge306_12m 4 250 150000
+ge306_12m.mat 16+24 2998.31/mV 0 0 63 -14093 0 II
+ge306_12m.mat 16+24 3084.5989/mV 0 0 -45 26044 0 V
+ge306_12m.mat 16+24 1642.0133/% 0 0 1582 4292 0 PLETH
+ge306_12m.mat 16+24 18064.6037/Imp 0 0 -189 -15324 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge306_12

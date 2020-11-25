@@ -1,0 +1,8 @@
+ge208_15m 4 250 150000
+ge208_15m.mat 16+24 2916.1661/mV 0 0 384 28752 0 II
+ge208_15m.mat 16+24 1970.7168/mV 0 0 -888 6782 0 V
+ge208_15m.mat 16+24 2521.9442/% 0 0 4626 -2547 0 PLETH
+ge208_15m.mat 16+24 64.4692/mmHg 0 0 6072 -27735 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge208_15

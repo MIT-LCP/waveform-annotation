@@ -1,0 +1,8 @@
+ge94_1m 4 250 150000
+ge94_1m.mat 16+24 4319.9152/mV 0 0 1214 -26662 0 II
+ge94_1m.mat 16+24 4105.9964/mV 0 0 -233 32208 0 V
+ge94_1m.mat 16+24 4628.5957/% 0 0 7180 -30920 0 PLETH
+ge94_1m.mat 16+24 75.949/mmHg 0 0 5357 28071 0 ABP
+#Tachycardia,152>145
+#Creator: wfdb2mat
+#Source: record ge94_1

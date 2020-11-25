@@ -1,0 +1,8 @@
+ge89_2m 4 250 150000
+ge89_2m.mat 16+24 500.8101/mV 0 0 233 -20542 0 II
+ge89_2m.mat 16+24 1564.9836/mV 0 0 46 -20000 0 V
+ge89_2m.mat 16+24 1549.6957/% 0 0 3773 26995 0 PLETH
+ge89_2m.mat 16+24 60.4253/mmHg 0 0 2055 11302 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge89_2

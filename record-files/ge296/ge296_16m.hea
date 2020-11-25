@@ -1,0 +1,8 @@
+ge296_16m 4 250 150000
+ge296_16m.mat 16+24 2621.7354/mV 0 0 -332 -31511 0 II
+ge296_16m.mat 16+24 4915.2377/mV 0 0 354 22997 0 V
+ge296_16m.mat 16+24 1222.1928/% 0 0 2470 -21188 0 PLETH
+ge296_16m.mat 16+24 23621.47/Imp 0 0 -366 -22725 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge296_16

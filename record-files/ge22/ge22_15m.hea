@@ -1,0 +1,8 @@
+ge22_15m 4 250 150000
+ge22_15m.mat 16+24 2602.8675/mV 0 0 359 -11975 0 II
+ge22_15m.mat 16+24 2894.6996/mV 0 0 -113 -31315 0 V
+ge22_15m.mat 16+24 4579.9285/% 0 0 6316 -21647 0 PLETH
+ge22_15m.mat 16+24 37.0236/mmHg 0 0 769 16920 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge22_15

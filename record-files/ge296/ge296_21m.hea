@@ -1,0 +1,8 @@
+ge296_21m 4 250 150000
+ge296_21m.mat 16+24 3341.1335/mV 0 0 -397 531 0 II
+ge296_21m.mat 16+24 2874.0084/mV 0 0 -489 31027 0 V
+ge296_21m.mat 16+24 1411.2004/% 0 0 4384 30762 0 PLETH
+ge296_21m.mat 16+24 22931.3701/Imp 0 0 306 27373 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge296_21

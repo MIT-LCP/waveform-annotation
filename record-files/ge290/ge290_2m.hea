@@ -1,0 +1,8 @@
+ge290_2m 4 250 150000
+ge290_2m.mat 16+24 7562.0564/mV 0 0 6218 14200 0 II
+ge290_2m.mat 16+24 12769.5569/mV 0 0 -3362 -3154 0 V
+ge290_2m.mat 16+24 4432.6767/% 0 0 8558 -24418 0 PLETH
+ge290_2m.mat 16+24 419963.1831/Imp 0 0 78 -6621 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge290_2

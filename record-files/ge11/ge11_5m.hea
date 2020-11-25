@@ -1,0 +1,8 @@
+ge11_5m 4 250 150000
+ge11_5m.mat 16+24 2478.4776/mV 0 0 1065 30073 0 II
+ge11_5m.mat 16+24 1622.3326/mV 0 0 -547 27243 0 V
+ge11_5m.mat 16+24 2063.3526/% 0 0 3283 -18096 0 PLETH
+ge11_5m.mat 16+24 56.8114/mmHg 0 0 3801 -9868 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge11_5

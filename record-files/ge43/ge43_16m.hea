@@ -1,0 +1,8 @@
+ge43_16m 4 250 150000
+ge43_16m.mat 16+24 1962.3765/mV 0 0 -451 -15546 0 II
+ge43_16m.mat 16+24 1939.4985/mV 0 0 -421 -14262 0 V
+ge43_16m.mat 16+24 1320.7049/% 0 0 1152 685 0 PLETH
+ge43_16m.mat 16+24 90.5629/mmHg 0 0 5604 -26087 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge43_16

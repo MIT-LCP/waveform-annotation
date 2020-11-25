@@ -1,0 +1,8 @@
+ge296_11m 4 250 150000
+ge296_11m.mat 16+24 3671.3344/mV 0 0 885 18916 0 II
+ge296_11m.mat 16+24 4677.4432/mV 0 0 -1142 32554 0 V
+ge296_11m.mat 16+24 4025.8719/% 0 0 7893 25613 0 PLETH
+ge296_11m.mat 16+24 37.407/mmHg 0 0 3907 -10229 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge296_11

@@ -1,0 +1,8 @@
+ge83_19m 4 250 150000
+ge83_19m.mat 16+24 1896.4826/mV 0 0 131 -29017 0 II
+ge83_19m.mat 16+24 2081.9449/mV 0 0 54 -1398 0 V
+ge83_19m.mat 16+24 3691.4746/% 0 0 7827 19313 0 PLETH
+ge83_19m.mat 16+24 11301.0528/Imp 0 0 1022 -30242 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge83_19

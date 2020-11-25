@@ -1,0 +1,8 @@
+ge270_21m 4 250 150000
+ge270_21m.mat 16+24 28348.0357/mV 0 0 -591 -8067 0 II
+ge270_21m.mat 16+24 14958.2832/mV 0 0 118 -11820 0 V
+ge270_21m.mat 16+24 4549.2835/% 0 0 8783 -31367 0 PLETH
+ge270_21m.mat 16+24 263.5163/mmHg 0 0 5887 22424 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge270_21

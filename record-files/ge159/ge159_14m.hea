@@ -1,0 +1,8 @@
+ge159_14m 4 250 150000
+ge159_14m.mat 16+24 1762.254/mV 0 0 633 -29469 0 II
+ge159_14m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge159_14m.mat 16+24 5753.6156/% 0 0 9603 16892 0 PLETH
+ge159_14m.mat 16+24 10342.1667/Imp 0 0 319 9490 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge159_14

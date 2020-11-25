@@ -1,0 +1,8 @@
+ge69_9m 4 250 150000
+ge69_9m.mat 16+24 11840.8038/mV 0 0 -1743 18083 0 II
+ge69_9m.mat 16+24 18874.4373/mV 0 0 1112 6668 0 V
+ge69_9m.mat 16+24 5888.9242/% 0 0 14167 -31379 0 PLETH
+ge69_9m.mat 16+24 5888.9242/% 0 0 14167 -31379 0 PLETH
+#Bradycardia,0<40
+#Creator: wfdb2mat
+#Source: record ge69_9

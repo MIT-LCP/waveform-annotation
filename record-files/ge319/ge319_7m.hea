@@ -1,0 +1,8 @@
+ge319_7m 4 250 150000
+ge319_7m.mat 16+24 3067.4189/mV 0 0 -419 23825 0 II
+ge319_7m.mat 16+24 7015.1274/mV 0 0 -94 27140 0 V
+ge319_7m.mat 16+24 6563.0756/% 0 0 12671 107 0 PLETH
+ge319_7m.mat 16+24 58127.3253/Imp 0 0 11 -10787 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge319_7

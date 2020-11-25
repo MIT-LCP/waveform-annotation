@@ -1,0 +1,8 @@
+ge232_7m 4 250 150000
+ge232_7m.mat 16+24 3108.894/mV 0 0 -215 -1743 0 II
+ge232_7m.mat 16+24 1383.7452/mV 0 0 18 1928 0 V
+ge232_7m.mat 16+24 1500.5411/% 0 0 2546 -14274 0 PLETH
+ge232_7m.mat 16+24 35325.6485/Imp 0 0 456 -8916 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge232_7

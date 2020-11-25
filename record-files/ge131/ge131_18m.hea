@@ -1,0 +1,8 @@
+ge131_18m 4 250 150000
+ge131_18m.mat 16+24 2563.8208/mV 0 0 -60 21145 0 II
+ge131_18m.mat 16+24 3195.4052/mV 0 0 115 20331 0 V
+ge131_18m.mat 16+24 6460.5574/% 0 0 13308 -20661 0 PLETH
+ge131_18m.mat 16+24 82.0442/mmHg 0 0 3414 -22889 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge131_18

@@ -1,0 +1,8 @@
+ge201_1m 4 250 150000
+ge201_1m.mat 16+24 2357.7377/mV 0 0 172 8555 0 II
+ge201_1m.mat 16+24 2519.4585/mV 0 0 4 -6652 0 V
+ge201_1m.mat 16+24 1435.0528/% 0 0 2753 -18950 0 PLETH
+ge201_1m.mat 16+24 37007.9785/Imp 0 0 1369 26099 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge201_1

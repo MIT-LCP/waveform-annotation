@@ -1,0 +1,8 @@
+ge239_2m 4 250 150000
+ge239_2m.mat 16+24 3422.6777/mV 0 0 -198 26341 0 II
+ge239_2m.mat 16+24 3213.3815/mV 0 0 -541 2011 0 V
+ge239_2m.mat 16+24 1647.7682/% 0 0 3541 -25755 0 PLETH
+ge239_2m.mat 16+24 57.444/mmHg 0 0 4177 23228 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge239_2

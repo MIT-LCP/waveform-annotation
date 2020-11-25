@@ -1,0 +1,8 @@
+ge96_8m 4 250 150000
+ge96_8m.mat 16+24 2117.7963/mV 0 0 -441 15588 0 II
+ge96_8m.mat 16+24 1429.8632/mV 0 0 1490 -17096 0 V
+ge96_8m.mat 16+24 6199.3801/% 0 0 12102 25791 0 PLETH
+ge96_8m.mat 16+24 82446.4776/Imp 0 0 -706 7260 0 RESP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge96_8

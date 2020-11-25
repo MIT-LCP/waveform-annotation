@@ -1,0 +1,8 @@
+ge119_1m 4 250 150000
+ge119_1m.mat 16+24 2142.0115/mV 0 0 -58 29312 0 II
+ge119_1m.mat 16+24 2138.3833/mV 0 0 609 -20144 0 V
+ge119_1m.mat 16+24 1371.4045/% 0 0 1871 9648 0 PLETH
+ge119_1m.mat 16+24 20691.7961/Imp 0 0 66 -6732 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge119_1

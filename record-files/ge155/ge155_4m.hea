@@ -1,0 +1,8 @@
+ge155_4m 4 250 150000
+ge155_4m.mat 16+24 496.6021/mV 0 0 52 3517 0 II
+ge155_4m.mat 16+24 1117.3726/mV 0 0 49 -8449 0 V
+ge155_4m.mat 16+24 1235.9732/% 0 0 2587 -25683 0 PLETH
+ge155_4m.mat 16+24 16413.7667/Imp 0 0 967 22807 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge155_4

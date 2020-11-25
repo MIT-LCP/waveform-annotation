@@ -1,0 +1,8 @@
+ge22_27m 4 250 150000
+ge22_27m.mat 16+24 3648.112/mV 0 0 1232 26624 0 II
+ge22_27m.mat 16+24 1478.2003/mV 0 0 34 -3819 0 V
+ge22_27m.mat 16+24 3814.1345/% 0 0 7367 -25740 0 PLETH
+ge22_27m.mat 16+24 85.0522/mmHg 0 0 2025 1344 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge22_27

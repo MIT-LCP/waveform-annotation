@@ -1,0 +1,8 @@
+ge96_9m 4 250 150000
+ge96_9m.mat 16+24 2166.5257/mV 0 0 -818 29614 0 II
+ge96_9m.mat 16+24 1463.2989/mV 0 0 1130 1644 0 V
+ge96_9m.mat 16+24 6188.272/% 0 0 12802 26359 0 PLETH
+ge96_9m.mat 16+24 82476.0166/Imp 0 0 -738 -1480 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge96_9

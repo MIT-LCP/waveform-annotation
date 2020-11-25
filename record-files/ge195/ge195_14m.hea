@@ -1,0 +1,8 @@
+ge195_14m 4 250 150000
+ge195_14m.mat 16+24 1561.2813/mV 0 0 -292 -9789 0 II
+ge195_14m.mat 16+24 170.8737/mV 0 0 -2635 31822 0 V
+ge195_14m.mat 16+24 2655.7669/% 0 0 5954 29305 0 PLETH
+ge195_14m.mat 16+24 179.3129/mmHg 0 0 12161 -11246 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge195_14

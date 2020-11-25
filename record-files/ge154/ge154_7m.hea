@@ -1,0 +1,8 @@
+ge154_7m 4 250 150000
+ge154_7m.mat 16+24 2369.9597/mV 0 0 2080 -4973 0 II
+ge154_7m.mat 16+24 2032.7907/mV 0 0 -675 -17613 0 V
+ge154_7m.mat 16+24 1535.2762/% 0 0 3905 -19874 0 PLETH
+ge154_7m.mat 16+24 35.2295/mmHg 0 0 1675 -22428 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge154_7

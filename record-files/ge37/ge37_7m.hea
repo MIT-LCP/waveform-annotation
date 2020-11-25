@@ -1,0 +1,8 @@
+ge37_7m 4 250 150000
+ge37_7m.mat 16+24 5450.9491/mV 0 0 294 31534 0 II
+ge37_7m.mat 16+24 4236.1293/mV 0 0 -196 21282 0 V
+ge37_7m.mat 16+24 1343.2289/% 0 0 1957 4119 0 PLETH
+ge37_7m.mat 16+24 24288.7033/Imp 0 0 213 -7880 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge37_7

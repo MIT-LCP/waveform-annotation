@@ -1,0 +1,8 @@
+ge326_14m 4 250 150000
+ge326_14m.mat 16+24 7495.9436/mV 0 0 -242 15988 0 II
+ge326_14m.mat 16+24 6162.2252/mV 0 0 -236 21155 0 V
+ge326_14m.mat 16+24 1401.3056/% 0 0 2973 5848 0 PLETH
+ge326_14m.mat 16+24 16894.9434/Imp 0 0 -309 11212 0 RESP
+#Bradycardia,0<40
+#Creator: wfdb2mat
+#Source: record ge326_14

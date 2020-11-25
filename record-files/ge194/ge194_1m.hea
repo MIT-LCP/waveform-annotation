@@ -1,0 +1,8 @@
+ge194_1m 4 250 150000
+ge194_1m.mat 16+24 3481.0563/mV 0 0 1431 -4269 0 II
+ge194_1m.mat 16+24 8475.9831/mV 0 0 -2485 17517 0 V
+ge194_1m.mat 16+24 5586.1719/% 0 0 9892 21352 0 PLETH
+ge194_1m.mat 16+24 87290.176/Imp 0 0 933 3791 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge194_1

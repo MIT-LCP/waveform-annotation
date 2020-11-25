@@ -1,0 +1,8 @@
+ge139_6m 4 250 150000
+ge139_6m.mat 16+24 2836.464/mV 0 0 0 -2223 0 II
+ge139_6m.mat 16+24 3062.4065/mV 0 0 0 -1793 0 V
+ge139_6m.mat 16+24 5006.3356/% 0 0 9746 -17266 0 PLETH
+ge139_6m.mat 16+24 32618.9176/Imp 0 0 -32768 -24787 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge139_6

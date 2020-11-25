@@ -1,0 +1,8 @@
+ge210_4m 4 250 150000
+ge210_4m.mat 16+24 8222.9824/mV 0 0 191 4225 0 II
+ge210_4m.mat 16+24 7809.6944/mV 0 0 594 2668 0 V
+ge210_4m.mat 16+24 1458.484/% 0 0 2040 -9591 0 PLETH
+ge210_4m.mat 16+24 81288.8149/Imp 0 0 -525 3108 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge210_4

@@ -1,0 +1,8 @@
+ge24_20m 4 250 150000
+ge24_20m.mat 16+24 3647.8471/mV 0 0 100 -14449 0 II
+ge24_20m.mat 16+24 4480.5442/mV 0 0 -224 1825 0 V
+ge24_20m.mat 16+24 6545.6583/% 0 0 13684 -29124 0 PLETH
+ge24_20m.mat 16+24 53.8737/mmHg 0 0 3738 -5368 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge24_20

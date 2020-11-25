@@ -1,0 +1,8 @@
+ge96_10m 4 250 150000
+ge96_10m.mat 16+24 2967.8443/mV 0 0 -124 -29082 0 II
+ge96_10m.mat 16+24 2174.6155/mV 0 0 -747 7032 0 V
+ge96_10m.mat 16+24 7987.4591/% 0 0 15421 -6459 0 PLETH
+ge96_10m.mat 16+24 150385.5989/Imp 0 0 5219 13524 0 RESP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge96_10

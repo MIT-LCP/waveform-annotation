@@ -1,0 +1,8 @@
+ge91_4m 4 250 150000
+ge91_4m.mat 16+24 2263.802/mV 0 0 669 -24954 0 II
+ge91_4m.mat 16+24 1834.577/mV 0 0 133 27594 0 V
+ge91_4m.mat 16+24 1255.1531/% 0 0 1218 -28453 0 PLETH
+ge91_4m.mat 16+24 38567.0256/Imp 0 0 -147 8488 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge91_4

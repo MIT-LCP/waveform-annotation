@@ -1,0 +1,8 @@
+ge118_7m 4 250 150000
+ge118_7m.mat 16+24 246.6033/mV 0 0 -61 -8778 0 II
+ge118_7m.mat 16+24 703.1452/mV 0 0 93 -5829 0 V
+ge118_7m.mat 16+24 4790.1904/% 0 0 3135 11814 0 PLETH
+ge118_7m.mat 16+24 93.5288/mmHg 0 0 6938 -29622 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge118_7

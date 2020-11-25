@@ -1,0 +1,8 @@
+ge264_1m 4 250 150000
+ge264_1m.mat 16+24 9162.4541/mV 0 0 309 -18244 0 II
+ge264_1m.mat 16+24 12029.0525/mV 0 0 539 31166 0 V
+ge264_1m.mat 16+24 5192.2993/% 0 0 11445 10499 0 PLETH
+ge264_1m.mat 16+24 29144.7562/Imp 0 0 1667 13706 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge264_1

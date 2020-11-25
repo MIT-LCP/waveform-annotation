@@ -1,0 +1,8 @@
+ge131_10m 4 250 150000
+ge131_10m.mat 16+24 841.2978/mV 0 0 -8261 19306 0 II
+ge131_10m.mat 16+24 1698.418/mV 0 0 4677 -27007 0 V
+ge131_10m.mat 16+24 3380.3452/% 0 0 7348 19885 0 PLETH
+ge131_10m.mat 16+24 20.4602/mmHg 0 0 821 -20529 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge131_10

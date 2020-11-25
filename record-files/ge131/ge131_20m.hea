@@ -1,0 +1,8 @@
+ge131_20m 4 250 150000
+ge131_20m.mat 16+24 3754.3552/mV 0 0 -217 -3582 0 II
+ge131_20m.mat 16+24 2848.0559/mV 0 0 -43 11569 0 V
+ge131_20m.mat 16+24 1548.4827/% 0 0 2028 -25094 0 PLETH
+ge131_20m.mat 16+24 113.1347/mmHg 0 0 5322 23942 0 ABP
+#Tachycardia,170>140
+#Creator: wfdb2mat
+#Source: record ge131_20

@@ -1,0 +1,8 @@
+ge143_2m 4 250 150000
+ge143_2m.mat 16+24 4817.042/mV 0 0 68 -3293 0 II
+ge143_2m.mat 16+24 7396.1516/mV 0 0 364 -17752 0 V
+ge143_2m.mat 16+24 1549.6376/% 0 0 3940 14020 0 PLETH
+ge143_2m.mat 16+24 19946.6811/Imp 0 0 358 -19366 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge143_2

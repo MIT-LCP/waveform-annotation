@@ -1,0 +1,8 @@
+ge208_9m 4 250 150000
+ge208_9m.mat 16+24 5511.8856/mV 0 0 701 19411 0 II
+ge208_9m.mat 16+24 2278.2611/mV 0 0 -774 31774 0 V
+ge208_9m.mat 16+24 6100.0448/% 0 0 12060 -23708 0 PLETH
+ge208_9m.mat 16+24 85.994/mmHg 0 0 6666 -9429 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge208_9

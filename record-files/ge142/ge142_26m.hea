@@ -1,0 +1,8 @@
+ge142_26m 4 250 150000
+ge142_26m.mat 16+24 779.9325/mV 0 0 -530 12310 0 II
+ge142_26m.mat 16+24 1985.8239/mV 0 0 530 -25843 0 V
+ge142_26m.mat 16+24 2002.0256/% 0 0 4076 -861 0 PLETH
+ge142_26m.mat 16+24 9834.1979/Imp 0 0 -103 17286 0 RESP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge142_26

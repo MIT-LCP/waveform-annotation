@@ -1,0 +1,8 @@
+ge193_8m 4 250 150000
+ge193_8m.mat 16+24 1700.7806/mV 0 0 -1550 -15863 0 II
+ge193_8m.mat 16+24 2747.6403/mV 0 0 537 11637 0 V
+ge193_8m.mat 16+24 1399.6932/% 0 0 919 8633 0 PLETH
+ge193_8m.mat 16+24 26984.0048/Imp 0 0 -51 -5534 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge193_8

@@ -1,0 +1,8 @@
+ge25_1m 4 250 150000
+ge25_1m.mat 16+24 3610.4909/mV 0 0 -368 1439 0 II
+ge25_1m.mat 16+24 8653.1073/mV 0 0 -765 -23674 0 V
+ge25_1m.mat 16+24 6260.8661/% 0 0 13371 -5366 0 PLETH
+ge25_1m.mat 16+24 77.7684/mmHg 0 0 4442 -21212 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge25_1

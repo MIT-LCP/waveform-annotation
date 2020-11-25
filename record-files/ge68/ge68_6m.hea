@@ -1,0 +1,8 @@
+ge68_6m 4 250 150000
+ge68_6m.mat 16+24 3752.7389/mV 0 0 69 -31947 0 II
+ge68_6m.mat 16+24 3596.5284/mV 0 0 -353 10504 0 V
+ge68_6m.mat 16+24 1199.3596/% 0 0 3222 23230 0 PLETH
+ge68_6m.mat 16+24 74107.5331/Imp 0 0 -395 -2322 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge68_6

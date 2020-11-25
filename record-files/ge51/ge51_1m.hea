@@ -1,0 +1,8 @@
+ge51_1m 4 250 150000
+ge51_1m.mat 16+24 1865.1245/mV 0 0 0 -20371 0 II
+ge51_1m.mat 16+24 3279.1629/mV 0 0 0 32165 0 V
+ge51_1m.mat 16+24 1402.0365/% 0 0 3021 12763 0 PLETH
+ge51_1m.mat 16+24 82250.481/Imp 0 0 -32768 -5999 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge51_1

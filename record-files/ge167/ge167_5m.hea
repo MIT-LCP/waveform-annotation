@@ -1,0 +1,8 @@
+ge167_5m 4 250 150000
+ge167_5m.mat 16+24 2037.4894/mV 0 0 244 23908 0 II
+ge167_5m.mat 16+24 1974.2759/mV 0 0 32767 -17141 0 III
+ge167_5m.mat 16+24 1775.2438/% 0 0 4340 -24965 0 PLETH
+ge167_5m.mat 16+24 85.3789/mmHg 0 0 3188 5791 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge167_5

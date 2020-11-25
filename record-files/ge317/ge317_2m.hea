@@ -1,0 +1,8 @@
+ge317_2m 4 250 150000
+ge317_2m.mat 16+24 2468.9793/mV 0 0 -963 -21240 0 II
+ge317_2m.mat 16+24 2753.7241/mV 0 0 1540 -9699 0 V
+ge317_2m.mat 16+24 1492.9407/% 0 0 2807 -23468 0 PLETH
+ge317_2m.mat 16+24 20298.4355/Imp 0 0 117 28187 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge317_2

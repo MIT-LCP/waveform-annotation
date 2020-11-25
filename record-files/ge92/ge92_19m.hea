@@ -1,0 +1,8 @@
+ge92_19m 4 250 150000
+ge92_19m.mat 16+24 2048.8419/mV 0 0 385 28444 0 II
+ge92_19m.mat 16+24 1251.956/mV 0 0 -82 7688 0 V
+ge92_19m.mat 16+24 1520.9217/% 0 0 5870 -6216 0 PLETH
+ge92_19m.mat 16+24 50.4433/mmHg 0 0 2064 13368 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge92_19

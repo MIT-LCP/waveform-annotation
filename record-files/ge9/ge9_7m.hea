@@ -1,0 +1,8 @@
+ge9_7m 4 250 150000
+ge9_7m.mat 16+24 1694.025/mV 0 0 -79 -20802 0 II
+ge9_7m.mat 16+24 2519.4775/mV 0 0 299 -9046 0 V
+ge9_7m.mat 16+24 1546.0417/% 0 0 4104 -25212 0 PLETH
+ge9_7m.mat 16+24 71.3713/mmHg 0 0 3307 -22824 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge9_7

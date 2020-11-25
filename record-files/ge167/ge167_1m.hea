@@ -1,0 +1,8 @@
+ge167_1m 4 250 150000
+ge167_1m.mat 16+24 1688.8982/mV 0 0 -848 -6785 0 II
+ge167_1m.mat 16+24 2057.7814/mV 0 0 490 -12145 0 V
+ge167_1m.mat 16+24 1619.7963/% 0 0 4999 -4589 0 PLETH
+ge167_1m.mat 16+24 131.4677/mmHg 0 0 5743 -30758 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge167_1

@@ -1,0 +1,8 @@
+ge310_1m 4 250 150000
+ge310_1m.mat 16+24 895.8003/mV 0 0 169 29697 0 II
+ge310_1m.mat 16+24 1786.5887/mV 0 0 -174 10328 0 V
+ge310_1m.mat 16+24 1198.1764/% 0 0 2762 7025 0 PLETH
+ge310_1m.mat 16+24 12665.7397/Imp 0 0 -294 -12154 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge310_1

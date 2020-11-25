@@ -1,0 +1,8 @@
+ge123_8m 4 250 150000
+ge123_8m.mat 16+24 1490.0177/mV 0 0 32 10229 0 II
+ge123_8m.mat 16+24 1865.1136/mV 0 0 115 -20328 0 V
+ge123_8m.mat 16+24 1649.9143/% 0 0 2996 -6375 0 PLETH
+ge123_8m.mat 16+24 21017.1468/Imp 0 0 -201 -14471 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge123_8

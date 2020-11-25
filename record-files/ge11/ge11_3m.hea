@@ -1,0 +1,8 @@
+ge11_3m 4 250 150000
+ge11_3m.mat 16+24 4724.0778/mV 0 0 -430 -11974 0 II
+ge11_3m.mat 16+24 2061.9746/mV 0 0 -14 -2354 0 V
+ge11_3m.mat 16+24 5462.2805/% 0 0 9964 1232 0 PLETH
+ge11_3m.mat 16+24 37.8864/mmHg 0 0 1877 -4834 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge11_3

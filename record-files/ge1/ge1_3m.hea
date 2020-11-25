@@ -1,0 +1,8 @@
+ge1_3m 4 250 150000
+ge1_3m.mat 16+24 3354.4573/mV 0 0 2349 12864 0 II
+ge1_3m.mat 16+24 1879.6348/mV 0 0 -486 -25445 0 V
+ge1_3m.mat 16+24 3227.8724/% 0 0 2641 -4493 0 PLETH
+ge1_3m.mat 16+24 72.0079/mmHg 0 0 2739 15258 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge1_3

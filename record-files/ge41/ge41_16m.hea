@@ -1,0 +1,8 @@
+ge41_16m 4 250 150000
+ge41_16m.mat 16+24 2871.6827/mV 0 0 139 4337 0 II
+ge41_16m.mat 16+24 2260.8828/mV 0 0 0 -1667 0 V
+ge41_16m.mat 16+24 1464.5554/% 0 0 3221 22818 0 PLETH
+ge41_16m.mat 16+24 20240.0425/Imp 0 0 212 17951 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge41_16

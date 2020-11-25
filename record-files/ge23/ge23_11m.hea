@@ -1,0 +1,8 @@
+ge23_11m 4 250 150000
+ge23_11m.mat 16+24 439.5617/mV 0 0 64 -2561 0 II
+ge23_11m.mat 16+24 608.0913/mV 0 0 149 20800 0 V
+ge23_11m.mat 16+24 2391.766/% 0 0 4763 7997 0 PLETH
+ge23_11m.mat 16+24 26278.8789/Imp 0 0 -32768 4579 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge23_11

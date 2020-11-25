@@ -1,0 +1,8 @@
+ge341_5m 4 250 150000
+ge341_5m.mat 16+24 1272.2796/mV 0 0 -77 20434 0 II
+ge341_5m.mat 16+24 345.9845/mV 0 0 265 -11516 0 V
+ge341_5m.mat 16+24 5666.9872/% 0 0 10949 9307 0 PLETH
+ge341_5m.mat 16+24 22.67/mmHg 0 0 967 21796 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge341_5

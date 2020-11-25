@@ -1,0 +1,8 @@
+ge115_8m 4 250 150000
+ge115_8m.mat 16+24 3769.879/mV 0 0 -772 30467 0 II
+ge115_8m.mat 16+24 7259.5605/mV 0 0 464 -25978 0 V
+ge115_8m.mat 16+24 1191.0103/% 0 0 2253 22091 0 PLETH
+ge115_8m.mat 16+24 77.5923/mmHg 0 0 2419 15751 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge115_8

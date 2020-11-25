@@ -1,0 +1,8 @@
+ge311_8m 4 250 150000
+ge311_8m.mat 16+24 4601.5398/mV 0 0 908 -14607 0 II
+ge311_8m.mat 16+24 957.9625/mV 0 0 334 26194 0 V
+ge311_8m.mat 16+24 2044.2899/% 0 0 2006 -11188 0 PLETH
+ge311_8m.mat 16+24 54.8052/mmHg 0 0 2497 -31934 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge311_8

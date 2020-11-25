@@ -1,0 +1,8 @@
+ge84_1m 4 250 150000
+ge84_1m.mat 16+24 1527.0119/mV 0 0 1003 -6514 0 II
+ge84_1m.mat 16+24 1776.4527/mV 0 0 -1217 -29427 0 V
+ge84_1m.mat 16+24 3391.1032/% 0 0 6348 915 0 PLETH
+ge84_1m.mat 16+24 16313.1451/Imp 0 0 1296 118 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge84_1

@@ -1,0 +1,8 @@
+ge274_2m 4 250 150000
+ge274_2m.mat 16+24 inf/mV 0 0 -32768 0 0 II
+ge274_2m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge274_2m.mat 16+24 1177.9502/% 0 0 1690 -12162 0 PLETH
+ge274_2m.mat 16+24 10443.5873/Imp 0 0 -32768 0 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge274_2

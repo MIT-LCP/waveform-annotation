@@ -1,0 +1,8 @@
+ge177_9m 4 250 150000
+ge177_9m.mat 16+24 1984.2705/mV 0 0 309 -21236 0 II
+ge177_9m.mat 16+24 4060.0756/mV 0 0 -216 32202 0 V
+ge177_9m.mat 16+24 1694.6137/% 0 0 2950 29281 0 PLETH
+ge177_9m.mat 16+24 34427.1389/Imp 0 0 -624 24770 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge177_9

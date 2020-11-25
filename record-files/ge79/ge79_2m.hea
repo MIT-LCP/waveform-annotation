@@ -1,0 +1,8 @@
+ge79_2m 4 250 150000
+ge79_2m.mat 16+24 2458.6361/mV 0 0 419 1230 0 II
+ge79_2m.mat 16+24 4860.6649/mV 0 0 -1777 19472 0 V
+ge79_2m.mat 16+24 1405.1504/% 0 0 4176 -7140 0 PLETH
+ge79_2m.mat 16+24 68961.5484/Imp 0 0 -340 612 0 RESP
+#Bradycardia,38<40
+#Creator: wfdb2mat
+#Source: record ge79_2

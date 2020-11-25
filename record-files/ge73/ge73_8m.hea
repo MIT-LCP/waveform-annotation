@@ -1,0 +1,8 @@
+ge73_8m 4 250 150000
+ge73_8m.mat 16+24 586.3555/mV 0 0 104 22609 0 II
+ge73_8m.mat 16+24 1406.6738/mV 0 0 -234 -13276 0 V
+ge73_8m.mat 16+24 1637.2943/% 0 0 2245 -5774 0 PLETH
+ge73_8m.mat 16+24 70.627/mmHg 0 0 3920 3750 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge73_8

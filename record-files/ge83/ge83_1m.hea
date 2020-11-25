@@ -1,0 +1,8 @@
+ge83_1m 4 250 150000
+ge83_1m.mat 16+24 2558.531/mV 0 0 -136 -22535 0 II
+ge83_1m.mat 16+24 2005.3501/mV 0 0 -312 -18365 0 V
+ge83_1m.mat 16+24 2215.9047/% 0 0 2886 11410 0 PLETH
+ge83_1m.mat 16+24 69325.8278/Imp 0 0 775 32261 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge83_1

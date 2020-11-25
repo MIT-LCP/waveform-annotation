@@ -1,0 +1,8 @@
+ge205_10m 4 250 150000
+ge205_10m.mat 16+24 3557.363/mV 0 0 509 -28949 0 II
+ge205_10m.mat 16+24 3946.3929/mV 0 0 303 9036 0 V
+ge205_10m.mat 16+24 2807.394/% 0 0 5524 29920 0 PLETH
+ge205_10m.mat 16+24 35763.2822/Imp 0 0 -676 -7793 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge205_10

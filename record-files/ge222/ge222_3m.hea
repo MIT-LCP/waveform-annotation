@@ -1,0 +1,8 @@
+ge222_3m 4 250 150000
+ge222_3m.mat 16+24 4549.547/mV 0 0 -173 -507 0 II
+ge222_3m.mat 16+24 4773.9582/mV 0 0 -27 -31124 0 V
+ge222_3m.mat 16+24 1568.4113/% 0 0 3008 22033 0 PLETH
+ge222_3m.mat 16+24 50.6699/mmHg 0 0 2127 10661 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge222_3

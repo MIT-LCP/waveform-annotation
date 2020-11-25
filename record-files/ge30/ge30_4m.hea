@@ -1,0 +1,8 @@
+ge30_4m 4 250 150000
+ge30_4m.mat 16+24 1291.0744/mV 0 0 -158 -3258 0 II
+ge30_4m.mat 16+24 1388.7526/mV 0 0 113 19891 0 V
+ge30_4m.mat 16+24 1635.8453/% 0 0 3009 32743 0 PLETH
+ge30_4m.mat 16+24 96.4888/mmHg 0 0 4788 -1359 0 ABP
+#Tachycardia,145>140
+#Creator: wfdb2mat
+#Source: record ge30_4

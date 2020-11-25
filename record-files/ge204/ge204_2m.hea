@@ -1,0 +1,8 @@
+ge204_2m 4 250 150000
+ge204_2m.mat 16+24 1854.9895/mV 0 0 -35 17478 0 II
+ge204_2m.mat 16+24 4588.1327/mV 0 0 323 10732 0 V
+ge204_2m.mat 16+24 2053.7128/% 0 0 3952 -1820 0 PLETH
+ge204_2m.mat 16+24 82.2633/mmHg 0 0 3721 -9495 0 ABP
+#Tachycardia,148>140
+#Creator: wfdb2mat
+#Source: record ge204_2

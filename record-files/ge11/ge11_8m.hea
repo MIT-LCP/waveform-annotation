@@ -1,0 +1,8 @@
+ge11_8m 4 250 150000
+ge11_8m.mat 16+24 528.9871/mV 0 0 -5 2408 0 II
+ge11_8m.mat 16+24 446.9195/mV 0 0 -51 5552 0 V
+ge11_8m.mat 16+24 3693.1062/% 0 0 5864 -29779 0 PLETH
+ge11_8m.mat 16+24 19637.8881/Imp 0 0 -140 -3197 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge11_8

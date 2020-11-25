@@ -1,0 +1,8 @@
+ge46_10m 4 250 150000
+ge46_10m.mat 16+24 302.029/mV 0 0 2596 29108 0 II
+ge46_10m.mat 16+24 286.0421/mV 0 0 32767 -16175 0 V
+ge46_10m.mat 16+24 5351.6003/% 0 0 9187 20649 0 PLETH
+ge46_10m.mat 16+24 14531.4461/Imp 0 0 764 -1844 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge46_10

@@ -1,0 +1,8 @@
+ge169_7m 4 250 150000
+ge169_7m.mat 16+24 4084.5076/mV 0 0 -421 6031 0 II
+ge169_7m.mat 16+24 673.9463/mV 0 0 1817 -27107 0 V
+ge169_7m.mat 16+24 3229.1101/% 0 0 8319 13808 0 PLETH
+ge169_7m.mat 16+24 3229.1101/% 0 0 8319 13808 0 PLETH
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge169_7

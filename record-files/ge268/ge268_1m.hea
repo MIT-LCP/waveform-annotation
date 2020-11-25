@@ -1,0 +1,8 @@
+ge268_1m 4 250 150000
+ge268_1m.mat 16+24 5685.8294/mV 0 0 -102 10056 0 II
+ge268_1m.mat 16+24 5169.3191/mV 0 0 40 11051 0 V
+ge268_1m.mat 16+24 4416.5918/% 0 0 9062 9688 0 PLETH
+ge268_1m.mat 16+24 49158.1997/Imp 0 0 663 -31899 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge268_1

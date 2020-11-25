@@ -1,0 +1,8 @@
+ge210_15m 4 250 150000
+ge210_15m.mat 16+24 4172.7869/mV 0 0 601 1589 0 II
+ge210_15m.mat 16+24 309.1295/mV 0 0 32767 12659 0 V
+ge210_15m.mat 16+24 1438.1716/% 0 0 2068 18757 0 PLETH
+ge210_15m.mat 16+24 21635.1013/Imp 0 0 -251 -10437 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge210_15

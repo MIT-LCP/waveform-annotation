@@ -1,0 +1,8 @@
+ge314_11m 4 250 150000
+ge314_11m.mat 16+24 329.4526/mV 0 0 -1112 -23348 0 II
+ge314_11m.mat 16+24 1450.788/mV 0 0 0 3353 0 V
+ge314_11m.mat 16+24 1888.404/% 0 0 3074 3891 0 PLETH
+ge314_11m.mat 16+24 53.338/mmHg 0 0 5841 23135 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge314_11

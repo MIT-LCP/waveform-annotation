@@ -1,0 +1,8 @@
+ge242_2m 4 250 150000
+ge242_2m.mat 16+24 3997.4579/mV 0 0 -342 21998 0 II
+ge242_2m.mat 16+24 6847.9764/mV 0 0 470 -13125 0 V
+ge242_2m.mat 16+24 5778.194/% 0 0 11339 9146 0 PLETH
+ge242_2m.mat 16+24 30506.1596/Imp 0 0 1244 -28411 0 RESP
+#Bradycardia,35<40
+#Creator: wfdb2mat
+#Source: record ge242_2

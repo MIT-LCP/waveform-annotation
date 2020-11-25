@@ -1,0 +1,8 @@
+ge261_20m 4 250 150000
+ge261_20m.mat 16+24 2054.8232/mV 0 0 -259 12687 0 II
+ge261_20m.mat 16+24 2950.2245/mV 0 0 -117 -2702 0 V
+ge261_20m.mat 16+24 1776.9538/% 0 0 4618 7034 0 PLETH
+ge261_20m.mat 16+24 40.2725/mmHg 0 0 2895 -30630 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge261_20

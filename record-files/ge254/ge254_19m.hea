@@ -1,0 +1,8 @@
+ge254_19m 4 250 150000
+ge254_19m.mat 16+24 861.5164/mV 0 0 -813 -7074 0 II
+ge254_19m.mat 16+24 1161.0361/mV 0 0 598 -18538 0 V
+ge254_19m.mat 16+24 1921.6584/% 0 0 4442 -12041 0 PLETH
+ge254_19m.mat 16+24 7387.2428/Imp 0 0 378 -17690 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge254_19

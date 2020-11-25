@@ -1,0 +1,8 @@
+ge118_9m 4 250 150000
+ge118_9m.mat 16+24 334.5622/mV 0 0 7340 5338 0 II
+ge118_9m.mat 16+24 933.9415/mV 0 0 12844 -21661 0 V
+ge118_9m.mat 16+24 3747.5009/% 0 0 6953 4069 0 PLETH
+ge118_9m.mat 16+24 93.1784/mmHg 0 0 5051 7096 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge118_9

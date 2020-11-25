@@ -1,0 +1,8 @@
+ge338_7m 4 250 150000
+ge338_7m.mat 16+24 2797.4825/mV 0 0 -514 -10428 0 II
+ge338_7m.mat 16+24 8657.0061/mV 0 0 1343 27325 0 V
+ge338_7m.mat 16+24 1507.9569/% 0 0 2681 9764 0 PLETH
+ge338_7m.mat 16+24 114388.3331/Imp 0 0 1385 -4294 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge338_7

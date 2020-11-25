@@ -1,0 +1,8 @@
+ge215_6m 4 250 150000
+ge215_6m.mat 16+24 3311.2282/mV 0 0 -742 21324 0 II
+ge215_6m.mat 16+24 6568.9074/mV 0 0 129 -19206 0 V
+ge215_6m.mat 16+24 2710.3609/% 0 0 6538 7009 0 PLETH
+ge215_6m.mat 16+24 18489.7232/Imp 0 0 -152 22703 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge215_6

@@ -1,0 +1,8 @@
+ge242_3m 4 250 150000
+ge242_3m.mat 16+24 5092.9035/mV 0 0 -286 -6411 0 II
+ge242_3m.mat 16+24 7514.2209/mV 0 0 309 -17917 0 V
+ge242_3m.mat 16+24 5484.0983/% 0 0 4253 -315 0 PLETH
+ge242_3m.mat 16+24 21366.3021/Imp 0 0 505 -28182 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge242_3

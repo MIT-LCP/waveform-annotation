@@ -1,0 +1,8 @@
+ge278_6m 4 250 150000
+ge278_6m.mat 16+24 3549.6631/mV 0 0 -109 19311 0 II
+ge278_6m.mat 16+24 4318.4089/mV 0 0 62 -5345 0 V
+ge278_6m.mat 16+24 6632.0707/% 0 0 12007 -15046 0 PLETH
+ge278_6m.mat 16+24 77.1301/mmHg 0 0 4013 29970 0 ABP
+#Tachycardia,178>170
+#Creator: wfdb2mat
+#Source: record ge278_6

@@ -1,0 +1,8 @@
+ge247_22m 4 250 150000
+ge247_22m.mat 16+24 3091.8872/mV 0 0 144 -1059 0 II
+ge247_22m.mat 16+24 3447.2353/mV 0 0 362 -7788 0 V
+ge247_22m.mat 16+24 1452.9037/% 0 0 2613 -17808 0 PLETH
+ge247_22m.mat 16+24 30420.9049/Imp 0 0 74 25638 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge247_22

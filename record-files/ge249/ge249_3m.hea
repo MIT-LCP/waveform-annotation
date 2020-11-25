@@ -1,0 +1,8 @@
+ge249_3m 4 250 150000
+ge249_3m.mat 16+24 3560.2142/mV 0 0 -2540 -8079 0 II
+ge249_3m.mat 16+24 1998.2578/mV 0 0 843 -5074 0 V
+ge249_3m.mat 16+24 1351.7936/% 0 0 2213 17124 0 PLETH
+ge249_3m.mat 16+24 18010.5345/Imp 0 0 2339 -20506 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge249_3

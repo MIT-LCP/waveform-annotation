@@ -1,0 +1,8 @@
+ge69_3m 4 250 150000
+ge69_3m.mat 16+24 2028.6084/mV 0 0 -6 20468 0 II
+ge69_3m.mat 16+24 2529.1462/mV 0 0 -154 27247 0 V
+ge69_3m.mat 16+24 2545.7639/% 0 0 4236 -2198 0 PLETH
+ge69_3m.mat 16+24 16239.4739/Imp 0 0 498 -25650 0 RESP
+#Tachycardia,161>160
+#Creator: wfdb2mat
+#Source: record ge69_3

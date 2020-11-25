@@ -1,0 +1,8 @@
+ge53_3m 4 250 150000
+ge53_3m.mat 16+24 1999.09/mV 0 0 190 -1808 0 II
+ge53_3m.mat 16+24 3119.0997/mV 0 0 -237 30142 0 V
+ge53_3m.mat 16+24 1969.7096/% 0 0 4957 1656 0 PLETH
+ge53_3m.mat 16+24 15.5986/mmHg 0 0 1161 32727 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge53_3

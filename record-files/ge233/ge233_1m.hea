@@ -1,0 +1,8 @@
+ge233_1m 4 250 150000
+ge233_1m.mat 16+24 3214.8593/mV 0 0 845 6119 0 II
+ge233_1m.mat 16+24 6165.6377/mV 0 0 -602 -3 0 V
+ge233_1m.mat 16+24 1151.6963/% 0 0 2225 -21956 0 PLETH
+ge233_1m.mat 16+24 20661.9022/Imp 0 0 -148 -3642 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge233_1

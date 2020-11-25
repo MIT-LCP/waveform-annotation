@@ -1,0 +1,8 @@
+ge254_20m 4 250 150000
+ge254_20m.mat 16+24 491.2349/mV 0 0 32767 -103 0 II
+ge254_20m.mat 16+24 1285.4376/mV 0 0 32767 -21596 0 V
+ge254_20m.mat 16+24 1508.0458/% 0 0 2850 -4452 0 PLETH
+ge254_20m.mat 16+24 15552.1867/Imp 0 0 82 4160 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge254_20

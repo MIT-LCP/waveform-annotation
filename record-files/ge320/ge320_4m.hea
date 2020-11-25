@@ -1,0 +1,8 @@
+ge320_4m 4 250 150000
+ge320_4m.mat 16+24 9303.2965/mV 0 0 3246 21205 0 II
+ge320_4m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge320_4m.mat 16+24 4729.1802/% 0 0 9130 1268 0 PLETH
+ge320_4m.mat 16+24 381852.3483/Imp 0 0 1221 2360 0 RESP
+#Bradycardia,0<5
+#Creator: wfdb2mat
+#Source: record ge320_4

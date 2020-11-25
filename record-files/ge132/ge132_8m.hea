@@ -1,0 +1,8 @@
+ge132_8m 4 250 150000
+ge132_8m.mat 16+24 483.3581/mV 0 0 0 -21374 0 II
+ge132_8m.mat 16+24 815.5935/mV 0 0 0 -3039 0 V
+ge132_8m.mat 16+24 1569.2389/% 0 0 2614 1014 0 PLETH
+ge132_8m.mat 16+24 18447.3427/Imp 0 0 -32768 -15940 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge132_8

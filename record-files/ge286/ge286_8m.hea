@@ -1,0 +1,8 @@
+ge286_8m 4 250 150000
+ge286_8m.mat 16+24 3747.6832/mV 0 0 -421 22360 0 II
+ge286_8m.mat 16+24 1546.6448/mV 0 0 -639 -28060 0 V
+ge286_8m.mat 16+24 1456.7128/% 0 0 2972 -17344 0 PLETH
+ge286_8m.mat 16+24 55.8437/mmHg 0 0 2675 -9773 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge286_8

@@ -1,0 +1,8 @@
+ge56_1m 4 250 150000
+ge56_1m.mat 16+24 1242.3954/mV 0 0 -627 23228 0 II
+ge56_1m.mat 16+24 3056.1749/mV 0 0 517 31566 0 V
+ge56_1m.mat 16+24 3954.0046/% 0 0 6328 13879 0 PLETH
+ge56_1m.mat 16+24 37.1474/mmHg 0 0 1926 23192 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge56_1

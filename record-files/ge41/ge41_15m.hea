@@ -1,0 +1,8 @@
+ge41_15m 4 250 150000
+ge41_15m.mat 16+24 3029.0943/mV 0 0 142 14843 0 II
+ge41_15m.mat 16+24 2431.2552/mV 0 0 0 19576 0 V
+ge41_15m.mat 16+24 1456.0538/% 0 0 1443 -10030 0 PLETH
+ge41_15m.mat 16+24 20508.6314/Imp 0 0 390 12566 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge41_15

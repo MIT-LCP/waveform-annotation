@@ -1,0 +1,8 @@
+ge121_18m 4 250 150000
+ge121_18m.mat 16+24 2547.0692/mV 0 0 -85 6044 0 II
+ge121_18m.mat 16+24 5297.9978/mV 0 0 -197 -32429 0 V
+ge121_18m.mat 16+24 1496.6267/% 0 0 3203 -19604 0 PLETH
+ge121_18m.mat 16+24 48.3781/mmHg 0 0 2733 18303 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge121_18

@@ -1,0 +1,8 @@
+ge256_8m 4 250 150000
+ge256_8m.mat 16+24 1296.9509/mV 0 0 69 14995 0 II
+ge256_8m.mat 16+24 4071.8926/mV 0 0 32767 16302 0 V
+ge256_8m.mat 16+24 4266.5449/% 0 0 11229 2536 0 PLETH
+ge256_8m.mat 16+24 55.2865/mmHg 0 0 2511 31182 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge256_8

@@ -1,0 +1,8 @@
+ge92_8m 4 250 150000
+ge92_8m.mat 16+24 1517.7756/mV 0 0 -86 17498 0 II
+ge92_8m.mat 16+24 1113.6545/mV 0 0 -1816 1483 0 V
+ge92_8m.mat 16+24 1616.0946/% 0 0 3294 -30176 0 PLETH
+ge92_8m.mat 16+24 34.5326/mmHg 0 0 3358 23126 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge92_8

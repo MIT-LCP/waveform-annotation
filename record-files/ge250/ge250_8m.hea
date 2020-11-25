@@ -1,0 +1,8 @@
+ge250_8m 4 250 150000
+ge250_8m.mat 16+24 278.7574/mV 0 0 -401 14422 0 II
+ge250_8m.mat 16+24 302.6354/mV 0 0 710 -25887 0 V
+ge250_8m.mat 16+24 2959.6071/% 0 0 5714 11279 0 PLETH
+ge250_8m.mat 16+24 2959.6071/% 0 0 5714 11279 0 PLETH
+#VTach
+#Creator: wfdb2mat
+#Source: record ge250_8

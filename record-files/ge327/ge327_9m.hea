@@ -1,0 +1,8 @@
+ge327_9m 4 250 150000
+ge327_9m.mat 16+24 2048.2/mV 0 0 40 7659 0 II
+ge327_9m.mat 16+24 1941.6743/mV 0 0 -46 17911 0 V
+ge327_9m.mat 16+24 3290.5085/% 0 0 7992 20227 0 PLETH
+ge327_9m.mat 16+24 18221.3802/Imp 0 0 -191 -16129 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge327_9

@@ -1,0 +1,8 @@
+ge73_2m 4 250 150000
+ge73_2m.mat 16+24 4044.455/mV 0 0 114 -24175 0 II
+ge73_2m.mat 16+24 5180.1192/mV 0 0 297 29852 0 V
+ge73_2m.mat 16+24 1121.3941/% 0 0 793 31961 0 PLETH
+ge73_2m.mat 16+24 58.8517/mmHg 0 0 5585 -2766 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge73_2

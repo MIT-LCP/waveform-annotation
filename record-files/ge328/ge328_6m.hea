@@ -1,0 +1,8 @@
+ge328_6m 4 250 150000
+ge328_6m.mat 16+24 3132.0927/mV 0 0 785 -1656 0 II
+ge328_6m.mat 16+24 3867.5215/mV 0 0 -131 12682 0 V
+ge328_6m.mat 16+24 1515.197/% 0 0 2486 25430 0 PLETH
+ge328_6m.mat 16+24 21460.7509/Imp 0 0 170 -16595 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge328_6

@@ -1,0 +1,8 @@
+ge326_11m 4 250 150000
+ge326_11m.mat 16+24 8134.4234/mV 0 0 290 -5776 0 II
+ge326_11m.mat 16+24 9989.6725/mV 0 0 476 -798 0 V
+ge326_11m.mat 16+24 1341.7592/% 0 0 3480 22003 0 PLETH
+ge326_11m.mat 16+24 17751.1095/Imp 0 0 1017 21067 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge326_11

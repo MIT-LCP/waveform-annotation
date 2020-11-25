@@ -1,0 +1,8 @@
+ge229_6m 4 250 150000
+ge229_6m.mat 16+24 5071.2254/mV 0 0 159 -5732 0 II
+ge229_6m.mat 16+24 2544.2786/mV 0 0 16 13181 0 V
+ge229_6m.mat 16+24 1689.9473/% 0 0 2919 17322 0 PLETH
+ge229_6m.mat 16+24 28405.9042/Imp 0 0 -189 -22277 0 RESP
+#Tachycardia,143>140
+#Creator: wfdb2mat
+#Source: record ge229_6

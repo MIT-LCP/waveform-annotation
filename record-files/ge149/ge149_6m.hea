@@ -1,0 +1,8 @@
+ge149_6m 4 250 150000
+ge149_6m.mat 16+24 2223.9873/mV 0 0 440 -17142 0 II
+ge149_6m.mat 16+24 2407.8336/mV 0 0 -278 -27546 0 V
+ge149_6m.mat 16+24 1722.223/% 0 0 2785 18412 0 PLETH
+ge149_6m.mat 16+24 19516.7478/Imp 0 0 -822 -25090 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge149_6

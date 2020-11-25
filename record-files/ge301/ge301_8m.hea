@@ -1,0 +1,8 @@
+ge301_8m 4 250 150000
+ge301_8m.mat 16+24 1477.4551/mV 0 0 -63 -28151 0 II
+ge301_8m.mat 16+24 2833.5313/mV 0 0 -37 19691 0 V
+ge301_8m.mat 16+24 1568.0057/% 0 0 2537 6877 0 PLETH
+ge301_8m.mat 16+24 54.4392/mmHg 0 0 4998 13684 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge301_8

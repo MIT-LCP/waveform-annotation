@@ -1,0 +1,8 @@
+ge283_8m 4 250 150000
+ge283_8m.mat 16+24 2335.4126/mV 0 0 -284 10499 0 II
+ge283_8m.mat 16+24 3137.9293/mV 0 0 -119 -9105 0 V
+ge283_8m.mat 16+24 1226.4608/% 0 0 3890 12195 0 PLETH
+ge283_8m.mat 16+24 38.8356/mmHg 0 0 5452 26144 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge283_8

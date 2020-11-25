@@ -1,0 +1,8 @@
+ge323_12m 4 250 150000
+ge323_12m.mat 16+24 2053.4688/mV 0 0 59 -2519 0 II
+ge323_12m.mat 16+24 1520.7104/mV 0 0 67 19234 0 V
+ge323_12m.mat 16+24 5162.6423/% 0 0 9080 18502 0 PLETH
+ge323_12m.mat 16+24 31.016/mmHg 0 0 3213 -29152 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge323_12

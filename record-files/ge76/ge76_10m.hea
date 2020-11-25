@@ -1,0 +1,8 @@
+ge76_10m 4 250 150000
+ge76_10m.mat 16+24 1539.5101/mV 0 0 -145 16194 0 II
+ge76_10m.mat 16+24 1709.9456/mV 0 0 -217 10805 0 V
+ge76_10m.mat 16+24 1614.0509/% 0 0 3906 -27559 0 PLETH
+ge76_10m.mat 16+24 14703.0273/Imp 0 0 192 -3298 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge76_10

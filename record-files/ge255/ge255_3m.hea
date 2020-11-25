@@ -1,0 +1,8 @@
+ge255_3m 4 250 150000
+ge255_3m.mat 16+24 1489.5652/mV 0 0 272 -26262 0 II
+ge255_3m.mat 16+24 960.4107/mV 0 0 0 -5358 0 V
+ge255_3m.mat 16+24 1439.1162/% 0 0 2435 -31589 0 PLETH
+ge255_3m.mat 16+24 18627.2259/Imp 0 0 -51 -21148 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge255_3

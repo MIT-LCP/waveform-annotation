@@ -1,0 +1,8 @@
+ge274_11m 4 250 150000
+ge274_11m.mat 16+24 1247.1923/mV 0 0 0 -13949 0 II
+ge274_11m.mat 16+24 1911.8827/mV 0 0 0 -22786 0 V
+ge274_11m.mat 16+24 1465.5965/% 0 0 4202 -10058 0 PLETH
+ge274_11m.mat 16+24 13631.583/Imp 0 0 -32768 8493 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge274_11

@@ -1,0 +1,8 @@
+ge190_7m 4 250 150000
+ge190_7m.mat 16+24 2281.917/mV 0 0 1117 17494 0 II
+ge190_7m.mat 16+24 4215.6058/mV 0 0 -667 -26958 0 V
+ge190_7m.mat 16+24 3578.1002/% 0 0 6841 -11940 0 PLETH
+ge190_7m.mat 16+24 46597.4914/Imp 0 0 -694 -13498 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge190_7

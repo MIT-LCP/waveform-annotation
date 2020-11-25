@@ -1,0 +1,8 @@
+ge56_20m 4 250 150000
+ge56_20m.mat 16+24 1790.8816/mV 0 0 635 25738 0 II
+ge56_20m.mat 16+24 2548.1758/mV 0 0 -486 1825 0 V
+ge56_20m.mat 16+24 1542.742/% 0 0 2372 -28181 0 PLETH
+ge56_20m.mat 16+24 35.3373/mmHg 0 0 2266 -1214 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge56_20

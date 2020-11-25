@@ -1,0 +1,8 @@
+ge274_8m 4 250 150000
+ge274_8m.mat 16+24 inf/mV 0 0 -32768 0 0 II
+ge274_8m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge274_8m.mat 16+24 1402.2537/% 0 0 2258 -20578 0 PLETH
+ge274_8m.mat 16+24 10443.5873/Imp 0 0 -32768 0 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge274_8

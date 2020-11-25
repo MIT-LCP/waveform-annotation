@@ -1,0 +1,8 @@
+ge195_2m 4 250 150000
+ge195_2m.mat 16+24 2120.188/mV 0 0 -365 4103 0 II
+ge195_2m.mat 16+24 3098.2339/mV 0 0 -179 10883 0 V
+ge195_2m.mat 16+24 2056.7815/% 0 0 4315 -5787 0 PLETH
+ge195_2m.mat 16+24 131.2777/mmHg 0 0 8249 -23897 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge195_2

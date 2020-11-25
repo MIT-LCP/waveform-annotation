@@ -1,0 +1,8 @@
+ge53_14m 4 250 150000
+ge53_14m.mat 16+24 6629.8844/mV 0 0 1325 9711 0 II
+ge53_14m.mat 16+24 3565.0961/mV 0 0 -348 -5475 0 V
+ge53_14m.mat 16+24 1380.4265/% 0 0 2477 -18089 0 PLETH
+ge53_14m.mat 16+24 30072.2236/Imp 0 0 -751 25154 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge53_14

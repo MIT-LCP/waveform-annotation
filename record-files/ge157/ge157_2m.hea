@@ -1,0 +1,8 @@
+ge157_2m 4 250 150000
+ge157_2m.mat 16+24 2019.7384/mV 0 0 -18 -28128 0 II
+ge157_2m.mat 16+24 2941.7643/mV 0 0 14 14809 0 V
+ge157_2m.mat 16+24 2168.2661/% 0 0 5722 6564 0 PLETH
+ge157_2m.mat 16+24 40.3842/mmHg 0 0 3625 5769 0 ABP
+#Bradycardia,39<40
+#Creator: wfdb2mat
+#Source: record ge157_2

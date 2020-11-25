@@ -1,0 +1,8 @@
+ge71_10m 4 250 150000
+ge71_10m.mat 16+24 1445.139/mV 0 0 -191 -17374 0 II
+ge71_10m.mat 16+24 3615.5702/mV 0 0 956 7639 0 V
+ge71_10m.mat 16+24 1049.5486/% 0 0 853 15161 0 PLETH
+ge71_10m.mat 16+24 59.8026/mmHg 0 0 6018 27613 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge71_10

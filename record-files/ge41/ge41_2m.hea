@@ -1,0 +1,8 @@
+ge41_2m 4 250 150000
+ge41_2m.mat 16+24 2633.697/mV 0 0 -1482 -21972 0 II
+ge41_2m.mat 16+24 2749.1211/mV 0 0 817 17589 0 V
+ge41_2m.mat 16+24 1711.5446/% 0 0 3158 -85 0 PLETH
+ge41_2m.mat 16+24 32649.1927/Imp 0 0 450 1782 0 RESP
+#Tachycardia,141>140
+#Creator: wfdb2mat
+#Source: record ge41_2

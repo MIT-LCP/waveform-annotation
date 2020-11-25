@@ -1,0 +1,8 @@
+ge127_1m 4 250 150000
+ge127_1m.mat 16+24 534.3951/mV 0 0 14 -32094 0 II
+ge127_1m.mat 16+24 1051.0169/mV 0 0 29 -25897 0 III
+ge127_1m.mat 16+24 1313.8407/% 0 0 1692 25520 0 PLETH
+ge127_1m.mat 16+24 61947.8399/Imp 0 0 -2227 3198 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge127_1

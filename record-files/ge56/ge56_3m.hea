@@ -1,0 +1,8 @@
+ge56_3m 4 250 150000
+ge56_3m.mat 16+24 569.1696/mV 0 0 -147 -32581 0 II
+ge56_3m.mat 16+24 858.0351/mV 0 0 97 -15625 0 V
+ge56_3m.mat 16+24 6607.8096/% 0 0 13387 23616 0 PLETH
+ge56_3m.mat 16+24 43.0309/mmHg 0 0 1575 -24818 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge56_3

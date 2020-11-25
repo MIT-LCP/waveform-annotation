@@ -1,0 +1,8 @@
+ge329_1m 4 250 150000
+ge329_1m.mat 16+24 2137.7704/mV 0 0 -482 -4276 0 II
+ge329_1m.mat 16+24 1864.1522/mV 0 0 186 20367 0 V
+ge329_1m.mat 16+24 1371.9443/% 0 0 2996 -31657 0 PLETH
+ge329_1m.mat 16+24 32315.273/Imp 0 0 -679 16343 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge329_1

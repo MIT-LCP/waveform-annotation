@@ -1,0 +1,8 @@
+ge73_11m 4 250 150000
+ge73_11m.mat 16+24 1876.1701/mV 0 0 578 -1622 0 II
+ge73_11m.mat 16+24 3424.7376/mV 0 0 -125 -12474 0 V
+ge73_11m.mat 16+24 1658.6484/% 0 0 1413 -19010 0 PLETH
+ge73_11m.mat 16+24 18.4109/mmHg 0 0 1038 28284 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge73_11

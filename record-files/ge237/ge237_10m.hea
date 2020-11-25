@@ -1,0 +1,8 @@
+ge237_10m 4 250 150000
+ge237_10m.mat 16+24 2440.7674/mV 0 0 -164 -8971 0 II
+ge237_10m.mat 16+24 2105.1593/mV 0 0 272 -24820 0 V
+ge237_10m.mat 16+24 4345.6903/% 0 0 8390 31538 0 PLETH
+ge237_10m.mat 16+24 32.4372/mmHg 0 0 3589 -96 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge237_10

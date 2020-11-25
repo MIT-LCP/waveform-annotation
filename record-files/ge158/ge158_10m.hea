@@ -1,0 +1,8 @@
+ge158_10m 4 250 150000
+ge158_10m.mat 16+24 1681.2231/mV 0 0 -351 9782 0 II
+ge158_10m.mat 16+24 2443.549/mV 0 0 94 2342 0 V
+ge158_10m.mat 16+24 1069.3917/% 0 0 2708 -23836 0 PLETH
+ge158_10m.mat 16+24 21186.6802/Imp 0 0 61 -22880 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge158_10

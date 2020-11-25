@@ -1,0 +1,8 @@
+ge301_7m 4 250 150000
+ge301_7m.mat 16+24 818.7763/mV 0 0 -601 15541 0 II
+ge301_7m.mat 16+24 2185.7739/mV 0 0 104 -28846 0 V
+ge301_7m.mat 16+24 4312.7396/% 0 0 8848 -30044 0 PLETH
+ge301_7m.mat 16+24 44.633/mmHg 0 0 6571 13140 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge301_7

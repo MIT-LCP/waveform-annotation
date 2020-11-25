@@ -1,0 +1,8 @@
+ge36_2m 4 250 150000
+ge36_2m.mat 16+24 2630.3946/mV 0 0 -194 -30744 0 II
+ge36_2m.mat 16+24 2717.8028/mV 0 0 212 -27668 0 V
+ge36_2m.mat 16+24 1507.8502/% 0 0 1655 20952 0 PLETH
+ge36_2m.mat 16+24 43053.1519/Imp 0 0 89 -15932 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge36_2

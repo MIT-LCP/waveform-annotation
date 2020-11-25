@@ -1,0 +1,8 @@
+ge163_6m 4 250 150000
+ge163_6m.mat 16+24 3664.7479/mV 0 0 -587 10648 0 II
+ge163_6m.mat 16+24 4715.3911/mV 0 0 770 -11783 0 V
+ge163_6m.mat 16+24 1429.48/% 0 0 2760 -76 0 PLETH
+ge163_6m.mat 16+24 13578.4777/Imp 0 0 -612 -25704 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge163_6

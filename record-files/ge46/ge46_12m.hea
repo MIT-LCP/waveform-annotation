@@ -1,0 +1,8 @@
+ge46_12m 4 250 150000
+ge46_12m.mat 16+24 1739.3323/mV 0 0 179 17891 0 II
+ge46_12m.mat 16+24 112.3723/mV 0 0 23 -24919 0 V
+ge46_12m.mat 16+24 1510.5566/% 0 0 4308 -5379 0 PLETH
+ge46_12m.mat 16+24 30362.0185/Imp 0 0 -1961 30788 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge46_12

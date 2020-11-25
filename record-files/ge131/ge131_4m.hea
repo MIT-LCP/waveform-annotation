@@ -1,0 +1,8 @@
+ge131_4m 4 250 150000
+ge131_4m.mat 16+24 901.3564/mV 0 0 814 -8459 0 II
+ge131_4m.mat 16+24 276.9907/mV 0 0 568 -13707 0 V
+ge131_4m.mat 16+24 3304.2139/% 0 0 5502 2200 0 PLETH
+ge131_4m.mat 16+24 17.6875/mmHg 0 0 1192 -10691 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge131_4

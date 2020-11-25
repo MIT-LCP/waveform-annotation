@@ -1,0 +1,8 @@
+ge29_4m 4 250 150000
+ge29_4m.mat 16+24 4177.0035/mV 0 0 145 -27805 0 II
+ge29_4m.mat 16+24 3519.1373/mV 0 0 104 4948 0 V
+ge29_4m.mat 16+24 1896.559/% 0 0 4789 4846 0 PLETH
+ge29_4m.mat 16+24 25888.9429/Imp 0 0 310 -29979 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge29_4

@@ -1,0 +1,8 @@
+ge263_14m 4 250 150000
+ge263_14m.mat 16+24 3608.5253/mV 0 0 561 -3683 0 II
+ge263_14m.mat 16+24 5840.4257/mV 0 0 -636 9122 0 V
+ge263_14m.mat 16+24 2637.3493/% 0 0 6015 3101 0 PLETH
+ge263_14m.mat 16+24 68.8366/mmHg 0 0 3474 9936 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge263_14

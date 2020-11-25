@@ -1,0 +1,8 @@
+ge41_17m 4 250 150000
+ge41_17m.mat 16+24 5526.0758/mV 0 0 574 23005 0 II
+ge41_17m.mat 16+24 4617.1155/mV 0 0 335 -9115 0 V
+ge41_17m.mat 16+24 1422.6189/% 0 0 2383 12777 0 PLETH
+ge41_17m.mat 16+24 48.0094/mmHg 0 0 4408 24025 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge41_17

@@ -1,0 +1,8 @@
+ge202_1m 4 250 150000
+ge202_1m.mat 16+24 3175.4407/mV 0 0 -111 -7286 0 II
+ge202_1m.mat 16+24 3345.6043/mV 0 0 195 -21486 0 V
+ge202_1m.mat 16+24 4253.7851/% 0 0 8149 -31437 0 PLETH
+ge202_1m.mat 16+24 52.3816/mmHg 0 0 4800 -26637 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge202_1

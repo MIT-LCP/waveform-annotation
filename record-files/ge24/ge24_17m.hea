@@ -1,0 +1,8 @@
+ge24_17m 4 250 150000
+ge24_17m.mat 16+24 3513.5962/mV 0 0 -223 -7927 0 II
+ge24_17m.mat 16+24 4526.2252/mV 0 0 544 -16819 0 V
+ge24_17m.mat 16+24 6493.4675/% 0 0 13036 18475 0 PLETH
+ge24_17m.mat 16+24 47.4465/mmHg 0 0 3071 -15139 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge24_17

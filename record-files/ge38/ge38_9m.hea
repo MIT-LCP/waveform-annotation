@@ -1,0 +1,8 @@
+ge38_9m 4 250 150000
+ge38_9m.mat 16+24 3840.0327/mV 0 0 -355 -28166 0 II
+ge38_9m.mat 16+24 2803.6218/mV 0 0 -11 25324 0 V
+ge38_9m.mat 16+24 3925.4511/% 0 0 8626 20291 0 PLETH
+ge38_9m.mat 16+24 58902.8014/Imp 0 0 340 -21330 0 RESP
+#Tachycardia,158>155
+#Creator: wfdb2mat
+#Source: record ge38_9

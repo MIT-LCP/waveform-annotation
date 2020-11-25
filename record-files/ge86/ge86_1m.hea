@@ -1,0 +1,8 @@
+ge86_1m 4 250 150000
+ge86_1m.mat 16+24 2013.7654/mV 0 0 293 -8997 0 II
+ge86_1m.mat 16+24 3504.6749/mV 0 0 383 32140 0 V
+ge86_1m.mat 16+24 1328.9821/% 0 0 2982 -22018 0 PLETH
+ge86_1m.mat 16+24 25192.5264/Imp 0 0 -538 20149 0 RESP
+#Tachycardia,151>150
+#Creator: wfdb2mat
+#Source: record ge86_1

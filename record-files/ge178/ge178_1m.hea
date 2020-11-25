@@ -1,0 +1,8 @@
+ge178_1m 4 250 150000
+ge178_1m.mat 16+24 4385.3288/mV 0 0 521 -15251 0 II
+ge178_1m.mat 16+24 2408.7016/mV 0 0 -119 7049 0 V
+ge178_1m.mat 16+24 1726.5959/% 0 0 3455 19784 0 PLETH
+ge178_1m.mat 16+24 20.3401/mmHg 0 0 1001 15795 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge178_1

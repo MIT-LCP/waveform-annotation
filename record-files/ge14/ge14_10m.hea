@@ -1,0 +1,8 @@
+ge14_10m 4 250 150000
+ge14_10m.mat 16+24 6058.2083/mV 0 0 -252 -25248 0 II
+ge14_10m.mat 16+24 10370.0007/mV 0 0 630 17526 0 V
+ge14_10m.mat 16+24 1475.9914/% 0 0 3221 -19572 0 PLETH
+ge14_10m.mat 16+24 36.4057/mmHg 0 0 1278 1923 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge14_10

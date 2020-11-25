@@ -1,0 +1,8 @@
+ge41_10m 4 250 150000
+ge41_10m.mat 16+24 470.6975/mV 0 0 7323 28137 0 II
+ge41_10m.mat 16+24 1090.5893/mV 0 0 5481 -9999 0 V
+ge41_10m.mat 16+24 1360.3209/% 0 0 2958 -13929 0 PLETH
+ge41_10m.mat 16+24 9077.6071/Imp 0 0 -32768 27797 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge41_10

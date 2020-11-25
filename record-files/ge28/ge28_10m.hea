@@ -1,0 +1,8 @@
+ge28_10m 4 250 150000
+ge28_10m.mat 16+24 1167.0723/mV 0 0 -349 25107 0 II
+ge28_10m.mat 16+24 1370.932/mV 0 0 144 24559 0 V
+ge28_10m.mat 16+24 1489.7773/% 0 0 3334 28263 0 PLETH
+ge28_10m.mat 16+24 24473.9062/Imp 0 0 -90 27000 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge28_10

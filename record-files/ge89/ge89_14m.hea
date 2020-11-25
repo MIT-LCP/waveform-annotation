@@ -1,0 +1,8 @@
+ge89_14m 4 250 150000
+ge89_14m.mat 16+24 2389.2715/mV 0 0 409 -16604 0 II
+ge89_14m.mat 16+24 1953.7341/mV 0 0 560 31024 0 III
+ge89_14m.mat 16+24 3841.6601/% 0 0 7884 3367 0 PLETH
+ge89_14m.mat 16+24 57.3594/mmHg 0 0 2021 -6915 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge89_14

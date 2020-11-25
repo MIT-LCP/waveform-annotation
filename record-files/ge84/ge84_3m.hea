@@ -1,0 +1,8 @@
+ge84_3m 4 250 150000
+ge84_3m.mat 16+24 3418.5386/mV 0 0 -678 14930 0 II
+ge84_3m.mat 16+24 2189.7983/mV 0 0 42 -13409 0 V
+ge84_3m.mat 16+24 3890.2452/% 0 0 8282 -27554 0 PLETH
+ge84_3m.mat 16+24 40.9035/mmHg 0 0 3142 6297 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge84_3

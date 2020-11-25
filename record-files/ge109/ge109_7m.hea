@@ -1,0 +1,8 @@
+ge109_7m 4 250 150000
+ge109_7m.mat 16+24 2699.485/mV 0 0 66 6459 0 II
+ge109_7m.mat 16+24 2800.8755/mV 0 0 27 -5700 0 V
+ge109_7m.mat 16+24 1624.8496/% 0 0 3579 -24276 0 PLETH
+ge109_7m.mat 16+24 25749.7299/Imp 0 0 -899 -11876 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge109_7

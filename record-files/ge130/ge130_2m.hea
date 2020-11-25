@@ -1,0 +1,8 @@
+ge130_2m 4 250 150000
+ge130_2m.mat 16+24 3122.7937/mV 0 0 895 -19723 0 II
+ge130_2m.mat 16+24 625.8654/mV 0 0 141 -6109 0 V
+ge130_2m.mat 16+24 1324.5834/% 0 0 1296 -27675 0 PLETH
+ge130_2m.mat 16+24 70588.7663/Imp 0 0 -95 -31567 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge130_2

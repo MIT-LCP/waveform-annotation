@@ -1,0 +1,8 @@
+ge235_14m 4 250 150000
+ge235_14m.mat 16+24 3309.6759/mV 0 0 11 -19037 0 II
+ge235_14m.mat 16+24 5937.9849/mV 0 0 5 -30096 0 V
+ge235_14m.mat 16+24 1413.0779/% 0 0 1361 -18921 0 PLETH
+ge235_14m.mat 16+24 45103.2808/Imp 0 0 -482 -23728 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge235_14

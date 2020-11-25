@@ -1,0 +1,8 @@
+ge75_2m 4 250 150000
+ge75_2m.mat 16+24 6716.3549/mV 0 0 -98 -25509 0 II
+ge75_2m.mat 16+24 9473.0566/mV 0 0 10 22348 0 V
+ge75_2m.mat 16+24 1445.684/% 0 0 2807 -23983 0 PLETH
+ge75_2m.mat 16+24 107600.4216/Imp 0 0 2447 29504 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge75_2

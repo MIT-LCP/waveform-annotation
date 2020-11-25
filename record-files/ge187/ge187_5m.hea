@@ -1,0 +1,8 @@
+ge187_5m 4 250 150000
+ge187_5m.mat 16+24 3987.4149/mV 0 0 443 -31347 0 II
+ge187_5m.mat 16+24 6645.2493/mV 0 0 -313 -32210 0 V
+ge187_5m.mat 16+24 1253.3932/% 0 0 2924 -3192 0 PLETH
+ge187_5m.mat 16+24 68.8413/mmHg 0 0 5366 14541 0 ABP
+#Bradycardia,37<40
+#Creator: wfdb2mat
+#Source: record ge187_5

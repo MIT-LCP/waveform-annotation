@@ -1,0 +1,8 @@
+ge197_2m 4 250 150000
+ge197_2m.mat 16+24 5467.3566/mV 0 0 -49 -24545 0 II
+ge197_2m.mat 16+24 5882.8951/mV 0 0 -588 24432 0 V
+ge197_2m.mat 16+24 1102.0172/% 0 0 3038 -12001 0 PLETH
+ge197_2m.mat 16+24 61631.0886/Imp 0 0 -2021 16065 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge197_2

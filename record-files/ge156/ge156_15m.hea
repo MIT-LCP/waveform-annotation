@@ -1,0 +1,8 @@
+ge156_15m 4 250 150000
+ge156_15m.mat 16+24 3102.316/mV 0 0 12 6105 0 II
+ge156_15m.mat 16+24 2348.1884/mV 0 0 -156 -32197 0 V
+ge156_15m.mat 16+24 1455.9152/% 0 0 2678 -21625 0 PLETH
+ge156_15m.mat 16+24 89.7741/mmHg 0 0 3932 -12861 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge156_15

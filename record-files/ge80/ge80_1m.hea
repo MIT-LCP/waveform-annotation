@@ -1,0 +1,8 @@
+ge80_1m 4 250 150000
+ge80_1m.mat 16+24 2143.5927/mV 0 0 356 -18896 0 II
+ge80_1m.mat 16+24 2864.6523/mV 0 0 667 1062 0 V
+ge80_1m.mat 16+24 2179.9936/% 0 0 3074 27415 0 PLETH
+ge80_1m.mat 16+24 23378.1419/Imp 0 0 -775 -11555 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge80_1

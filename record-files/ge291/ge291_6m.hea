@@ -1,0 +1,8 @@
+ge291_6m 4 250 150000
+ge291_6m.mat 16+24 176.9944/mV 0 0 -25802 6163 0 II
+ge291_6m.mat 16+24 464.9199/mV 0 0 -32768 -2858 0 V
+ge291_6m.mat 16+24 1122.6286/% 0 0 498 12317 0 PLETH
+ge291_6m.mat 16+24 5175.1714/Imp 0 0 -32210 -1295 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge291_6

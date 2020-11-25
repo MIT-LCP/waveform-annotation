@@ -1,0 +1,8 @@
+ge131_12m 4 250 150000
+ge131_12m.mat 16+24 2300.7132/mV 0 0 -112 10628 0 II
+ge131_12m.mat 16+24 2980.0773/mV 0 0 30 -29925 0 V
+ge131_12m.mat 16+24 6385.4092/% 0 0 13903 5374 0 PLETH
+ge131_12m.mat 16+24 88.0635/mmHg 0 0 3700 31784 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge131_12

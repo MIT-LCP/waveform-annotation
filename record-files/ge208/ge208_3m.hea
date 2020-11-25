@@ -1,0 +1,8 @@
+ge208_3m 4 250 150000
+ge208_3m.mat 16+24 4145.5857/mV 0 0 654 15242 0 II
+ge208_3m.mat 16+24 1641.2367/mV 0 0 -729 20629 0 V
+ge208_3m.mat 16+24 1357.899/% 0 0 3785 -14024 0 PLETH
+ge208_3m.mat 16+24 62.6718/mmHg 0 0 5704 -13954 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge208_3

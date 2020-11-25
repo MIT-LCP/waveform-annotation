@@ -1,0 +1,8 @@
+ge270_20m 4 250 150000
+ge270_20m.mat 16+24 20032.4922/mV 0 0 342 5000 0 II
+ge270_20m.mat 16+24 12037.2592/mV 0 0 -203 -25225 0 V
+ge270_20m.mat 16+24 5844.9313/% 0 0 11284 15714 0 PLETH
+ge270_20m.mat 16+24 203.3818/mmHg 0 0 5236 -3005 0 ABP
+#Bradycardia,0<40
+#Creator: wfdb2mat
+#Source: record ge270_20

@@ -1,0 +1,8 @@
+ge248_7m 4 250 150000
+ge248_7m.mat 16+24 1783.5281/mV 0 0 241 25535 0 II
+ge248_7m.mat 16+24 4735.5667/mV 0 0 -432 21271 0 V
+ge248_7m.mat 16+24 1144.1671/% 0 0 2466 30647 0 PLETH
+ge248_7m.mat 16+24 17273.8683/Imp 0 0 -446 26937 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge248_7

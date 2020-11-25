@@ -1,0 +1,8 @@
+ge131_24m 4 250 150000
+ge131_24m.mat 16+24 687.1922/mV 0 0 4417 -8965 0 II
+ge131_24m.mat 16+24 140.1257/mV 0 0 -20494 -10628 0 V
+ge131_24m.mat 16+24 3704.415/% 0 0 7209 621 0 PLETH
+ge131_24m.mat 16+24 40346.1369/Imp 0 0 92 18519 0 RESP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge131_24

@@ -1,0 +1,8 @@
+ge69_7m 4 250 150000
+ge69_7m.mat 16+24 7651.6717/mV 0 0 -174 -10190 0 II
+ge69_7m.mat 16+24 12846.8414/mV 0 0 -361 -7615 0 V
+ge69_7m.mat 16+24 6001.6192/% 0 0 11587 -1068 0 PLETH
+ge69_7m.mat 16+24 6001.6192/% 0 0 11587 -1068 0 PLETH
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge69_7

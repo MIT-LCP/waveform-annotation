@@ -1,0 +1,8 @@
+ge142_21m 4 250 150000
+ge142_21m.mat 16+24 3237.3015/mV 0 0 355 30403 0 II
+ge142_21m.mat 16+24 4614.0208/mV 0 0 34 -3484 0 V
+ge142_21m.mat 16+24 1417.4633/% 0 0 2596 -13553 0 PLETH
+ge142_21m.mat 16+24 98765.3369/Imp 0 0 1704 23776 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge142_21

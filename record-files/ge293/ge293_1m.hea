@@ -1,0 +1,8 @@
+ge293_1m 4 250 150000
+ge293_1m.mat 16+24 2069.0522/mV 0 0 2 7946 0 II
+ge293_1m.mat 16+24 1902.8643/mV 0 0 638 6466 0 V
+ge293_1m.mat 16+24 1497.6086/% 0 0 1631 333 0 PLETH
+ge293_1m.mat 16+24 12.3993/mmHg 0 0 15277 -28963 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge293_1

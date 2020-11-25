@@ -1,0 +1,8 @@
+ge294_6m 4 250 150000
+ge294_6m.mat 16+24 6502.3802/mV 0 0 14 -3047 0 II
+ge294_6m.mat 16+24 12022.6769/mV 0 0 -106 11045 0 V
+ge294_6m.mat 16+24 1591.4829/% 0 0 3155 -19119 0 PLETH
+ge294_6m.mat 16+24 57.0803/mmHg 0 0 4064 28554 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge294_6

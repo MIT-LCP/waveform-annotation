@@ -1,0 +1,8 @@
+ge101_1m 4 250 150000
+ge101_1m.mat 16+24 2054.0105/mV 0 0 -2438 17404 0 II
+ge101_1m.mat 16+24 2921.5647/mV 0 0 280 -11913 0 V
+ge101_1m.mat 16+24 1346.712/% 0 0 2252 1306 0 PLETH
+ge101_1m.mat 16+24 42.6571/mmHg 0 0 2854 -1112 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge101_1

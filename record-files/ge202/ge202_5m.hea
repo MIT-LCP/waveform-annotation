@@ -1,0 +1,8 @@
+ge202_5m 4 250 150000
+ge202_5m.mat 16+24 621.9683/mV 0 0 219 -30699 0 II
+ge202_5m.mat 16+24 1463.1049/mV 0 0 -332 7278 0 V
+ge202_5m.mat 16+24 3685.5482/% 0 0 6302 23008 0 PLETH
+ge202_5m.mat 16+24 7802.6081/Imp 0 0 82 25821 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge202_5

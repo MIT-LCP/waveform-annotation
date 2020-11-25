@@ -1,0 +1,8 @@
+ge147_2m 4 250 150000
+ge147_2m.mat 16+24 2033.6128/mV 0 0 1244 25195 0 II
+ge147_2m.mat 16+24 6371.3483/mV 0 0 996 2240 0 V
+ge147_2m.mat 16+24 1459.1484/% 0 0 2056 5124 0 PLETH
+ge147_2m.mat 16+24 189325.9056/Imp 0 0 -110 11387 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge147_2

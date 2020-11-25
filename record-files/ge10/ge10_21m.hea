@@ -1,0 +1,8 @@
+ge10_21m 4 250 150000
+ge10_21m.mat 16+24 1104.1503/mV 0 0 57 -1664 0 II
+ge10_21m.mat 16+24 2418.6406/mV 0 0 165 31875 0 V
+ge10_21m.mat 16+24 1262.5596/% 0 0 2573 2843 0 PLETH
+ge10_21m.mat 16+24 22637.633/Imp 0 0 -177 11541 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge10_21

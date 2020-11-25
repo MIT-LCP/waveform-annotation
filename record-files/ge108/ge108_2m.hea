@@ -1,0 +1,8 @@
+ge108_2m 4 250 150000
+ge108_2m.mat 16+24 2891.1578/mV 0 0 -243 -8194 0 II
+ge108_2m.mat 16+24 6580.9385/mV 0 0 -146 27133 0 V
+ge108_2m.mat 16+24 29934.5636/% 0 0 32767 -18928 0 PLETH
+ge108_2m.mat 16+24 175.0221/mmHg 0 0 5378 -13428 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge108_2

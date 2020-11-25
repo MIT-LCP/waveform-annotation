@@ -1,0 +1,8 @@
+ge12_3m 4 250 150000
+ge12_3m.mat 16+24 3572.7344/mV 0 0 -8 4332 0 II
+ge12_3m.mat 16+24 2122.9595/mV 0 0 -154 -20869 0 V
+ge12_3m.mat 16+24 5623.1847/% 0 0 10511 -16069 0 PLETH
+ge12_3m.mat 16+24 69.3939/mmHg 0 0 2583 -15908 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge12_3

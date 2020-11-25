@@ -1,0 +1,8 @@
+ge192_7m 4 250 150000
+ge192_7m.mat 16+24 1277.5756/mV 0 0 -26 -31732 0 II
+ge192_7m.mat 16+24 1252.7747/mV 0 0 -77 1956 0 V
+ge192_7m.mat 16+24 1334.0127/% 0 0 2367 10567 0 PLETH
+ge192_7m.mat 16+24 71.8591/mmHg 0 0 3635 -8063 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge192_7

@@ -1,0 +1,8 @@
+ge131_26m 4 250 150000
+ge131_26m.mat 16+24 5977.7494/mV 0 0 250 14401 0 II
+ge131_26m.mat 16+24 3187.6085/mV 0 0 -600 -14609 0 V
+ge131_26m.mat 16+24 3843.7174/% 0 0 6630 14082 0 PLETH
+ge131_26m.mat 16+24 36253.7329/Imp 0 0 -213 24784 0 RESP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge131_26

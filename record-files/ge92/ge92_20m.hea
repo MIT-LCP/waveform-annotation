@@ -1,0 +1,8 @@
+ge92_20m 4 250 150000
+ge92_20m.mat 16+24 2043.0298/mV 0 0 131 -5030 0 II
+ge92_20m.mat 16+24 963.5727/mV 0 0 93 18814 0 V
+ge92_20m.mat 16+24 1602.3814/% 0 0 2960 -15354 0 PLETH
+ge92_20m.mat 16+24 48.4087/mmHg 0 0 926 31181 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge92_20

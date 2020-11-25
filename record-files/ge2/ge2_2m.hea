@@ -1,0 +1,8 @@
+ge2_2m 4 250 150000
+ge2_2m.mat 16+24 1781.0635/mV 0 0 -301 -17529 0 II
+ge2_2m.mat 16+24 1075.9269/mV 0 0 391 15596 0 V
+ge2_2m.mat 16+24 1267.7139/% 0 0 3334 24620 0 PLETH
+ge2_2m.mat 16+24 57.2344/mmHg 0 0 3061 -19701 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge2_2

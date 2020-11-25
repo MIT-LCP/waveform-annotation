@@ -1,0 +1,8 @@
+ge251_7m 4 250 150000
+ge251_7m.mat 16+24 1620.1996/mV 0 0 -154 -10348 0 II
+ge251_7m.mat 16+24 inf/mV 0 0 -32768 0 0 V
+ge251_7m.mat 16+24 2819.0193/% 0 0 6245 -30125 0 PLETH
+ge251_7m.mat 16+24 24384.4028/Imp 0 0 -315 -13907 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge251_7

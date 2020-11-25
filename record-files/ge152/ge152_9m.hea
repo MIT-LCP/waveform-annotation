@@ -1,0 +1,8 @@
+ge152_9m 4 250 150000
+ge152_9m.mat 16+24 1322.172/mV 0 0 172 -29909 0 II
+ge152_9m.mat 16+24 2131.895/mV 0 0 -73 -630 0 V
+ge152_9m.mat 16+24 1303.4112/% 0 0 2897 -9561 0 PLETH
+ge152_9m.mat 16+24 18419.0815/Imp 0 0 384 30224 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge152_9

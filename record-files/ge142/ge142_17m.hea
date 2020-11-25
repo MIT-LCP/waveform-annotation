@@ -1,0 +1,8 @@
+ge142_17m 4 250 150000
+ge142_17m.mat 16+24 2320.1129/mV 0 0 -130 9299 0 II
+ge142_17m.mat 16+24 4513.4825/mV 0 0 256 1617 0 V
+ge142_17m.mat 16+24 5004.7375/% 0 0 9662 -9162 0 PLETH
+ge142_17m.mat 16+24 23309.6823/Imp 0 0 -339 5716 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge142_17
