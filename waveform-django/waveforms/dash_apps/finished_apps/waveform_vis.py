@@ -362,7 +362,21 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
     # Set the value if provided, change if requested
     return_event = None
     if set_event != '' and set_event:
-        idx = temp_event.index(set_event)
+        # Check to see if overflow has occured
+        if set_event not in temp_event:
+            if click_previous and click_next:
+                if click_previous > click_next:
+                    idx = len(temp_event)
+                else:
+                    idx = -1
+            else:
+                if click_previous:
+                    idx = len(temp_event)
+                else:
+                    idx = -1
+        else:
+            idx = temp_event.index(set_event)
+        # Get the current time as a reference
         time_now = datetime.datetime.now()
         # Convert ms from epoch to datetime object
         if click_previous:
@@ -386,7 +400,7 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
                     return_event = set_event
             else:
                 if (time_now - click_next).total_seconds() < 1:
-                    if idx == (len(set_event) - 1):
+                    if idx == (len(temp_event) - 1):
                         # Reached the end of the list, go back to the beginning
                         return_event = temp_event[0]
                     else:
@@ -409,7 +423,7 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
                     return_event = set_event
             else:
                 if (time_now - click_next).total_seconds() < 1:
-                    if idx == (len(set_event) - 1):
+                    if idx == (len(temp_event) - 1):
                         # Reached the end of the list, go back to the beginning
                         return_event = temp_event[0]
                     else:
