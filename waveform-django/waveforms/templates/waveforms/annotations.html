@@ -10,7 +10,6 @@
   padding: 18px;
   width: 100%;
   border: none;
-  text-align: left;
   outline: none;
   font-size: 20px;
   transition: 0.2s;
@@ -37,7 +36,10 @@
     <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
   </h4>
   {% for rec,info in all_anns.items %}
-    <button class="accordion">{{ rec }}</button>
+    <button class="accordion">
+      <span style="float: left;">{{ rec }}</span>
+      <span style="float: right;">{{ info.0 }}</span>
+    </button>
     <div class="panel">
       <table style="width:100%">
         <!-- Header names of the columns -->
@@ -49,7 +51,7 @@
           {% endfor %}
         </tr>
         <!-- Values of each column -->
-        {% for val in info %}
+        {% for val in info|slice:"1:" %}
           <tr>
             {% for v in val %}
               <td>
