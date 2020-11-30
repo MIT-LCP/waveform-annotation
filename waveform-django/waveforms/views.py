@@ -60,42 +60,35 @@ def render_annotations(request):
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
-    # Hold all of the record and event information
-    all_information = {}
-
-    # Get the events
-    for rec in all_records:
-        header_path = os.path.join(PROJECT_PATH, rec, rec)
-        all_events = wfdb.rdheader(header_path).seg_name
-        all_events = [s for s in all_events if s != (rec+'_layout') and s != '~']
-        all_information[rec] = all_events
+    # Hold all of the annotation information
+    all_anns = {}
 
     # Get all the annotations for the requested user
     current_user = request.user.username
     all_annotations = Annotation.objects.filter(user=current_user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
-    all_anns = []
 
-    for rec in all_information.keys():
-        for evt in all_information[rec]:
-            temp_anns = []
+    # Get the events
+    for rec in all_records:
+        header_path = os.path.join(PROJECT_PATH, rec, rec)
+        all_events = wfdb.rdheader(header_path).seg_name
+        all_events = [s for s in all_events if s != (rec+'_layout') and s != '~']
+        # Add annotations by event
+        temp_anns = []
+        for evt in all_events:
             if (rec in records) and (evt in events):
                 ann = all_annotations[events.index(evt)]
-                temp_anns.append(ann.record)
-                temp_anns.append(ann.event)
-                temp_anns.append(ann.decision)
-                temp_anns.append(ann.comments)
-                temp_anns.append(ann.decision_date)
+                temp_anns.append([ann.event,
+                                  ann.decision,
+                                  ann.comments,
+                                  ann.decision_date])
             else:
-                temp_anns.append(rec)
-                temp_anns.append(evt)
-                temp_anns.extend(['-', '-', '-'])
-            all_anns.append(temp_anns)
+                temp_anns.append([evt, '-', '-', '-'])
+        all_anns[rec] = temp_anns
 
     # Categories to display for the annotations
     categories = [
-        'record',
         'event',
         'decision',
         'comments',
