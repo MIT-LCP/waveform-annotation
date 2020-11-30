@@ -2,6 +2,31 @@
 {% load static %}
 
 {% block content %}
+<style>
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 20px;
+  transition: 0.2s;
+}
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+.panel {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+
 <div class="container">
   <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
   <!-- The title header of the webpage -->
@@ -11,34 +36,57 @@
   <h4>
     <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
   </h4>
-  <table style="width:100%">
-    <!-- Header names of the columns -->
-    <tr>
-      {% for cat in categories %}
-        <th>
-          {{ cat }}
-        </th>
-      {% endfor %}
-    </tr>
-    <!-- Values of each column -->
-    {% for val in all_anns %}
-      <tr>
-        {% for v in val %}
-          <td>
-            {{ v }}
-          </td>
+  {% for rec,info in all_anns.items %}
+    <button class="accordion">{{ rec }}</button>
+    <div class="panel">
+      <table style="width:100%">
+        <!-- Header names of the columns -->
+        <tr>
+          {% for cat in categories %}
+            <th>
+              {{ cat }}
+            </th>
+          {% endfor %}
+        </tr>
+        <!-- Values of each column -->
+        {% for val in info %}
+          <tr>
+            {% for v in val %}
+              <td>
+                {{ v }}
+              </td>
+            {% endfor %}
+            <td>
+              <a href="{% url 'waveform_published_specific' rec val.0 %}">Edit annotation</a>
+            </td>
+            <!-- Only display if annotation (timestamp) is found -->
+            {% if val.3 != "-" %}
+              <td>
+                <a href="{% url 'delete_annotation' rec val.0 %}">Delete annotation</a>
+              </td>
+            {% endif %}
+          </tr>
         {% endfor %}
-        <td>
-          <a href="{% url 'waveform_published_specific' val.0 val.1 %}">Edit annotation</a>
-        </td>
-        <!-- Only display if annotation (timestamp) is found -->
-        {% if val.4 != "-" %}
-          <td>
-            <a href="{% url 'delete_annotation' val.0 val.1 %}">Delete annotation</a>
-          </td>
-        {% endif %}
-      </tr>
-    {% endfor %}
-  </table>
+      </table>
+    </div>
+  {% endfor %}
 </div>
+
+<script>
+  var acc = document.getElementsByClassName("accordion");
+  var i;
+
+  for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var panel = this.nextElementSibling;
+      if (panel.style.maxHeight) {
+        panel.style.maxHeight = null;
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + "px";
+      }
+    });
+  }
+</script>
+
 {% endblock %}
