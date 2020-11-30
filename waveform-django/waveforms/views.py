@@ -85,6 +85,10 @@ def render_annotations(request):
                                   ann.decision_date])
             else:
                 temp_anns.append([evt, '-', '-', '-'])
+        # Get the completion stats for each record
+        num_complete = len([a[3] for a in temp_anns if a[3] != '-'])
+        progress_stats = '{}/{}'.format(num_complete, len(temp_anns))
+        temp_anns.insert(0, progress_stats)
         all_anns[rec] = temp_anns
 
     # Categories to display for the annotations
