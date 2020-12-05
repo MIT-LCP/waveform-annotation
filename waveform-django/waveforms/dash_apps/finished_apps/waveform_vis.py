@@ -680,7 +680,7 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Put all EKG signals before BP, then all others following
     sig_order = []
-    extra_sigs = ['ABP', 'PLETH']
+    extra_sigs = ['ABP', 'PLETH', 'RESP']
     if 'ABP' in sig_name:
         for i,s in enumerate(sig_name):
             if s not in extra_sigs:
