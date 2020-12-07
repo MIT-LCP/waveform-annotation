@@ -26,7 +26,7 @@ FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = '200px'
-event_fontsize = '36px'
+event_fontsize = '24px'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -700,9 +700,20 @@ def update_graph(dropdown_event, dropdown_rec):
 
     total_y_vals = np.stack(total_y_vals).flatten()
     # Filter out extreme values from being shown on graph range
-    total_y_vals = total_y_vals[abs(total_y_vals - np.mean(total_y_vals[np.isfinite(total_y_vals)])) < std_range * np.nanstd(total_y_vals)]
-    min_y_vals = np.nanmin(total_y_vals)
-    max_y_vals = np.nanmax(total_y_vals)
+    # TODO: Prevent repeat code for non-EKG signals
+    if np.nanstd(total_y_vals) >= 0.5 and not np.all(np.isnan(total_y_vals)):
+        total_y_vals = total_y_vals[abs(total_y_vals - np.mean(total_y_vals[np.isfinite(total_y_vals)])) < std_range * np.nanstd(total_y_vals)]
+    # Set default min and max values if all NaN
+    if np.all(np.isnan(total_y_vals)):
+        min_y_vals = -1
+        max_y_vals = 1
+    else:
+        if np.nanstd(total_y_vals) >= 0.5:
+            min_y_vals = np.nanmin(total_y_vals)
+            max_y_vals = np.nanmax(total_y_vals)
+        else:
+            min_y_vals = np.nanmin(total_y_vals) - 1
+            max_y_vals = np.nanmax(total_y_vals) + 1
     min_tick = (round(min_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_tick = (round(max_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
@@ -714,6 +725,49 @@ def update_graph(dropdown_event, dropdown_rec):
         current_record = record[0][:,r]
         x_vals = [(i / fs) for i in range(sig_len)][time_start:time_stop:down_sample]
         y_vals = current_record[time_start:time_stop:down_sample]
+        y_vals = np.nan_to_num(y_vals)
+
+        # Set the initial y-axis parameters
+        if sig_name[r] not in extra_sigs:
+            grid_state = True
+            dtick_state = grid_delta_major
+            zeroline_state = True
+            y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
+            # Max text length to fit should be ~8
+            # Multiply by (1/grid_delta_major) to account for fractions
+            while len(y_tick_vals) > (1/grid_delta_major)*8:
+                y_tick_vals = y_tick_vals[::2]
+            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
+        else:
+            # Change data type to prevent overflow
+            y_vals = y_vals.astype('float32')
+            # Remove outliers to prevent weird axes scaling if possible
+            # TODO: Refactor this!
+            if np.nanstd(y_vals) >= 0.5 and not np.all(np.isnan(y_vals)):
+                y_vals = y_vals[abs(y_vals - np.mean(y_vals[np.isfinite(y_vals)])) < std_range * np.nanstd(y_vals)]
+            # Set default min and max values if all NaN
+            if np.all(np.isnan(y_vals)):
+                min_y_vals = -1
+                max_y_vals = 1
+            else:
+                if np.nanstd(y_vals) >= 0.5:
+                    min_y_vals = np.nanmin(y_vals)
+                    max_y_vals = np.nanmax(y_vals)
+                else:
+                    min_y_vals = np.nanmin(y_vals) - 1
+                    max_y_vals = np.nanmax(y_vals) + 1
+            grid_state = True
+            dtick_state = None
+            zeroline_state = False
+            x_tick_vals = []
+            x_tick_text = []
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 10).tolist()]
+            # Max text length to fit should be ~8
+            # Multiply by (1/grid_delta_major) to account for fractions
+            while len(y_tick_vals) > 8:
+                y_tick_vals = y_tick_vals[::2]
+            y_tick_text = [str(n) for n in y_tick_vals]
+
         # Create the signal to plot
         fig.add_trace(go.Scatter({
             'x': x_vals,
@@ -731,9 +785,9 @@ def update_graph(dropdown_event, dropdown_rec):
         fig.add_shape({
             'type': 'line',
             'x0': event_time,
-            'y0': np.nanmin(y_vals) - 0.5 * (np.nanmax(y_vals) - np.nanmin(y_vals)),
+            'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
             'x1': event_time,
-            'y1': np.nanmax(y_vals) + 0.5 * (np.nanmax(y_vals) - np.nanmin(y_vals)),
+            'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
             'xref': x_string,
             'yref': y_string,
             'line': {
@@ -741,36 +795,6 @@ def update_graph(dropdown_event, dropdown_rec):
                 'width': 3
             }
         })
-
-        # Set the initial y-axis parameters
-        if sig_name[r] not in extra_sigs:
-            grid_state = True
-            dtick_state = grid_delta_major
-            zeroline_state = True
-            y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
-            # Max text length to fit should be ~8
-            # Multiply by (1/grid_delta_major) to account for fractions
-            while len(y_tick_vals) > (1/grid_delta_major)*8:
-                y_tick_vals = y_tick_vals[::2]
-            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
-        else:
-            # Change data type to prevent overflow
-            y_vals = y_vals.astype('float32')
-            # Remove outliers to prevent weird axes scaling
-            temp_data = y_vals[abs(y_vals - np.mean(y_vals[np.isfinite(y_vals)])) < std_range * np.nanstd(y_vals)]
-            min_y_vals = np.nanmin(temp_data)
-            max_y_vals = np.nanmax(temp_data)
-            grid_state = True
-            dtick_state = None
-            zeroline_state = False
-            x_tick_vals = []
-            x_tick_text = []
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 10).tolist()]
-            # Max text length to fit should be ~8
-            # Multiply by (1/grid_delta_major) to account for fractions
-            while len(y_tick_vals) > 8:
-                y_tick_vals = y_tick_vals[::2]
-            y_tick_text = [str(n) for n in y_tick_vals]
 
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
