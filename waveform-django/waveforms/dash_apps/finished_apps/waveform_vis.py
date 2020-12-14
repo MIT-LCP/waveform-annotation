@@ -87,7 +87,6 @@ app.layout = html.Div([
             options = [
                 {'label': 'True (alarm is correct)', 'value': 'True'},
                 {'label': 'False (alarm is incorrect)', 'value': 'False'},
-                {'label': 'Reject (remove from database)', 'value': 'Reject'},
                 {'label': 'Uncertain', 'value': 'Uncertain'}
             ],
             multi = False,
