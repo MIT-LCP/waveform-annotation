@@ -484,6 +484,11 @@ def update_graph(dropdown_event, dropdown_rec):
     margin_bottom = 0
     # Grid and zero-line color
     gridzero_color = 'rgb(255, 60, 60)'
+    # The color and thickness of the signal
+    sig_color = 'rgb(0, 0, 0)'
+    sig_thickness = 1.5
+    # The color of the annotation
+    ann_color = 'rgb(60, 60, 200)'
     # ECG gridlines parameters
     grid_delta_major = 0.2
     # Down-sample signal to increase performance
@@ -518,12 +523,10 @@ def update_graph(dropdown_event, dropdown_rec):
         fig.update_layout({
             'height': fig_height,
             'width': fig_width,
-            'margin': {
-                'l': margin_left,
-                't': margin_top,
-                'r': margin_right,
-                'b': margin_bottom
-            },
+            'margin': {'l': margin_left,
+                        't': margin_top,
+                        'r': margin_right,
+                        'b': margin_bottom},
             'grid': {
                 'rows': 4,
                 'columns': 1,
@@ -531,7 +534,13 @@ def update_graph(dropdown_event, dropdown_rec):
             },
             'showlegend': False,
             'hovermode': 'x',
-            'dragmode': drag_mode
+            'dragmode': drag_mode,
+            'spikedistance':  -1,
+            'plot_bgcolor': '#ffffff',
+            'paper_bgcolor': '#ffffff',
+            'font': {
+                'size': 12
+            }
         })
         # Update the Null signal and axes
         for i in range(4):
@@ -674,97 +683,122 @@ def update_graph(dropdown_event, dropdown_rec):
         'dragmode': drag_mode,
         'spikedistance':  -1,
         'plot_bgcolor': '#ffffff',
-        'paper_bgcolor': '#ffffff'
+        'paper_bgcolor': '#ffffff',
+        'font': {
+            'size': 12
+        }
     })
 
-    # Put all EKG signals before BP, then all others following
+    # Put all EKG signals before BP and RESP, then all others following
     sig_order = []
-    extra_sigs = ['ABP', 'PLETH', 'RESP']
-    if 'ABP' in sig_name:
+    ekg_sigs = {'II', 'III', 'V'}
+    bp_sigs = {'ABP'}
+    resp_sigs = {'RESP'}
+    if any(x not in ekg_sigs for x in sig_name):
         for i,s in enumerate(sig_name):
-            if s not in extra_sigs:
+            if s in ekg_sigs:
                 sig_order.append(i)
-        sig_order.append(sig_name.index('ABP'))
-        for s in extra_sigs[1:]:
-            if s in sig_name:
-                sig_order.append(sig_name.index(s))
+        # TODO: Could maybe do this faster using sets
+        for bps in bp_sigs:
+            if bps in sig_name:
+                sig_order.append(sig_name.index(bps))
+        for resps in resp_sigs:
+            if resps in sig_name:
+                sig_order.append(sig_name.index(resps))
+        for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
+            sig_order.append(sig_name.index(s))
     else:
         sig_order = range(n_sig)
 
-    # Find unified range for all EKG signals
-    total_y_vals = []
-    for idx,r in enumerate(sig_order):
-        if sig_name[r] not in extra_sigs:
-            total_y_vals.append(record[0][:,r][time_start:time_stop:down_sample])
+    # Collect all the signals
+    all_y_vals = []
+    ekg_y_vals = []
+    for r in sig_order:
+        sig_name_index = sig_name.index(sig_name[r])
+        current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
+        current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
+        all_y_vals.append(current_y_vals)
+        # Find unified range for all EKG signals
+        if sig_name[r] in ekg_sigs:
+            ekg_y_vals.append(current_y_vals)
 
-    total_y_vals = np.stack(total_y_vals).flatten()
+    # NOTE: Assuming there are always EKG signals
+    # Flatten and change data type to prevent overflow
+    ekg_y_vals = np.stack(ekg_y_vals).flatten()
     # Filter out extreme values from being shown on graph range
+    # This uses the Coefficient of Variation (CV) approach to determine
+    # significant changes in the signal... If a significant variation in
+    # signal is found then filter out extrema using normal distribution
     # TODO: Prevent repeat code for non-EKG signals
-    if np.nanstd(total_y_vals) >= 0.5 and not np.all(np.isnan(total_y_vals)):
-        total_y_vals = total_y_vals[abs(total_y_vals - np.mean(total_y_vals[np.isfinite(total_y_vals)])) < std_range * np.nanstd(total_y_vals)]
+    temp_std = np.nanstd(ekg_y_vals)
+    temp_mean = np.mean(ekg_y_vals[np.isfinite(ekg_y_vals)])
+    temp_nan = np.all(np.isnan(ekg_y_vals))
+    small_var_criteria = abs(temp_std / temp_mean) > 0.1
+    if small_var_criteria and not temp_nan:
+        ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
     # Set default min and max values if all NaN
-    if np.all(np.isnan(total_y_vals)):
-        min_y_vals = -1
-        max_y_vals = 1
+    if temp_nan:
+        min_ekg_y_vals = -1
+        max_ekg_y_vals = 1
     else:
-        if np.nanstd(total_y_vals) >= 0.5:
-            min_y_vals = np.nanmin(total_y_vals)
-            max_y_vals = np.nanmax(total_y_vals)
+        if small_var_criteria:
+            min_ekg_y_vals = np.nanmin(ekg_y_vals)
+            max_ekg_y_vals = np.nanmax(ekg_y_vals)
         else:
-            min_y_vals = np.nanmin(total_y_vals) - 1
-            max_y_vals = np.nanmax(total_y_vals) + 1
-    min_tick = (round(min_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
-    max_tick = (round(max_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
+            min_ekg_y_vals = np.nanmin(ekg_y_vals) - 1
+            max_ekg_y_vals = np.nanmax(ekg_y_vals) + 1
+    min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
+    max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
+    # Name the axes to create the subplots
+    x_vals = [event_time - time_range + (i / fs) for i in range(sig_len)][::down_sample]
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
         y_string = 'y' + str(idx+1)
         # Generate the waveform x-values and y-values
-        current_record = record[0][:,r]
-        x_vals = [(i / fs) for i in range(sig_len)][time_start:time_stop:down_sample]
-        y_vals = current_record[time_start:time_stop:down_sample]
-        y_vals = np.nan_to_num(y_vals)
-
+        y_vals = all_y_vals[idx]
         # Set the initial y-axis parameters
-        if sig_name[r] not in extra_sigs:
+        if sig_name[r] in ekg_sigs:
+            min_y_vals = min_ekg_y_vals
+            max_y_vals = max_ekg_y_vals
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            y_tick_vals = [round(n,1) for n in np.arange(min_tick, max_tick, grid_delta_major).tolist()]
+            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
             # Max text length to fit should be ~8
             # Multiply by (1/grid_delta_major) to account for fractions
             while len(y_tick_vals) > (1/grid_delta_major)*8:
                 y_tick_vals = y_tick_vals[::2]
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
-            # Change data type to prevent overflow
-            y_vals = y_vals.astype('float32')
             # Remove outliers to prevent weird axes scaling if possible
             # TODO: Refactor this!
-            if np.nanstd(y_vals) >= 0.5 and not np.all(np.isnan(y_vals)):
-                y_vals = y_vals[abs(y_vals - np.mean(y_vals[np.isfinite(y_vals)])) < std_range * np.nanstd(y_vals)]
+            temp_std = np.nanstd(y_vals)
+            temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
+            temp_nan = np.all(np.isnan(y_vals))
+            small_var_criteria = (temp_std / temp_mean) > 0.1
+            if small_var_criteria and not temp_nan:
+                extreme_y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+            else:
+                extreme_y_vals = y_vals
             # Set default min and max values if all NaN
-            if np.all(np.isnan(y_vals)):
+            if temp_nan:
                 min_y_vals = -1
                 max_y_vals = 1
             else:
-                if np.nanstd(y_vals) >= 0.5:
-                    min_y_vals = np.nanmin(y_vals)
-                    max_y_vals = np.nanmax(y_vals)
+                if small_var_criteria:
+                    min_y_vals = np.nanmin(extreme_y_vals)
+                    max_y_vals = np.nanmax(extreme_y_vals)
                 else:
-                    min_y_vals = np.nanmin(y_vals) - 1
-                    max_y_vals = np.nanmax(y_vals) + 1
+                    min_y_vals = np.nanmin(extreme_y_vals) - 1
+                    max_y_vals = np.nanmax(extreme_y_vals) + 1
             grid_state = True
             dtick_state = None
             zeroline_state = False
             x_tick_vals = []
             x_tick_text = []
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 10).tolist()]
-            # Max text length to fit should be ~8
-            # Multiply by (1/grid_delta_major) to account for fractions
-            while len(y_tick_vals) > 8:
-                y_tick_vals = y_tick_vals[::2]
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
             y_tick_text = [str(n) for n in y_tick_vals]
 
         # Create the signal to plot
@@ -775,8 +809,8 @@ def update_graph(dropdown_event, dropdown_rec):
             'yaxis': y_string,
             'type': 'scatter',
             'line': {
-                'color': 'black',
-                'width': 3
+                'color': sig_color,
+                'width': sig_thickness
             },
             'name': sig_name[r]
         }), row = idx+1, col = 1)
@@ -790,7 +824,7 @@ def update_graph(dropdown_event, dropdown_rec):
             'xref': x_string,
             'yref': y_string,
             'line': {
-                'color': 'Red',
+                'color': ann_color,
                 'width': 3
             }
         })
