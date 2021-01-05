@@ -205,8 +205,8 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                 else:
                     idx = all_records.index(record_value)
                     if idx == 0:
-                        # Reached the end of the list, go back to the beginning
-                        return_record = all_records[0]
+                        # Reached the beginning of the list, go to the end
+                        return_record = all_records[-1]
                     else:
                         # Increment the record if not the end of the list
                         # TODO: Increment to the next non-annotated waveform instead?
