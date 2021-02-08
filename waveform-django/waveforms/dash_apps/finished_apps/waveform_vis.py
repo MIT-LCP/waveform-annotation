@@ -49,19 +49,12 @@ app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
 app.layout = html.Div([
     # Area to submit annotations
     html.Div([
-        # The record dropdown
-        html.Div([
-            html.Label(['Select Record to Plot']),
-            dcc.Dropdown(
-                id = 'dropdown_rec',
-                multi = False,
-                clearable = False,
-                searchable = True,
-                persistence = False,
-                placeholder = 'Please Select...',
-                style = {'width': dropdown_width},
-            )
-        ], style = {'display': 'inline-block'}),
+        # The record display
+        html.Label(['Record:']),
+        html.Div(
+            id = 'dropdown_rec',
+            children = html.Span([''], style={'fontSize': event_fontsize})
+        ),
         # The event dropdown
         html.Div([
             html.Label(['Select Event to Plot']),
@@ -116,7 +109,7 @@ app.layout = html.Div([
             config = plot_config
         )
     ], style = {'display': 'inline-block'}),
-    # Hidden div inside the app that stores the project user, record, and event
+    # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
 ])
@@ -172,8 +165,7 @@ def clear_text(set_event):
 # Dynamically update the record dropdown settings using the project 
 # record and event
 @app.callback(
-    [dash.dependencies.Output('dropdown_rec', 'options'),
-     dash.dependencies.Output('dropdown_rec', 'value')],
+    dash.dependencies.Output('dropdown_rec', 'children'),
     [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
@@ -187,9 +179,6 @@ def get_records_options(click_previous, click_next, record_value, event_options,
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
-
-    # Set the record options based on the current project
-    options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
     # Set the value if provided
     return_record = record_value
@@ -274,8 +263,8 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                 # Should theoretically never happen but here just in case
                 return_record = record_value
         else:
-            # Keep blank if loading main page (no presets)
-            return_record = None
+            # Start with the first record if loading main page
+            return_record = all_records[0]
 
     # Update the annotations
     if len(ctx.triggered) > 0:
@@ -334,7 +323,12 @@ def get_records_options(click_previous, click_next, record_value, event_options,
                     )
                     annotation.update()
 
-    return options_rec, return_record
+    # Update the annotation current record text
+    return_record = [
+        html.Span(['{}'.format(return_record)], style={'fontSize': event_fontsize})
+    ]
+
+    return return_record
 
 
 # Dynamically update the signal dropdown settings using the record name, project 
@@ -342,7 +336,7 @@ def get_records_options(click_previous, click_next, record_value, event_options,
 @app.callback(
     [dash.dependencies.Output('dropdown_event', 'options'),
      dash.dependencies.Output('dropdown_event', 'value')],
-    [dash.dependencies.Input('dropdown_rec', 'value')],
+    [dash.dependencies.Input('dropdown_rec', 'children')],
     [dash.dependencies.State('set_record', 'value'),
      dash.dependencies.State('set_event', 'value'),
      dash.dependencies.State('previous_annotation', 'n_clicks_timestamp'),
@@ -351,6 +345,7 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
     # Get the header file
     options_event = []
     if dropdown_rec:
+        dropdown_rec = dropdown_rec[0]['props']['children'][1]
         # Extract all the events
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         temp_event = wfdb.rdheader(header_path).seg_name
@@ -446,13 +441,14 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
     [dash.dependencies.Output('event_text', 'children'),
      dash.dependencies.Output('set_record', 'value'),
      dash.dependencies.Output('set_event', 'value')],
-    [dash.dependencies.Input('dropdown_rec', 'value'),
+    [dash.dependencies.Input('dropdown_rec', 'children'),
      dash.dependencies.Input('dropdown_event', 'value')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
     event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
     if dropdown_rec and dropdown_event:
         # Extract the records
+        dropdown_rec = dropdown_rec[0]['props']['children'][1]
         header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         temp_rec = wfdb.rdheader(header_path).seg_name
         temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
@@ -472,7 +468,7 @@ def update_text(dropdown_rec, dropdown_event):
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_event', 'value')],
-    [dash.dependencies.State('dropdown_rec', 'value')])
+    [dash.dependencies.State('dropdown_rec', 'children')])
 def update_graph(dropdown_event, dropdown_rec):
     # The figure height and width
     fig_height = 725
@@ -644,6 +640,7 @@ def update_graph(dropdown_event, dropdown_rec):
         return (fig)
 
     # Set some initial conditions
+    dropdown_rec = dropdown_rec[0]['props']['children'][1]
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
