@@ -55,23 +55,17 @@ app.layout = html.Div([
             id = 'dropdown_rec',
             children = html.Span([''], style={'fontSize': event_fontsize})
         ),
-        # The event dropdown
-        html.Div([
-            html.Label(['Select Event to Plot']),
-            dcc.Dropdown(
-                id = 'dropdown_event',
-                multi = False,
-                clearable = False,
-                searchable = True,
-                persistence = False,
-                placeholder = 'Please Select...',
-                style = {'width': dropdown_width},
-            )
-        ]),
         # The event display
+        html.Label(['Event:']),
+        html.Div(
+            id = 'dropdown_event',
+            children = html.Span([''], style={'fontSize': event_fontsize})
+        ),
+        # The event display
+        html.Label(['Event Type:']),
         html.Div(
             id = 'event_text',
-            children = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
+            children = html.Span([''], style={'fontSize': event_fontsize})
         ),
         # The reviewer decision section
         html.Label(['Enter decision here:']),
@@ -115,6 +109,13 @@ app.layout = html.Div([
 ])
 
 
+def get_header_info(file_path):
+    header_path = os.path.join(PROJECT_PATH, file_path, file_path)
+    file_contents = wfdb.rdheader(header_path).seg_name
+    file_contents = [s for s in file_contents if s != (file_path+'_layout') and s != '~']
+    return file_contents
+
+
 # Clear/preset reviewer decision and comments
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
@@ -155,285 +156,173 @@ def clear_text(set_event):
             reviewer_comments = ''
         else:
             reviewer_comments = res.data['all_annotations']['edges'][0]['node']['comments']
-
         return reviewer_decision, reviewer_comments
-
     else:
         return None, ''
 
 
-# Dynamically update the record dropdown settings using the project 
-# record and event
+# Dynamically update the record given the current record and event
 @app.callback(
-    dash.dependencies.Output('dropdown_rec', 'children'),
+    [dash.dependencies.Output('dropdown_rec', 'children'),
+     dash.dependencies.Output('dropdown_event', 'children')],
     [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
-    [dash.dependencies.State('dropdown_event', 'options'),
-     dash.dependencies.State('set_event', 'value'),
+    [dash.dependencies.State('set_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
-def get_records_options(click_previous, click_next, record_value, event_options,
-                        event_value, decision_value, comments_value):
+def get_records_options(click_previous, click_next, record_value, event_value,
+                        decision_value, comments_value):
+    # Determine what triggered this function
+    ctx = dash.callback_context
+    # Update the annotations: only save the annotations if a decision is made
+    if (len(ctx.triggered) > 0) and decision_value:
+        # Convert ms from epoch to datetime object
+        if (ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation'):
+            submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
+        elif (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation'):
+            submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
+        # Save the annotation to the database only if changes
+        # were made or a new annotation
+        current_user = get_current_user()
+        query = """
+            {{
+                all_annotations(user:"{}", event:"{}"){{
+                    edges{{
+                        node{{
+                            record,
+                            event,
+                            decision,
+                            comments,
+                            decision_date
+                        }}
+                    }}
+                }}
+            }}
+        """.format(current_user, event_value)
+        res = schema.execute(query)
+        if res.data['all_annotations']['edges'] != []:
+            current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
+            proposed_annotation = [record_value, event_value,
+                                    decision_value, comments_value]
+            # Only save annotation if something has changed
+            if current_annotation[:4] != proposed_annotation:
+                annotation = Annotation(
+                    user = current_user,
+                    record = record_value,
+                    event = event_value,
+                    decision = decision_value,
+                    comments = comments_value,
+                    decision_date = submit_time
+                )
+                annotation.update()
+        else:
+            # Create new annotation since none already exist
+            annotation = Annotation(
+                user = current_user,
+                record = record_value,
+                event = event_value,
+                decision = decision_value,
+                comments = comments_value,
+                decision_date = submit_time
+            )
+            annotation.update()
+
+    # Prepare to return the record and event value
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
-
-    # Set the value if provided
+    # Set the record value if provided
     return_record = record_value
-    ctx = dash.callback_context
+
+    # Determine if first load or not
     if record_value != '':
-        # Determine if called from another event or just loaded
-        if len(ctx.triggered) > 0:
-            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
-                event_options = [e['value'] for e in event_options]
-                if event_options.index(event_value) > 0:
-                    # Event list not ended, keep record value the same
-                    return_record = record_value
-                else:
-                    idx = all_records.index(record_value)
-                    if idx == 0:
-                        # Reached the beginning of the list, go to the end
-                        return_record = all_records[-1]
-                    else:
-                        # Increment the record if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_record = all_records[idx-1]
-            elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
-                event_options = [e['value'] for e in event_options]
-                if event_options.index(event_value) < (len(event_options) - 1):
-                    # Event list not ended, keep record value the same
-                    return_record = record_value
-                else:
-                    idx = all_records.index(record_value)
-                    if idx == (len(all_records) - 1):
-                        # Reached the end of the list, go back to the beginning
-                        return_record = all_records[0]
-                    else:
-                        # Increment the record if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_record = all_records[idx+1]
-        else:
-            # Requested record
-            return_record = record_value
-    else:
-        if click_previous or click_next:
-            # Determine which button was clicked
-            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
-                click_time = click_previous
-            else:
-                click_time = click_next
-
-            time_now = datetime.datetime.now()
-            # Convert ms from epoch to datetime object
-            click_time = datetime.datetime.fromtimestamp(click_time / 1000.0)
-            # Consider next annotation desired if button was pressed in the
-            # last 1 second... change this?
-            # TODO: make this better
-            if (time_now - click_time).total_seconds() < 1:
-                event_options = [e['value'] for e in event_options]
-                if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
-                    if event_options.index(event_value) > 0:
-                        # Event list not ended, keep record value the same
-                        return_record = record_value
-                    else:
-                        idx = all_records.index(record_value)
-                        if idx == 0:
-                            # At the beginning of the list, go to the end
-                            return_record = all_records[-1]
-                        else:
-                            # Decrement the record if not the beginning of the list
-                            # TODO: Decrement to the next non-annotated waveform instead?
-                            return_record = all_records[idx-1]
-                else:
-                    if event_options.index(event_value) < (len(event_options) - 1):
-                        # Event list not ended, keep record value the same
-                        return_record = record_value
-                    else:
-                        idx = all_records.index(record_value)
-                        if idx == (len(all_records) - 1):
-                            # Reached the end of the list, go back to the beginning
-                            return_record = all_records[0]
-                        else:
-                            # Increment the record if not the end of the list
-                            # TODO: Increment to the next non-annotated waveform instead?
-                            return_record = all_records[idx+1]
-            else:
-                # Should theoretically never happen but here just in case
+        # Extract all the events
+        all_events = get_header_info(record_value)
+        # Determine which button was clicked
+        if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+            # Determine the record
+            if all_events.index(event_value) > 0:
+                # Event list not ended, keep record value the same
                 return_record = record_value
-        else:
-            # Start with the first record if loading main page
-            return_record = all_records[0]
-
-    # Update the annotations
-    if len(ctx.triggered) > 0:
-        if ((ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation') or
-                (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation')):
-            # Only save the annotations if a decision is made
-            if decision_value:
-                # Convert ms from epoch to datetime object
-                if (ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation'):
-                    submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
-                elif (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation'):
-                    submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
-                # Save the annotation to the database only if changes
-                # were made or a new annotation
-                current_user = get_current_user()
-                query = """
-                    {{
-                        all_annotations(user:"{}", event:"{}"){{
-                            edges{{
-                                node{{
-                                    record,
-                                    event,
-                                    decision,
-                                    comments,
-                                    decision_date
-                                }}
-                            }}
-                        }}
-                    }}
-                """.format(current_user, event_value)
-                res = schema.execute(query)
-                if res.data['all_annotations']['edges'] != []:
-                    current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
-                    proposed_annotation = [record_value, event_value,
-                                           decision_value, comments_value]
-                    # Only save annotation if something has changed
-                    if current_annotation[:4] != proposed_annotation:
-                        annotation = Annotation(
-                            user = current_user,
-                            record = record_value,
-                            event = event_value,
-                            decision = decision_value,
-                            comments = comments_value,
-                            decision_date = submit_time
-                        )
-                        annotation.update()
+            else:
+                idr = all_records.index(record_value)
+                if idr == 0:
+                    # Reached the beginning of the list, go to the end
+                    return_record = all_records[-1]
                 else:
-                    # Create new annotation since none already exist
-                    annotation = Annotation(
-                        user = current_user,
-                        record = record_value,
-                        event = event_value,
-                        decision = decision_value,
-                        comments = comments_value,
-                        decision_date = submit_time
-                    )
-                    annotation.update()
+                    # Increment the record if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_record = all_records[idr-1]
+
+            # Update the events if the record is updated
+            if return_record != record_value:
+                # Extract all the events
+                all_events = get_header_info(return_record)
+            # Check to see if overflow has occurred
+            if event_value not in all_events:
+                ide = len(all_events)
+            else:
+                ide = all_events.index(event_value)
+            # Determine the event
+            if ide == 0:
+                # At the beginning of the list, go to the end
+                return_event = all_events[-1]
+            else:
+                # Decrement the record if not the beginning of the list
+                # TODO: Decrement to the next non-annotated waveform instead?
+                return_event = all_events[ide-1]
+
+        elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
+            # Determine the record
+            if all_events.index(event_value) < (len(all_events) - 1):
+                # Event list not ended, keep record value the same
+                return_record = record_value
+            else:
+                idr = all_records.index(record_value)
+                if idr == (len(all_records) - 1):
+                    # Reached the end of the list, go back to the beginning
+                    return_record = all_records[0]
+                else:
+                    # Increment the record if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_record = all_records[idr+1]
+
+            # Update the events if the record is updated
+            if return_record != record_value:
+                # Extract all the events
+                all_events = get_header_info(return_record)
+            # Check to see if overflow has occurred
+            if event_value not in all_events:
+                ide = -1
+            else:
+                ide = all_events.index(event_value)
+            # Determine the event
+            if ide == (len(all_events) - 1):
+                # Reached the end of the list, go back to the beginning
+                return_event = all_events[0]
+            else:
+                # Increment the event if not the end of the list
+                # TODO: Increment to the next non-annotated waveform instead?
+                return_event = all_events[ide+1]
+
+    else:
+        # Start with the first record if first load
+        return_record = all_records[0]
+        all_events = get_header_info(return_record)
+        return_event = all_events[0]
 
     # Update the annotation current record text
     return_record = [
         html.Span(['{}'.format(return_record)], style={'fontSize': event_fontsize})
     ]
+    # Update the annotation current event text
+    return_event = [
+        html.Span(['{}'.format(return_event)], style={'fontSize': event_fontsize})
+    ]
 
-    return return_record
-
-
-# Dynamically update the signal dropdown settings using the record name, project 
-# slug, and version
-@app.callback(
-    [dash.dependencies.Output('dropdown_event', 'options'),
-     dash.dependencies.Output('dropdown_event', 'value')],
-    [dash.dependencies.Input('dropdown_rec', 'children')],
-    [dash.dependencies.State('set_record', 'value'),
-     dash.dependencies.State('set_event', 'value'),
-     dash.dependencies.State('previous_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.State('next_annotation', 'n_clicks_timestamp')])
-def get_event_options(dropdown_rec, set_record, set_event, click_previous, click_next):
-    # Get the header file
-    options_event = []
-    if dropdown_rec:
-        dropdown_rec = dropdown_rec[0]['props']['children'][1]
-        # Extract all the events
-        header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-        temp_event = wfdb.rdheader(header_path).seg_name
-        temp_event = [s for s in temp_event if s != (dropdown_rec+'_layout') and s != '~']
-        # Set the options based on the annotated event times of the chosen record
-        options_event = [{'label': t, 'value': t} for t in temp_event]
-
-    # Set the value if provided, change if requested
-    return_event = None
-    if set_event != '' and set_event:
-        # Check to see if overflow has occured
-        if set_event not in temp_event:
-            if click_previous and click_next:
-                if click_previous > click_next:
-                    idx = len(temp_event)
-                else:
-                    idx = -1
-            else:
-                if click_previous:
-                    idx = len(temp_event)
-                else:
-                    idx = -1
-        else:
-            idx = temp_event.index(set_event)
-        # Get the current time as a reference
-        time_now = datetime.datetime.now()
-        # Convert ms from epoch to datetime object
-        if click_previous:
-            click_previous = datetime.datetime.fromtimestamp(click_previous / 1000.0)
-        if click_next:
-            click_next = datetime.datetime.fromtimestamp(click_next / 1000.0)
-        # Consider next annotation desired if button was pressed in the
-        # last 1 second... change this?
-        # TODO: make this better
-        if click_previous and click_next:
-            if (click_previous > click_next):
-                if (time_now - click_previous).total_seconds() < 1:
-                    if idx == 0:
-                        # At the beginning of the list, go to the end
-                        return_event = temp_event[-1]
-                    else:
-                        # Decrement the record if not the beginning of the list
-                        # TODO: Decrement to the next non-annotated waveform instead?
-                        return_event = temp_event[idx-1]
-                else:
-                    return_event = set_event
-            else:
-                if (time_now - click_next).total_seconds() < 1:
-                    if idx == (len(temp_event) - 1):
-                        # Reached the end of the list, go back to the beginning
-                        return_event = temp_event[0]
-                    else:
-                        # Increment the event if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_event = temp_event[idx+1]
-                else:
-                    return_event = set_event
-        elif click_previous or click_next:
-            if click_previous:
-                if (time_now - click_previous).total_seconds() < 1:
-                    if idx == 0:
-                        # At the beginning of the list, go to the end
-                        return_event = temp_event[-1]
-                    else:
-                        # Decrement the record if not the beginning of the list
-                        # TODO: Decrement to the next non-annotated waveform instead?
-                        return_event = temp_event[idx-1]
-                else:
-                    return_event = set_event
-            else:
-                if (time_now - click_next).total_seconds() < 1:
-                    if idx == (len(temp_event) - 1):
-                        # Reached the end of the list, go back to the beginning
-                        return_event = temp_event[0]
-                    else:
-                        # Increment the event if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_event = temp_event[idx+1]
-                else:
-                    return_event = set_event
-        else:
-            # Requested event
-            return_event = set_event
-    else:
-        # Keep blank if loading main page (no presets)
-        return_event = None
-
-    return options_event, return_event
+    return return_record, return_event
 
 
 # Update the event text and set_event
@@ -442,16 +331,23 @@ def get_event_options(dropdown_rec, set_record, set_event, click_previous, click
      dash.dependencies.Output('set_record', 'value'),
      dash.dependencies.Output('set_event', 'value')],
     [dash.dependencies.Input('dropdown_rec', 'children'),
-     dash.dependencies.Input('dropdown_event', 'value')])
+     dash.dependencies.Input('dropdown_event', 'children')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
     event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
+    # Determine the record
+    try:
+        dropdown_rec = dropdown_rec[0]['props']['children'][0]
+    except KeyError:
+        dropdown_rec = dropdown_rec['props']['children'][0]
+    # Determine the event
+    try:
+        dropdown_event = dropdown_event[0]['props']['children'][0]
+    except KeyError:
+        dropdown_event = dropdown_event['props']['children'][0]
     if dropdown_rec and dropdown_event:
-        # Extract the records
-        dropdown_rec = dropdown_rec[0]['props']['children'][1]
-        header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-        temp_rec = wfdb.rdheader(header_path).seg_name
-        temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
+        # Extract the header contents
+        temp_rec = get_header_info(dropdown_rec)
         # Get the annotation information
         ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
         ann = wfdb.rdann(ann_path, 'cba')
@@ -467,7 +363,7 @@ def update_text(dropdown_rec, dropdown_event):
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
-    [dash.dependencies.Input('dropdown_event', 'value')],
+    [dash.dependencies.Input('dropdown_event', 'children')],
     [dash.dependencies.State('dropdown_rec', 'children')])
 def update_graph(dropdown_event, dropdown_rec):
     # The figure height and width
@@ -495,152 +391,27 @@ def update_graph(dropdown_event, dropdown_rec):
     event_time = 300
     # How much signal should be displayed before and after event (seconds)
     time_range = 30
-    # Determine how much signal to display before and after event (seconds)
+    # How much signal should be displayed initially before and after event (seconds)
     window_size = 5
-    # Standard deviation signal range
+    # Standard deviation signal range to window
     std_range = 2
-    # Set the initial dragmode (zoom, pan, etc.)
+    # Set the initial dragmode (`zoom`, `pan`, etc.)
+    # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
     drag_mode = 'pan'
     # Set the zoom restrictions
     x_zoom_fixed = False
     y_zoom_fixed = True
-
-    # Set a blank plot if none is loaded
-    if not dropdown_rec or not dropdown_event:
-        # Create baseline figure with 4 subplots
-        # TODO: dynamic based on available signals
-        fig = make_subplots(
-            rows = 4,
-            cols = 1,
-            shared_xaxes = True,
-            vertical_spacing = 0
-        )
-        # Update the layout to match the loaded state
-        fig.update_layout({
-            'height': fig_height,
-            'width': fig_width,
-            'margin': {'l': margin_left,
-                        't': margin_top,
-                        'r': margin_right,
-                        'b': margin_bottom},
-            'grid': {
-                'rows': 4,
-                'columns': 1,
-                'pattern': 'independent'
-            },
-            'showlegend': False,
-            'hovermode': 'x',
-            'dragmode': drag_mode,
-            'spikedistance':  -1,
-            'plot_bgcolor': '#ffffff',
-            'paper_bgcolor': '#ffffff',
-            'font': {
-                'size': 12
-            }
-        })
-        # Update the Null signal and axes
-        for i in range(4):
-            fig.add_trace(go.Scatter({
-                'x': [None],
-                'y': [None]
-            }), row = i+1, col = 1)
-            # Update axes based on signal type
-            x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
-            x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
-            y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
-            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
-            if (i == 0) or (i == 1):
-                fig.update_xaxes({
-                    'fixedrange': x_zoom_fixed,
-                    'showgrid': True,
-                    'dtick': grid_delta_major,
-                    'showticklabels': False,
-                    'gridcolor': gridzero_color,
-                    'zeroline': True,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 10],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = i+1, col = 1)
-                fig.update_yaxes({
-                    'fixedrange': y_zoom_fixed,
-                    'showgrid': True,
-                    'tickvals': y_tick_vals,
-                    'ticktext': y_tick_text,
-                    'showticklabels': True,
-                    'gridcolor': gridzero_color,
-                    'zeroline': True,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 2.25],
-                }, row = i+1, col = 1)
-            elif i == 3:
-                fig.update_xaxes({
-                    'title': 'Time (s)',
-                    'fixedrange': x_zoom_fixed,
-                    'showgrid': True,
-                    'tickvals': x_tick_vals,
-                    'ticktext': x_tick_text,
-                    'showticklabels': True,
-                    'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 10],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = i+1, col = 1)
-                fig.update_yaxes({
-                    'fixedrange': y_zoom_fixed,
-                    'showgrid': False,
-                    'dtick': None,
-                    'showticklabels': False,
-                    'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 2.25],
-                }, row = i+1, col = 1)
-            else:
-                fig.update_xaxes({
-                    'fixedrange': x_zoom_fixed,
-                    'showgrid': True,
-                    'dtick': grid_delta_major,
-                    'showticklabels': False,
-                    'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 10],
-                    'rangeslider': {
-                        'visible': False
-                    }
-                }, row = i+1, col = 1)
-                fig.update_yaxes({
-                    'fixedrange': y_zoom_fixed,
-                    'showgrid': False,
-                    'dtick': None,
-                    'showticklabels': False,
-                    'gridcolor': gridzero_color,
-                    'zeroline': False,
-                    'zerolinewidth': 1,
-                    'zerolinecolor': gridzero_color,
-                    'gridwidth': 1,
-                    'range': [0, 2.25],
-                }, row = i+1, col = 1)
-
-        return (fig)
+    # Determine the input record and event
+    try:
+        dropdown_rec = dropdown_rec[0]['props']['children'][0]
+    except KeyError:
+        dropdown_rec = dropdown_rec['props']['children'][0]
+    try:
+        dropdown_event = dropdown_event[0]['props']['children'][0]
+    except KeyError:
+        dropdown_event = dropdown_event['props']['children'][0]
 
     # Set some initial conditions
-    dropdown_rec = dropdown_rec[0]['props']['children'][1]
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
@@ -657,19 +428,21 @@ def update_graph(dropdown_event, dropdown_rec):
     time_range_stop = fs * (event_time + window_size)
 
     # Set the initial layout of the figure
+    # For more info: https://plotly.com/python/subplots/
     fig = make_subplots(
         rows = 4,
         cols = 1,
         shared_xaxes = True,
         vertical_spacing = 0
     )
+    # For more info: https://plotly.com/python/reference/layout/
     fig.update_layout({
         'height': fig_height,
         'width': fig_width,
         'margin': {'l': margin_left,
-                    't': margin_top,
-                    'r': margin_right,
-                    'b': margin_bottom},
+                   't': margin_top,
+                   'r': margin_right,
+                   'b': margin_bottom},
         'grid': {
             'rows': n_sig,
             'columns': 1,
@@ -799,6 +572,7 @@ def update_graph(dropdown_event, dropdown_rec):
             y_tick_text = [str(n) for n in y_tick_vals]
 
         # Create the signal to plot
+        # For more info: https://plotly.com/python/reference/scatter/#scatter
         fig.add_trace(go.Scatter({
             'x': x_vals,
             'y': y_vals,
@@ -812,6 +586,7 @@ def update_graph(dropdown_event, dropdown_rec):
             'name': sig_name[r]
         }), row = idx+1, col = 1)
         # Display where the event is
+        # For more info: https://plotly.com/python/reference/layout/shapes/#layout-shapes
         fig.add_shape({
             'type': 'line',
             'x0': event_time,
@@ -827,6 +602,7 @@ def update_graph(dropdown_event, dropdown_rec):
         })
 
         # Set the initial x-axis parameters
+        # For more info: https://plotly.com/python/reference/scatter/#scatter-xaxis
         x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
         if idx != (n_sig - 1):
@@ -868,6 +644,7 @@ def update_graph(dropdown_event, dropdown_rec):
             }, row = idx+1, col = 1)
 
         # Set the initial y-axis parameters
+        # For more info: https://plotly.com/python/reference/scatter/#scatter-yaxis
         fig.update_yaxes({
             'title': sig_name[r] + ' (' + units[r] + ')',
             'fixedrange': y_zoom_fixed,
