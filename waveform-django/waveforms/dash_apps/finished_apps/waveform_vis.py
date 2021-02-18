@@ -240,72 +240,77 @@ def get_records_options(click_previous, click_next, record_value, event_value,
     if record_value != '':
         # Extract all the events
         all_events = get_header_info(record_value)
-        # Determine which button was clicked
-        if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
-            # Determine the record
-            if all_events.index(event_value) > 0:
-                # Event list not ended, keep record value the same
-                return_record = record_value
-            else:
-                idr = all_records.index(record_value)
-                if idr == 0:
-                    # Reached the beginning of the list, go to the end
-                    return_record = all_records[-1]
+        # Determine if record was requested
+        if ctx.triggered:
+            # Determine which button was clicked
+            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+                # Determine the record
+                if all_events.index(event_value) > 0:
+                    # Event list not ended, keep record value the same
+                    return_record = record_value
                 else:
-                    # Increment the record if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr-1]
+                    idr = all_records.index(record_value)
+                    if idr == 0:
+                        # Reached the beginning of the list, go to the end
+                        return_record = all_records[-1]
+                    else:
+                        # Increment the record if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_record = all_records[idr-1]
 
-            # Update the events if the record is updated
-            if return_record != record_value:
-                # Extract all the events
-                all_events = get_header_info(return_record)
-            # Check to see if overflow has occurred
-            if event_value not in all_events:
-                ide = len(all_events)
-            else:
-                ide = all_events.index(event_value)
-            # Determine the event
-            if ide == 0:
-                # At the beginning of the list, go to the end
-                return_event = all_events[-1]
-            else:
-                # Decrement the record if not the beginning of the list
-                # TODO: Decrement to the next non-annotated waveform instead?
-                return_event = all_events[ide-1]
+                # Update the events if the record is updated
+                if return_record != record_value:
+                    # Extract all the events
+                    all_events = get_header_info(return_record)
+                # Check to see if overflow has occurred
+                if event_value not in all_events:
+                    ide = len(all_events)
+                else:
+                    ide = all_events.index(event_value)
+                # Determine the event
+                if ide == 0:
+                    # At the beginning of the list, go to the end
+                    return_event = all_events[-1]
+                else:
+                    # Decrement the record if not the beginning of the list
+                    # TODO: Decrement to the next non-annotated waveform instead?
+                    return_event = all_events[ide-1]
 
-        elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
-            # Determine the record
-            if all_events.index(event_value) < (len(all_events) - 1):
-                # Event list not ended, keep record value the same
-                return_record = record_value
-            else:
-                idr = all_records.index(record_value)
-                if idr == (len(all_records) - 1):
+            elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
+                # Determine the record
+                if all_events.index(event_value) < (len(all_events) - 1):
+                    # Event list not ended, keep record value the same
+                    return_record = record_value
+                else:
+                    idr = all_records.index(record_value)
+                    if idr == (len(all_records) - 1):
+                        # Reached the end of the list, go back to the beginning
+                        return_record = all_records[0]
+                    else:
+                        # Increment the record if not the end of the list
+                        # TODO: Increment to the next non-annotated waveform instead?
+                        return_record = all_records[idr+1]
+
+                # Update the events if the record is updated
+                if return_record != record_value:
+                    # Extract all the events
+                    all_events = get_header_info(return_record)
+                # Check to see if overflow has occurred
+                if event_value not in all_events:
+                    ide = -1
+                else:
+                    ide = all_events.index(event_value)
+                # Determine the event
+                if ide == (len(all_events) - 1):
                     # Reached the end of the list, go back to the beginning
-                    return_record = all_records[0]
+                    return_event = all_events[0]
                 else:
-                    # Increment the record if not the end of the list
+                    # Increment the event if not the end of the list
                     # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr+1]
-
-            # Update the events if the record is updated
-            if return_record != record_value:
-                # Extract all the events
-                all_events = get_header_info(return_record)
-            # Check to see if overflow has occurred
-            if event_value not in all_events:
-                ide = -1
-            else:
-                ide = all_events.index(event_value)
-            # Determine the event
-            if ide == (len(all_events) - 1):
-                # Reached the end of the list, go back to the beginning
-                return_event = all_events[0]
-            else:
-                # Increment the event if not the end of the list
-                # TODO: Increment to the next non-annotated waveform instead?
-                return_event = all_events[ide+1]
+                    return_event = all_events[ide+1]
+        else:
+            return_record = record_value
+            return_event = event_value
 
     else:
         # Start with the first record if first load
