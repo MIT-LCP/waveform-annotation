@@ -383,6 +383,8 @@ def update_graph(dropdown_event, dropdown_rec):
     ann_color = 'rgb(60, 60, 200)'
     # ECG gridlines parameters
     grid_delta_major = 0.2
+    # Set the maximum number of y-labels
+    max_y_labels = 8
     # Down-sample signal to increase performance
     # Average starting frequency = 250 Hz
     down_sample = 8
@@ -532,13 +534,13 @@ def update_graph(dropdown_event, dropdown_rec):
             max_y_vals = max_ekg_y_vals
             grid_state = True
             dtick_state = grid_delta_major
-            zeroline_state = True
+            zeroline_state = False
+            # Create the ticks
             y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
-            # Max text length to fit should be ~8
-            # Multiply by (1/grid_delta_major) to account for fractions
-            while len(y_tick_vals) > (1/grid_delta_major)*8:
-                y_tick_vals = y_tick_vals[::2]
-            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
+            # Max text length to fit should be `max_y_labels`, also prevent over-crowding
+            y_text_vals = y_tick_vals[::math.ceil(len(y_tick_vals)/max_y_labels)]
+            # Create the labels
+            y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
             # Remove outliers to prevent weird axes scaling if possible
             # TODO: Refactor this!
@@ -566,7 +568,9 @@ def update_graph(dropdown_event, dropdown_rec):
             zeroline_state = False
             x_tick_vals = []
             x_tick_text = []
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
+            # Max text length to fit should be `max_y_labels`, also prevent over-crowding
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()][1:-1]
+            # Create the labels
             y_tick_text = [str(n) for n in y_tick_vals]
 
         # Create the signal to plot
