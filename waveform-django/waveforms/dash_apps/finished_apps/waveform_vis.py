@@ -422,11 +422,8 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set the initial display range of y-values based on values in
     # initial range of x-values
-    # TODO: change variable names from time to index
-    time_start = fs * (event_time - time_range)
-    time_range_start = fs * (event_time - window_size)
-    time_stop = fs * (event_time + time_range)
-    time_range_stop = fs * (event_time + window_size)
+    index_start = fs * (event_time - time_range)
+    index_stop = fs * (event_time + time_range)
 
     # Set the initial layout of the figure
     # For more info: https://plotly.com/python/subplots/
@@ -482,12 +479,11 @@ def update_graph(dropdown_event, dropdown_rec):
         sig_order = range(n_sig)
 
     # Collect all the signals
-    # TODO: remove EKG from name to generalize
     all_y_vals = []
     ekg_y_vals = []
     for r in sig_order:
         sig_name_index = sig_name.index(sig_name[r])
-        current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
+        current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
         current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
         all_y_vals.append(current_y_vals)
         # Find unified range for all EKG signals
@@ -523,7 +519,7 @@ def update_graph(dropdown_event, dropdown_rec):
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
     # Generate the x-values
-    x_vals = [event_time - time_range + (i / fs) for i in range(time_stop-time_start)][::down_sample]
+    x_vals = [event_time - time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
