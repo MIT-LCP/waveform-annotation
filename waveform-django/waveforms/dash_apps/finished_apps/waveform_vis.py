@@ -103,9 +103,12 @@ app.layout = html.Div([
             config = plot_config
         )
     ], style = {'display': 'inline-block'}),
-    # Hidden div inside the app that stores the project record and event
+    # Hidden div inside the app that stores the desired record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
+    # Hidden div inside the app that stores the current record and event
+    dcc.Input(id = 'temp_record', type = 'hidden', value = ''),
+    dcc.Input(id = 'temp_event', type = 'hidden', value = ''),
 ])
 
 
@@ -120,10 +123,10 @@ def get_header_info(file_path):
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('set_event', 'value')])
-def clear_text(set_event):
+    [dash.dependencies.Input('temp_event', 'value')])
+def clear_text(temp_event):
     current_user = get_current_user()
-    if (set_event != '') and (set_event != None) and (current_user != ''):
+    if (temp_event != '') and (temp_event != None) and (current_user != ''):
         query = """
             {{
                 all_annotations(user:"{}", event:"{}"){{
@@ -134,7 +137,7 @@ def clear_text(set_event):
                     }}
                 }}
             }}
-        """.format(current_user, set_event)
+        """.format(current_user, temp_event)
         res = schema.execute(query)
         if res.data['all_annotations']['edges'] == []:
             reviewer_decision = None
@@ -150,7 +153,7 @@ def clear_text(set_event):
                     }}
                 }}
             }}
-        """.format(current_user, set_event)
+        """.format(current_user, temp_event)
         res = schema.execute(query)
         if res.data['all_annotations']['edges'] == []:
             reviewer_comments = ''
@@ -169,44 +172,135 @@ def clear_text(set_event):
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
     [dash.dependencies.State('set_event', 'value'),
+     dash.dependencies.State('temp_record', 'value'),
+     dash.dependencies.State('temp_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
-def get_records_options(click_previous, click_next, record_value, event_value,
-                        decision_value, comments_value):
+def get_record_event_options(click_previous, click_next, set_record, set_event,
+                             record_value, event_value, decision_value, comments_value):
     # Determine what triggered this function
     ctx = dash.callback_context
-    # Update the annotations: only save the annotations if a decision is made
-    if (len(ctx.triggered) > 0) and decision_value:
-        # Convert ms from epoch to datetime object
-        if (ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation'):
-            submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
-        elif (ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation'):
-            submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
-        # Save the annotation to the database only if changes
-        # were made or a new annotation
-        current_user = get_current_user()
-        query = """
-            {{
-                all_annotations(user:"{}", event:"{}"){{
-                    edges{{
-                        node{{
-                            record,
-                            event,
-                            decision,
-                            comments,
-                            decision_date
+    # Prepare to return the record and event value
+    # Get the record file
+    records_path = os.path.join(PROJECT_PATH, 'RECORDS')
+    with open(records_path, 'r') as f:
+        all_records = f.read().splitlines()
+
+    if ctx.triggered:
+        # Extract all the events
+        all_events = get_header_info(record_value)
+
+        # Determine what triggered the function
+        click_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if click_id == 'previous_annotation':
+            # Determine the record
+            if all_events.index(event_value) > 0:
+                # Event list not ended, keep record value the same
+                return_record = record_value
+            else:
+                idr = all_records.index(record_value)
+                if idr == 0:
+                    # Reached the beginning of the list, go to the end
+                    return_record = all_records[-1]
+                else:
+                    # Increment the record if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_record = all_records[idr-1]
+
+            # Update the events if the record is updated
+            if return_record != record_value:
+                # Extract all the events
+                all_events = get_header_info(return_record)
+            # Check to see if overflow has occurred
+            if event_value not in all_events:
+                ide = len(all_events)
+            else:
+                ide = all_events.index(event_value)
+            # Determine the event
+            if ide == 0:
+                # At the beginning of the list, go to the end
+                return_event = all_events[-1]
+            else:
+                # Decrement the record if not the beginning of the list
+                # TODO: Decrement to the next non-annotated waveform instead?
+                return_event = all_events[ide-1]
+
+        elif click_id == 'next_annotation':
+            # Determine the record
+            if all_events.index(event_value) < (len(all_events) - 1):
+                # Event list not ended, keep record value the same
+                return_record = record_value
+            else:
+                idr = all_records.index(record_value)
+                if idr == (len(all_records) - 1):
+                    # Reached the end of the list, go back to the beginning
+                    return_record = all_records[0]
+                else:
+                    # Increment the record if not the end of the list
+                    # TODO: Increment to the next non-annotated waveform instead?
+                    return_record = all_records[idr+1]
+
+            # Update the events if the record is updated
+            if return_record != record_value:
+                # Extract all the events
+                all_events = get_header_info(return_record)
+            # Check to see if overflow has occurred
+            if event_value not in all_events:
+                ide = -1
+            else:
+                ide = all_events.index(event_value)
+            # Determine the event
+            if ide == (len(all_events) - 1):
+                # Reached the end of the list, go back to the beginning
+                return_event = all_events[0]
+            else:
+                # Increment the event if not the end of the list
+                # TODO: Increment to the next non-annotated waveform instead?
+                return_event = all_events[ide+1]
+
+        # Update the annotations: only save the annotations if a decision is made
+        if decision_value:
+            # Convert ms from epoch to datetime object
+            if (click_id == 'previous_annotation'):
+                submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
+            elif (click_id == 'next_annotation'):
+                submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
+            # Save the annotation to the database only if changes
+            # were made or a new annotation
+            current_user = get_current_user()
+            query = """
+                {{
+                    all_annotations(user:"{}", event:"{}"){{
+                        edges{{
+                            node{{
+                                record,
+                                event,
+                                decision,
+                                comments,
+                                decision_date
+                            }}
                         }}
                     }}
                 }}
-            }}
-        """.format(current_user, event_value)
-        res = schema.execute(query)
-        if res.data['all_annotations']['edges'] != []:
-            current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
-            proposed_annotation = [record_value, event_value,
+            """.format(current_user, event_value)
+            res = schema.execute(query)
+            if res.data['all_annotations']['edges'] != []:
+                current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
+                proposed_annotation = [record_value, event_value,
                                     decision_value, comments_value]
-            # Only save annotation if something has changed
-            if current_annotation[:4] != proposed_annotation:
+                # Only save annotation if something has changed
+                if current_annotation[:4] != proposed_annotation:
+                    annotation = Annotation(
+                        user = current_user,
+                        record = record_value,
+                        event = event_value,
+                        decision = decision_value,
+                        comments = comments_value,
+                        decision_date = submit_time
+                    )
+                    annotation.update()
+            else:
+                # Create new annotation since none already exist
                 annotation = Annotation(
                     user = current_user,
                     record = record_value,
@@ -216,107 +310,16 @@ def get_records_options(click_previous, click_next, record_value, event_value,
                     decision_date = submit_time
                 )
                 annotation.update()
-        else:
-            # Create new annotation since none already exist
-            annotation = Annotation(
-                user = current_user,
-                record = record_value,
-                event = event_value,
-                decision = decision_value,
-                comments = comments_value,
-                decision_date = submit_time
-            )
-            annotation.update()
-
-    # Prepare to return the record and event value
-    # Get the record file
-    records_path = os.path.join(PROJECT_PATH, 'RECORDS')
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
-    # Set the record value if provided
-    return_record = record_value
-
-    # Determine if first load or not
-    if record_value != '':
-        # Extract all the events
-        all_events = get_header_info(record_value)
-        # Determine if record was requested
-        if ctx.triggered:
-            # Determine which button was clicked
-            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
-                # Determine the record
-                if all_events.index(event_value) > 0:
-                    # Event list not ended, keep record value the same
-                    return_record = record_value
-                else:
-                    idr = all_records.index(record_value)
-                    if idr == 0:
-                        # Reached the beginning of the list, go to the end
-                        return_record = all_records[-1]
-                    else:
-                        # Increment the record if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_record = all_records[idr-1]
-
-                # Update the events if the record is updated
-                if return_record != record_value:
-                    # Extract all the events
-                    all_events = get_header_info(return_record)
-                # Check to see if overflow has occurred
-                if event_value not in all_events:
-                    ide = len(all_events)
-                else:
-                    ide = all_events.index(event_value)
-                # Determine the event
-                if ide == 0:
-                    # At the beginning of the list, go to the end
-                    return_event = all_events[-1]
-                else:
-                    # Decrement the record if not the beginning of the list
-                    # TODO: Decrement to the next non-annotated waveform instead?
-                    return_event = all_events[ide-1]
-
-            elif ctx.triggered[0]['prop_id'].split('.')[0] == 'next_annotation':
-                # Determine the record
-                if all_events.index(event_value) < (len(all_events) - 1):
-                    # Event list not ended, keep record value the same
-                    return_record = record_value
-                else:
-                    idr = all_records.index(record_value)
-                    if idr == (len(all_records) - 1):
-                        # Reached the end of the list, go back to the beginning
-                        return_record = all_records[0]
-                    else:
-                        # Increment the record if not the end of the list
-                        # TODO: Increment to the next non-annotated waveform instead?
-                        return_record = all_records[idr+1]
-
-                # Update the events if the record is updated
-                if return_record != record_value:
-                    # Extract all the events
-                    all_events = get_header_info(return_record)
-                # Check to see if overflow has occurred
-                if event_value not in all_events:
-                    ide = -1
-                else:
-                    ide = all_events.index(event_value)
-                # Determine the event
-                if ide == (len(all_events) - 1):
-                    # Reached the end of the list, go back to the beginning
-                    return_event = all_events[0]
-                else:
-                    # Increment the event if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_event = all_events[ide+1]
-        else:
-            return_record = record_value
-            return_event = event_value
-
     else:
-        # Start with the first record if first load
-        return_record = all_records[0]
-        all_events = get_header_info(return_record)
-        return_event = all_events[0]
+        # See if record and event was requested (never event without record)
+        if set_record != '':
+            return_record = set_record
+            return_event = set_event
+        else:
+            # Start with the first record and event if first load
+            return_record = all_records[0]
+            all_events = get_header_info(return_record)
+            return_event = all_events[0]
 
     # Update the annotation current record text
     return_record = [
@@ -333,8 +336,8 @@ def get_records_options(click_previous, click_next, record_value, event_value,
 # Update the event text and set_event
 @app.callback(
     [dash.dependencies.Output('event_text', 'children'),
-     dash.dependencies.Output('set_record', 'value'),
-     dash.dependencies.Output('set_event', 'value')],
+     dash.dependencies.Output('temp_record', 'value'),
+     dash.dependencies.Output('temp_event', 'value')],
     [dash.dependencies.Input('dropdown_rec', 'children'),
      dash.dependencies.Input('dropdown_event', 'children')])
 def update_text(dropdown_rec, dropdown_event):
