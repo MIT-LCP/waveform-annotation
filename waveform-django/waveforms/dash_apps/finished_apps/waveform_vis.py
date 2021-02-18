@@ -511,20 +511,22 @@ def update_graph(dropdown_event, dropdown_rec):
     temp_std = np.nanstd(ekg_y_vals)
     temp_mean = np.mean(ekg_y_vals[np.isfinite(ekg_y_vals)])
     temp_nan = np.all(np.isnan(ekg_y_vals))
-    small_var_criteria = abs(temp_std / temp_mean) > 0.1
-    if small_var_criteria and not temp_nan:
-        ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
-    # Set default min and max values if all NaN
-    if temp_nan:
-        min_ekg_y_vals = -1
-        max_ekg_y_vals = 1
-    else:
-        if small_var_criteria:
+    temp_zero = np.all(ekg_y_vals==0)
+    if not temp_nan and not temp_zero:
+        # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
+        # TODO: Lazy fix but need to think about this more
+        if abs(temp_std / temp_mean) > 0.1:
+            ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
             min_ekg_y_vals = np.nanmin(ekg_y_vals)
             max_ekg_y_vals = np.nanmax(ekg_y_vals)
         else:
             min_ekg_y_vals = np.nanmin(ekg_y_vals) - 1
             max_ekg_y_vals = np.nanmax(ekg_y_vals) + 1
+    else:
+        # Set default min and max values if all NaN or 0
+        min_ekg_y_vals = -1
+        max_ekg_y_vals = 1
+    # Create the ticks based off of the range of y-values
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
