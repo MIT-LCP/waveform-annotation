@@ -334,7 +334,7 @@ def get_records_options(click_previous, click_next, record_value, event_value,
      dash.dependencies.Input('dropdown_event', 'children')])
 def update_text(dropdown_rec, dropdown_event):
     # Get the header file
-    event_text = html.Span([html.Br(), html.Br(), ''], style={'fontSize': event_fontsize})
+    event_text = html.Span([''], style={'fontSize': event_fontsize})
     # Determine the record
     try:
         dropdown_rec = dropdown_rec[0]['props']['children'][0]
@@ -354,7 +354,7 @@ def update_text(dropdown_rec, dropdown_event):
         ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
         # Update the annotation event text
         event_text = [
-            html.Span([html.Br(), '{}'.format(ann_event)], style={'fontSize': event_fontsize})
+            html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
         ]
 
     return event_text, dropdown_rec, dropdown_event
@@ -422,6 +422,7 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set the initial display range of y-values based on values in
     # initial range of x-values
+    # TODO: change variable names from time to index
     time_start = fs * (event_time - time_range)
     time_range_start = fs * (event_time - window_size)
     time_stop = fs * (event_time + time_range)
@@ -481,6 +482,7 @@ def update_graph(dropdown_event, dropdown_rec):
         sig_order = range(n_sig)
 
     # Collect all the signals
+    # TODO: remove EKG from name to generalize
     all_y_vals = []
     ekg_y_vals = []
     for r in sig_order:
@@ -520,8 +522,8 @@ def update_graph(dropdown_event, dropdown_rec):
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
-    # Name the axes to create the subplots
-    x_vals = [event_time - time_range + (i / fs) for i in range(sig_len)][::down_sample]
+    # Generate the x-values
+    x_vals = [event_time - time_range + (i / fs) for i in range(time_stop-time_start)][::down_sample]
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
@@ -575,7 +577,7 @@ def update_graph(dropdown_event, dropdown_rec):
         # For more info: https://plotly.com/python/reference/scatter/#scatter
         fig.add_trace(go.Scatter({
             'x': x_vals,
-            'y': y_vals,
+            'y': y_vals.astype('float16'),
             'xaxis': x_string,
             'yaxis': y_string,
             'type': 'scatter',
