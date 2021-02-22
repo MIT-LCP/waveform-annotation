@@ -401,9 +401,11 @@ def update_graph(dropdown_event, dropdown_rec):
     # `300` if standard 10 minute segment, `dropdown_event` otherwise
     event_time = 300
     # How much signal should be displayed before and after event (seconds)
-    time_range = 30
+    time_range_min = 40
+    time_range_max = 10
     # How much signal should be displayed initially before and after event (seconds)
-    window_size = 5
+    window_size_min = 10
+    window_size_max = 1
     # Standard deviation signal range to window
     std_range = 2
     # Set the initial dragmode (`zoom`, `pan`, etc.)
@@ -433,8 +435,8 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set the initial display range of y-values based on values in
     # initial range of x-values
-    index_start = fs * (event_time - time_range)
-    index_stop = fs * (event_time + time_range)
+    index_start = fs * (event_time - time_range_min)
+    index_stop = fs * (event_time + time_range_max)
 
     # Set the initial layout of the figure
     # For more info: https://plotly.com/python/subplots/
@@ -543,7 +545,7 @@ def update_graph(dropdown_event, dropdown_rec):
         # Set the initial y-axis parameters
         if sig_name[r] in ekg_sigs:
             # Generate the x-values
-            x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample_ekg]
+            x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)][::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
             grid_state = True
@@ -557,7 +559,7 @@ def update_graph(dropdown_event, dropdown_rec):
             y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
             # Generate the x-values
-            x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
+            x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)][::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
             # TODO: Refactor this!
             temp_std = np.nanstd(y_vals)
@@ -634,7 +636,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [-window_size, window_size],
+                'range': [-window_size_min, window_size_max],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
@@ -654,7 +656,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [-window_size, window_size],
+                'range': [-window_size_min, window_size_max],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
