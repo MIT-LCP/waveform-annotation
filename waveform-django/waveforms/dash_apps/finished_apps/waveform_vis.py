@@ -69,17 +69,14 @@ app.layout = html.Div([
         ),
         # The reviewer decision section
         html.Label(['Enter decision here:']),
-        dcc.Dropdown(
+        dcc.RadioItems(
             id = 'reviewer_decision',
             options = [
                 {'label': 'True (alarm is correct)', 'value': 'True'},
                 {'label': 'False (alarm is incorrect)', 'value': 'False'},
                 {'label': 'Uncertain', 'value': 'Uncertain'}
             ],
-            multi = False,
-            clearable = False,
-            searchable = False,
-            placeholder = 'Please Select...',
+            labelStyle = {'display': 'block'},
             style = {'width': dropdown_width},
             persistence = False
         ),
