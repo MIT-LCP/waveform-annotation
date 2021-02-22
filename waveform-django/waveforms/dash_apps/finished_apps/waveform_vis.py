@@ -531,7 +531,7 @@ def update_graph(dropdown_event, dropdown_rec):
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
     # Generate the x-values
-    x_vals = [event_time - time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
+    x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
@@ -601,9 +601,9 @@ def update_graph(dropdown_event, dropdown_rec):
         # For more info: https://plotly.com/python/reference/layout/shapes/#layout-shapes
         fig.add_shape({
             'type': 'line',
-            'x0': event_time,
+            'x0': 0,
             'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
-            'x1': event_time,
+            'x1': 0,
             'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
             'xref': x_string,
             'yref': y_string,
@@ -615,7 +615,7 @@ def update_graph(dropdown_event, dropdown_rec):
 
         # Set the initial x-axis parameters
         # For more info: https://plotly.com/python/reference/scatter/#scatter-xaxis
-        x_tick_vals = [round(n,1) for n in np.arange(event_time - time_range, event_time + time_range, grid_delta_major).tolist()]
+        x_tick_vals = [round(n,1) for n in np.arange(min(x_vals), max(x_vals), grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
         if idx != (n_sig - 1):
             fig.update_xaxes({
@@ -628,7 +628,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [event_time - window_size, event_time + window_size],
+                'range': [-window_size, window_size],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
@@ -637,7 +637,7 @@ def update_graph(dropdown_event, dropdown_rec):
         else:
             # Add the x-axis title to the bottom figure
             fig.update_xaxes({
-                'title': 'Time (s)',
+                'title': 'Time Since Event (s)',
                 'fixedrange': x_zoom_fixed,
                 'dtick': 0.2,
                 'showticklabels': True,
@@ -648,7 +648,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [event_time - window_size, event_time + window_size],
+                'range': [-window_size, window_size],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
