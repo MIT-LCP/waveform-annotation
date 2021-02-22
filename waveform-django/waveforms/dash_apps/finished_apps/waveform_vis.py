@@ -393,9 +393,10 @@ def update_graph(dropdown_event, dropdown_rec):
     grid_delta_major = 0.2
     # Set the maximum number of y-labels
     max_y_labels = 8
-    # Down-sample signal to increase performance
+    # Down-sample signal to increase performance: make higher if non-EKG
     # Average starting frequency = 250 Hz
-    down_sample = 8
+    down_sample_ekg = 8
+    down_sample = 16
     # Determine the time of the event (seconds)
     # `300` if standard 10 minute segment, `dropdown_event` otherwise
     event_time = 300
@@ -493,7 +494,10 @@ def update_graph(dropdown_event, dropdown_rec):
     ekg_y_vals = []
     for r in sig_order:
         sig_name_index = sig_name.index(sig_name[r])
-        current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
+        if sig_name[r] in ekg_sigs:
+            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample_ekg]
+        else:
+            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
         current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
         all_y_vals.append(current_y_vals)
         # Find unified range for all EKG signals
@@ -530,8 +534,6 @@ def update_graph(dropdown_event, dropdown_rec):
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
-    # Generate the x-values
-    x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
     # Name the axes to create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
@@ -540,6 +542,8 @@ def update_graph(dropdown_event, dropdown_rec):
         y_vals = all_y_vals[idx]
         # Set the initial y-axis parameters
         if sig_name[r] in ekg_sigs:
+            # Generate the x-values
+            x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
             grid_state = True
@@ -552,6 +556,8 @@ def update_graph(dropdown_event, dropdown_rec):
             # Create the labels
             y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
+            # Generate the x-values
+            x_vals = [-time_range + (i / fs) for i in range(index_stop-index_start)][::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
             # TODO: Refactor this!
             temp_std = np.nanstd(y_vals)
