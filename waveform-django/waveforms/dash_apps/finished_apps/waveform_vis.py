@@ -80,6 +80,7 @@ app.layout = html.Div([
             style = {'width': dropdown_width},
             persistence = False
         ),
+        html.Br(),
         # The reviewer comment section
         html.Label(['Enter comments here:']),
         html.Div(
@@ -92,7 +93,7 @@ app.layout = html.Div([
         # Select previous or next annotation
         html.Button('Previous Annotation', id = 'previous_annotation'),
         html.Button('Next Annotation', id = 'next_annotation'),
-    ], style = {'display': 'inline-block', 'vertical-align': '125px'}),
+    ], style = {'display': 'inline-block', 'vertical-align': '75px'}),
     # The plot itself
     html.Div([
         dcc.Graph(
