@@ -1,6 +1,7 @@
 import os
 import wfdb
 import math
+import pytz
 import datetime
 import numpy as np
 import pandas as pd
@@ -90,9 +91,11 @@ app.layout = html.Div([
                             'height': '300px'
                         })
         ),
+        # Submit annotation decision and comments
+        html.Button('Submit', id = 'submit_annotation'),
         # Select previous or next annotation
-        html.Button('Previous Annotation', id = 'previous_annotation'),
-        html.Button('Next Annotation', id = 'next_annotation'),
+        html.Button('\u2190', id = 'previous_annotation'),
+        html.Button('\u2192', id = 'next_annotation'),
     ], style = {'display': 'inline-block', 'vertical-align': '75px'}),
     # The plot itself
     html.Div([
@@ -166,7 +169,8 @@ def clear_text(temp_event):
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'children'),
      dash.dependencies.Output('dropdown_event', 'children')],
-    [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
+    [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
+     dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_record', 'value')],
     [dash.dependencies.State('set_event', 'value'),
@@ -174,8 +178,9 @@ def clear_text(temp_event):
      dash.dependencies.State('temp_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
-def get_record_event_options(click_previous, click_next, set_record, set_event,
-                             record_value, event_value, decision_value, comments_value):
+def get_record_event_options(click_submit, click_previous, click_next,
+                             set_record, set_event, record_value, event_value,
+                             decision_value, comments_value):
     # Determine what triggered this function
     ctx = dash.callback_context
     # Prepare to return the record and event value
@@ -223,7 +228,7 @@ def get_record_event_options(click_previous, click_next, set_record, set_event,
                 # TODO: Decrement to the next non-annotated waveform instead?
                 return_event = all_events[ide-1]
 
-        elif click_id == 'next_annotation':
+        elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
             # Determine the record
             if all_events.index(event_value) < (len(all_events) - 1):
                 # Event list not ended, keep record value the same
@@ -256,13 +261,14 @@ def get_record_event_options(click_previous, click_next, set_record, set_event,
                 # TODO: Increment to the next non-annotated waveform instead?
                 return_event = all_events[ide+1]
 
-        # Update the annotations: only save the annotations if a decision is made
-        if decision_value:
-            # Convert ms from epoch to datetime object
-            if (click_id == 'previous_annotation'):
-                submit_time = datetime.datetime.fromtimestamp(click_previous / 1000.0)
-            elif (click_id == 'next_annotation'):
-                submit_time = datetime.datetime.fromtimestamp(click_next / 1000.0)
+        # Update the annotations: only save the annotations if a decision is
+        # made and the submit button was pressed
+        if decision_value and (click_id == 'submit_annotation'):
+            # Convert ms from epoch to datetime object (localize to the time
+            # zone in the settings)
+            submit_time = datetime.datetime.fromtimestamp(click_submit / 1000.0)
+            set_timezone = pytz.timezone(base.TIME_ZONE)
+            submit_time = set_timezone.localize(submit_time)
             # Save the annotation to the database only if changes
             # were made or a new annotation
             current_user = get_current_user()
