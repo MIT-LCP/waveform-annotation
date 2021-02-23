@@ -519,7 +519,7 @@ def update_graph(dropdown_event, dropdown_rec):
     if not temp_nan and not temp_zero:
         # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
         # TODO: Lazy fix but need to think about this more
-        if abs(temp_std / temp_mean) > 0.1:
+        if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
             ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
             min_ekg_y_vals = np.nanmin(ekg_y_vals)
             max_ekg_y_vals = np.nanmax(ekg_y_vals)
@@ -563,22 +563,22 @@ def update_graph(dropdown_event, dropdown_rec):
             temp_std = np.nanstd(y_vals)
             temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
             temp_nan = np.all(np.isnan(y_vals))
-            small_var_criteria = (temp_std / temp_mean) > 0.1
-            if small_var_criteria and not temp_nan:
-                extreme_y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+            temp_zero = np.all(y_vals==0)
+            if not temp_nan and not temp_zero:
+                # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
+                # TODO: Lazy fix but need to think about this more
+                if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
+                    y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+                    min_y_vals = np.nanmin(y_vals)
+                    max_y_vals = np.nanmax(y_vals)
+                else:
+                    min_y_vals = np.nanmin(y_vals) - 1
+                    max_y_vals = np.nanmax(y_vals) + 1
             else:
-                extreme_y_vals = y_vals
-            # Set default min and max values if all NaN
-            if temp_nan:
+                # Set default min and max values if all NaN or 0
                 min_y_vals = -1
                 max_y_vals = 1
-            else:
-                if small_var_criteria:
-                    min_y_vals = np.nanmin(extreme_y_vals)
-                    max_y_vals = np.nanmax(extreme_y_vals)
-                else:
-                    min_y_vals = np.nanmin(extreme_y_vals) - 1
-                    max_y_vals = np.nanmax(extreme_y_vals) + 1
+
             grid_state = True
             dtick_state = None
             zeroline_state = False
