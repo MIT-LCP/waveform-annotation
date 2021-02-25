@@ -114,10 +114,75 @@ app.layout = html.Div([
 
 
 def get_header_info(file_path):
+    """
+    Return all records/events in header from file path
+    """
     header_path = os.path.join(PROJECT_PATH, file_path, file_path)
     file_contents = wfdb.rdheader(header_path).seg_name
     file_contents = [s for s in file_contents if s != (file_path+'_layout') and s != '~']
     return file_contents
+
+
+def get_query(user, event, objects):
+    """
+    Query the API to return desired objects for a given user and event
+    """
+    objects = ','.join(objects)
+    query = """
+        {{
+            all_annotations(user:"{}", event:"{}"){{
+                edges{{
+                    node{{
+                        {}
+                    }}
+                }}
+            }}
+        }}
+    """.format(user, event, objects)
+    res = schema.execute(query)
+    return res
+
+
+def get_dropdown(dropdown_value):
+    """
+    Retrieve the dropdown value from its dash context
+    """
+    try:
+        dropdown_value = dropdown_value[0]['props']['children'][0]
+    except KeyError:
+        dropdown_value = dropdown_value['props']['children'][0]
+    return dropdown_value
+
+
+def window_signal(y_vals):
+    """
+    This uses the Coefficient of Variation (CV) approach to determine
+    significant changes in the signal then return the adjusted minimum
+    and maximum range... If a significant variation is signal is found
+    then filter out extrema using normal distribution
+    """
+    # Standard deviation signal range to window
+    std_range = 2
+    # Get parameters of the signal
+    temp_std = np.nanstd(y_vals)
+    temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
+    temp_nan = np.all(np.isnan(y_vals))
+    temp_zero = np.all(y_vals==0)
+    if not temp_nan and not temp_zero:
+        # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
+        # TODO: Lazy fix but need to think about this more
+        if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
+            y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+            min_y_vals = np.nanmin(y_vals)
+            max_y_vals = np.nanmax(y_vals)
+        else:
+            min_y_vals = np.nanmin(y_vals) - 1
+            max_y_vals = np.nanmax(y_vals) + 1
+    else:
+        # Set default min and max values if all NaN or 0
+        min_y_vals = -1
+        max_y_vals = 1
+    return min_y_vals, max_y_vals
 
 
 # Clear/preset reviewer decision and comments
@@ -128,34 +193,14 @@ def get_header_info(file_path):
 def clear_text(temp_event):
     current_user = get_current_user()
     if (temp_event != '') and (temp_event != None) and (current_user != ''):
-        query = """
-            {{
-                all_annotations(user:"{}", event:"{}"){{
-                    edges{{
-                        node{{
-                            decision
-                        }}
-                    }}
-                }}
-            }}
-        """.format(current_user, temp_event)
-        res = schema.execute(query)
+        # Get the decision
+        res = get_query(current_user, temp_event, ['decision'])
         if res.data['all_annotations']['edges'] == []:
             reviewer_decision = None
         else:
             reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
-        query = """
-            {{
-                all_annotations(user:"{}", event:"{}"){{
-                    edges{{
-                        node{{
-                            comments
-                        }}
-                    }}
-                }}
-            }}
-        """.format(current_user, temp_event)
-        res = schema.execute(query)
+        # Get the comments
+        res = get_query(current_user, temp_event, ['comments'])
         if res.data['all_annotations']['edges'] == []:
             reviewer_comments = ''
         else:
@@ -272,22 +317,11 @@ def get_record_event_options(click_submit, click_previous, click_next,
             # Save the annotation to the database only if changes
             # were made or a new annotation
             current_user = get_current_user()
-            query = """
-                {{
-                    all_annotations(user:"{}", event:"{}"){{
-                        edges{{
-                            node{{
-                                record,
-                                event,
-                                decision,
-                                comments,
-                                decision_date
-                            }}
-                        }}
-                    }}
-                }}
-            """.format(current_user, event_value)
-            res = schema.execute(query)
+            res = get_query(current_user, event_value, ['record',
+                                                        'event',
+                                                        'decision',
+                                                        'comments',
+                                                        'decision_date'])
             if res.data['all_annotations']['edges'] != []:
                 current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
                 proposed_annotation = [record_value, event_value,
@@ -348,15 +382,9 @@ def update_text(dropdown_rec, dropdown_event):
     # Get the header file
     event_text = html.Span([''], style={'fontSize': event_fontsize})
     # Determine the record
-    try:
-        dropdown_rec = dropdown_rec[0]['props']['children'][0]
-    except KeyError:
-        dropdown_rec = dropdown_rec['props']['children'][0]
+    dropdown_rec = get_dropdown(dropdown_rec)
     # Determine the event
-    try:
-        dropdown_event = dropdown_event[0]['props']['children'][0]
-    except KeyError:
-        dropdown_event = dropdown_event['props']['children'][0]
+    dropdown_event = get_dropdown(dropdown_event)
     if dropdown_rec and dropdown_event:
         # Extract the header contents
         temp_rec = get_header_info(dropdown_rec)
@@ -410,8 +438,6 @@ def update_graph(dropdown_event, dropdown_rec):
     # How much signal should be displayed initially before and after event (seconds)
     window_size_min = 10
     window_size_max = 1
-    # Standard deviation signal range to window
-    std_range = 2
     # Set the initial dragmode (`zoom`, `pan`, etc.)
     # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
     drag_mode = 'pan'
@@ -419,14 +445,8 @@ def update_graph(dropdown_event, dropdown_rec):
     x_zoom_fixed = False
     y_zoom_fixed = True
     # Determine the input record and event
-    try:
-        dropdown_rec = dropdown_rec[0]['props']['children'][0]
-    except KeyError:
-        dropdown_rec = dropdown_rec['props']['children'][0]
-    try:
-        dropdown_event = dropdown_event[0]['props']['children'][0]
-    except KeyError:
-        dropdown_event = dropdown_event['props']['children'][0]
+    dropdown_rec = get_dropdown(dropdown_rec)
+    dropdown_event = get_dropdown(dropdown_event)
 
     # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
@@ -514,28 +534,7 @@ def update_graph(dropdown_event, dropdown_rec):
     # Flatten and change data type to prevent overflow
     ekg_y_vals = np.stack(ekg_y_vals).flatten()
     # Filter out extreme values from being shown on graph range
-    # This uses the Coefficient of Variation (CV) approach to determine
-    # significant changes in the signal... If a significant variation in
-    # signal is found then filter out extrema using normal distribution
-    # TODO: Prevent repeat code for non-EKG signals
-    temp_std = np.nanstd(ekg_y_vals)
-    temp_mean = np.mean(ekg_y_vals[np.isfinite(ekg_y_vals)])
-    temp_nan = np.all(np.isnan(ekg_y_vals))
-    temp_zero = np.all(ekg_y_vals==0)
-    if not temp_nan and not temp_zero:
-        # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
-        # TODO: Lazy fix but need to think about this more
-        if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
-            ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
-            min_ekg_y_vals = np.nanmin(ekg_y_vals)
-            max_ekg_y_vals = np.nanmax(ekg_y_vals)
-        else:
-            min_ekg_y_vals = np.nanmin(ekg_y_vals) - 1
-            max_ekg_y_vals = np.nanmax(ekg_y_vals) + 1
-    else:
-        # Set default min and max values if all NaN or 0
-        min_ekg_y_vals = -1
-        max_ekg_y_vals = 1
+    min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
@@ -565,26 +564,8 @@ def update_graph(dropdown_event, dropdown_rec):
             # Generate the x-values
             x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)][::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
-            # TODO: Refactor this!
-            temp_std = np.nanstd(y_vals)
-            temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
-            temp_nan = np.all(np.isnan(y_vals))
-            temp_zero = np.all(y_vals==0)
-            if not temp_nan and not temp_zero:
-                # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
-                # TODO: Lazy fix but need to think about this more
-                if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
-                    y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
-                    min_y_vals = np.nanmin(y_vals)
-                    max_y_vals = np.nanmax(y_vals)
-                else:
-                    min_y_vals = np.nanmin(y_vals) - 1
-                    max_y_vals = np.nanmax(y_vals) + 1
-            else:
-                # Set default min and max values if all NaN or 0
-                min_y_vals = -1
-                max_y_vals = 1
-
+            min_y_vals, max_y_vals = window_signal(y_vals)
+            # Set all the graph parameters
             grid_state = True
             dtick_state = None
             zeroline_state = False
