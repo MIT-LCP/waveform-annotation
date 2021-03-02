@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
+  <h4>
+    <a href="{% url 'waveform_published_home' %}">Create more annotations</a><br>
+    <a href="{% url 'render_annotations' %}">View current annotations</a>
+  </h4>
+  <!-- The title header of the webpage -->
+  <h1>
+    Annotator Tutorial
+  </h1>
+  <div>
+    <div class='col-4' style='display: inline-block;'>
+      <ol>
+        <li>Current record</li>
+        <li>Current event</li>
+        <li>Triggered alarm annotation</li>
+        <li>Annotation decision</li>
+        <li>Annotator comments</li>
+        <li>Submit new annotation for this record and event</li>
+        <li>Go to the previous annotation without saving</li>
+        <li>Go to the next annotation without saving</li>
+        <li>Download the current screen (only plotted signals, not sidebar) as a PNG image</li>
+        <li>Zoom in on a desired segment (click and hold at the start, drag to the end and release click)</li>
+        <li>Pan across signal to view different ranges (click and hold anywhere, drag to the right to move the signal to the right / move backwards in time)</li>
+        <li>Zoom in (roughly by a factor of two each time)</li>
+        <li>Zoom out (roughly by a factor of two each time)</li>
+        <li>View the entire signal</li>
+        <li>View the entire signal</li>
+        <li>Go to the Plotly website which is the foundation of this plot</li>
+        <li>The vertical blue line represents the timestamp of the alarm annotation</li>
+      </ol>
+    </div>
+    <div class='col-7' style='display: inline-flex; vertical-align: top;'>
+      <img src="{% static 'tutorial_image.png' %}" alt="Tutorial Diagram" style='width: 850px'/>
+    </div>
+  </div>
+</div>
+{% endblock %}

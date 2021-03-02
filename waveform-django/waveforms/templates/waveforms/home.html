@@ -16,7 +16,8 @@
     Waveform Annotation Viewer
   </h1>
   <h4>
-    <a href="{% url 'render_annotations' %}">View current annotations</a>
+    <a href="{% url 'render_annotations' %}">View current annotations</a><br>
+    <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
   </h4>
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
