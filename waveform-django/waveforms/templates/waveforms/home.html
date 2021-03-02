@@ -5,7 +5,7 @@
 <style>
 .embed-responsive {
     width: 1200px;
-    height: 900px;
+    height: 750px;
 }
 </style>
 <!-- Plotly-based waveform viewer -->
@@ -18,21 +18,6 @@
   <h4>
     <a href="{% url 'render_annotations' %}">View current annotations</a>
   </h4>
-  <!-- Explanation regarding the usage of the waveform viewer -->
-  <div class="card-header">
-    <h7>
-      This is a demo waveform visualization built with Plotly/Dash. Select your desired
-      record file and annotation event. The middle 30 seconds are displayed initially. You
-      can zoom by clicking and dragging which range of times you would like to view. You
-      can pan (move left and right) with the pan button on the graph figure as seen as a
-      cross with arrows on each end in the top right corner upon hover. While you're there,
-      you can generate a screenshot to be automatically downloaded, zoom in and out, and
-      view the entire signal with the home button. You can also view the time and value of
-      a waveform by hovering your mouse over a desired location. Another way to do this 
-      would be to utilize the range-slider at the bottom of the figure; zooming can be done
-      using the same technique as in the figure (click and drag).
-    </h7>
-  </div>
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
 </div>

@@ -26,8 +26,9 @@ FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
-dropdown_width = '200px'
+sidebar_width = '210px'
 event_fontsize = '24px'
+comment_box_height = '300px'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -48,62 +49,65 @@ plot_config = {
 app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
 # Specify the app layout
 app.layout = html.Div([
-    # Area to submit annotations
-    html.Div([
-        # The record display
-        html.Label(['Record:']),
-        html.Div(
-            id = 'dropdown_rec',
-            children = html.Span([''], style={'fontSize': event_fontsize})
-        ),
-        # The event display
-        html.Label(['Event:']),
-        html.Div(
-            id = 'dropdown_event',
-            children = html.Span([''], style={'fontSize': event_fontsize})
-        ),
-        # The event display
-        html.Label(['Event Type:']),
-        html.Div(
-            id = 'event_text',
-            children = html.Span([''], style={'fontSize': event_fontsize})
-        ),
-        # The reviewer decision section
-        html.Label(['Enter decision here:']),
-        dcc.RadioItems(
-            id = 'reviewer_decision',
-            options = [
-                {'label': 'True (alarm is correct)', 'value': 'True'},
-                {'label': 'False (alarm is incorrect)', 'value': 'False'},
-                {'label': 'Uncertain', 'value': 'Uncertain'}
-            ],
-            labelStyle = {'display': 'block'},
-            style = {'width': dropdown_width},
-            persistence = False
-        ),
-        html.Br(),
-        # The reviewer comment section
-        html.Label(['Enter comments here:']),
-        html.Div(
-            dcc.Textarea(id = 'reviewer_comments',
-                        style = {
-                            'width': dropdown_width,
-                            'height': '300px'
-                        })
-        ),
-        # Submit annotation decision and comments
-        html.Button('Submit', id = 'submit_annotation'),
-        # Select previous or next annotation
-        html.Button('\u2190', id = 'previous_annotation'),
-        html.Button('\u2192', id = 'next_annotation'),
-    ], style = {'display': 'inline-block', 'vertical-align': '75px'}),
-    # The plot itself
-    html.Div([
-        dcc.Graph(
-            id = 'the_graph',
-            config = plot_config
-        )
-    ], style = {'display': 'inline-block'}),
+    dcc.Loading(id = 'loading-1', children = [
+        # Area to submit annotations
+        html.Div([
+            # The record display
+            html.Label(['Record:']),
+            html.Div(
+                id = 'dropdown_rec',
+                children = html.Span([''], style={'fontSize': event_fontsize})
+            ),
+            # The event display
+            html.Label(['Event:']),
+            html.Div(
+                id = 'dropdown_event',
+                children = html.Span([''], style={'fontSize': event_fontsize})
+            ),
+            # The event display
+            html.Label(['Event Type:']),
+            html.Div(
+                id = 'event_text',
+                children = html.Span([''], style={'fontSize': event_fontsize})
+            ),
+            # The reviewer decision section
+            html.Label(['Enter decision here:']),
+            dcc.RadioItems(
+                id = 'reviewer_decision',
+                options = [
+                    {'label': 'True (alarm is correct)', 'value': 'True'},
+                    {'label': 'False (alarm is incorrect)', 'value': 'False'},
+                    {'label': 'Uncertain', 'value': 'Uncertain'}
+                ],
+                labelStyle = {'display': 'block'},
+                style = {'width': sidebar_width},
+                persistence = False
+            ),
+            html.Br(),
+            # The reviewer comment section
+            html.Label(['Enter comments here:']),
+            html.Div(
+                dcc.Textarea(id = 'reviewer_comments',
+                             style = {
+                                'width': sidebar_width,
+                                'height': comment_box_height
+                             })
+            ),
+            # Submit annotation decision and comments
+            html.Button('Submit', id = 'submit_annotation'),
+            # Select previous or next annotation
+            html.Button('\u2190', id = 'previous_annotation'),
+            html.Button('\u2192', id = 'next_annotation'),
+        ], style = {'display': 'inline-block', 'vertical-align': '75px',
+                    'padding-right': '10px'}),
+        # The plot itself
+        html.Div([
+            dcc.Graph(
+                id = 'the_graph',
+                config = plot_config
+            ),
+        ], style = {'display': 'inline-block'})
+    ], type = 'default'),
     # Hidden div inside the app that stores the desired record and event
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
