@@ -132,3 +132,21 @@ def delete_annotation(request, set_record, set_event):
     except Annotation.DoesNotExist:
         pass
     return render_annotations(request)
+
+
+@login_required
+def viewer_tutorial(request):
+    """
+    Render waveform tutorial page.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for hosting the tutorial.
+
+    """
+    return render(request, 'waveforms/tutorial.html', {})
