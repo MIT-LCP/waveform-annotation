@@ -29,6 +29,10 @@ PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 sidebar_width = '210px'
 event_fontsize = '24px'
 comment_box_height = '300px'
+label_fontsize = '20px'
+button_height = '35px'
+submit_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
+arrow_width = str(float(submit_width.split('px')[0]) / 2 + 3) + 'px'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -71,7 +75,8 @@ app.layout = html.Div([
                 children = html.Span([''], style={'fontSize': event_fontsize})
             ),
             # The reviewer decision section
-            html.Label(['Enter decision here:']),
+            html.Label(['Enter decision here:'],
+                       style = {'font-size': label_fontsize}),
             dcc.RadioItems(
                 id = 'reviewer_decision',
                 options = [
@@ -80,12 +85,13 @@ app.layout = html.Div([
                     {'label': 'Uncertain', 'value': 'Uncertain'}
                 ],
                 labelStyle = {'display': 'block'},
-                style = {'width': sidebar_width},
+                style = {'width': sidebar_width,},
                 persistence = False
             ),
             html.Br(),
             # The reviewer comment section
-            html.Label(['Enter comments here:']),
+            html.Label(['Enter comments here:'],
+                       style = {'font-size': label_fontsize}),
             html.Div(
                 dcc.Textarea(id = 'reviewer_comments',
                              style = {
@@ -94,10 +100,22 @@ app.layout = html.Div([
                              })
             ),
             # Submit annotation decision and comments
-            html.Button('Submit', id = 'submit_annotation'),
+            html.Button('Submit',
+                        id = 'submit_annotation',
+                        style = {'height': button_height,
+                                 'width': submit_width,
+                                 'font-size': 'large'}),
             # Select previous or next annotation
-            html.Button('\u2190', id = 'previous_annotation'),
-            html.Button('\u2192', id = 'next_annotation'),
+            html.Button('\u2190',
+                        id = 'previous_annotation',
+                        style = {'height': button_height,
+                                 'width': arrow_width,
+                                 'font-size': 'large'}),
+            html.Button('\u2192',
+                        id = 'next_annotation',
+                        style = {'height': button_height,
+                                 'width': arrow_width,
+                                 'font-size': 'large'}),
         ], style = {'display': 'inline-block', 'vertical-align': '75px',
                     'padding-right': '10px'}),
         # The plot itself
