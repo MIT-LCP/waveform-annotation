@@ -11,4 +11,5 @@ urlpatterns = [
     path('annotations/', views.render_annotations, name='render_annotations'),
     path('annotations/delete/<set_record>/<set_event>/', views.delete_annotation, name='delete_annotation'),
     path('tutorial/', views.viewer_tutorial, name='viewer_tutorial'),
+    path('settings/', views.viewer_settings, name='viewer_settings'),
 ]

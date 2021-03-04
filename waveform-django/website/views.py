@@ -2,9 +2,10 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-
-from .forms import CreateUserForm, ResetPasswordForm
+# Outside packages
 from waveforms import views
+from waveforms.models import UserSettings
+from .forms import CreateUserForm, ResetPasswordForm
 
 
 def register_page(request):
@@ -21,6 +22,8 @@ def register_page(request):
                 form.save()
                 user = form.cleaned_data.get('username')
                 messages.success(request, 'Account was created for ' + user)
+                # Create the default settings file for that user
+                UserSettings(user=user).save()
                 return redirect('login')
         return render(request, 'website/register.html', {'form': form})
 

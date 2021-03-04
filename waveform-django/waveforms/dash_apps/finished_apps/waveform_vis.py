@@ -8,7 +8,7 @@ import pandas as pd
 import django.core.cache
 from website.middleware import get_current_user
 from website.settings import base
-from waveforms.models import Annotation
+from waveforms.models import Annotation, UserSettings
 # API query
 from schema import schema
 # Data analysis and visualization
@@ -428,38 +428,42 @@ def update_text(dropdown_rec, dropdown_event):
     [dash.dependencies.Input('dropdown_event', 'children')],
     [dash.dependencies.State('dropdown_rec', 'children')])
 def update_graph(dropdown_event, dropdown_rec):
+    # Load in the default variables
+    current_user = get_current_user()
+    user_settings = UserSettings.objects.get(user=current_user)
     # The figure height and width
-    fig_height = 725
-    fig_width = 875
+    fig_height = user_settings.fig_height
+    fig_width = user_settings.fig_width
     # The figure margins
-    margin_left = 0
-    margin_top = 25
-    margin_right = 0
-    margin_bottom = 0
-    # Grid and zero-line color
-    gridzero_color = 'rgb(255, 60, 60)'
+    margin_left = user_settings.margin_left
+    margin_top = user_settings.margin_top
+    margin_right = user_settings.margin_right
+    margin_bottom = user_settings.margin_bottom
+    # Grid color
+    grid_color = user_settings.grid_color
     # The color and thickness of the signal
-    sig_color = 'rgb(0, 0, 0)'
-    sig_thickness = 1.5
+    sig_color = user_settings.sig_color
+    sig_thickness = user_settings.sig_thickness
     # The color of the annotation
-    ann_color = 'rgb(60, 60, 200)'
+    ann_color = user_settings.ann_color
     # ECG gridlines parameters
-    grid_delta_major = 0.2
+    grid_delta_major = user_settings.grid_delta_major
     # Set the maximum number of y-labels
-    max_y_labels = 8
+    max_y_labels = user_settings.max_y_labels
     # Down-sample signal to increase performance: make higher if non-EKG
     # Average starting frequency = 250 Hz
-    down_sample_ekg = 8
-    down_sample = 16
+    down_sample_ekg = user_settings.down_sample_ekg
+    down_sample = user_settings.down_sample
+    # How much signal should be displayed before and after event (seconds)
+    time_range_min = user_settings.time_range_min
+    time_range_max = user_settings.time_range_max
+    # How much signal should be displayed initially before and after event (seconds)
+    window_size_min = user_settings.window_size_min
+    window_size_max = user_settings.window_size_max
+
     # Determine the time of the event (seconds)
     # `300` if standard 10 minute segment, `dropdown_event` otherwise
     event_time = 300
-    # How much signal should be displayed before and after event (seconds)
-    time_range_min = 40
-    time_range_max = 10
-    # How much signal should be displayed initially before and after event (seconds)
-    window_size_min = 10
-    window_size_max = 1
     # Set the initial dragmode (`zoom`, `pan`, etc.)
     # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
     drag_mode = 'pan'
@@ -481,8 +485,8 @@ def update_graph(dropdown_event, dropdown_rec):
 
     # Set the initial display range of y-values based on values in
     # initial range of x-values
-    index_start = fs * (event_time - time_range_min)
-    index_stop = fs * (event_time + time_range_max)
+    index_start = int(fs * (event_time - time_range_min))
+    index_stop = int(fs * (event_time + time_range_max))
 
     # Set the initial layout of the figure
     # For more info: https://plotly.com/python/subplots/
@@ -638,11 +642,11 @@ def update_graph(dropdown_event, dropdown_rec):
                 'fixedrange': x_zoom_fixed,
                 'dtick': 0.2,
                 'showticklabels': False,
-                'gridcolor': gridzero_color,
+                'gridcolor': grid_color,
                 'gridwidth': 1,
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
+                'zerolinecolor': grid_color,
                 'range': [-window_size_min, window_size_max],
                 'showspikes': True,
                 'spikemode': 'across',
@@ -658,11 +662,11 @@ def update_graph(dropdown_event, dropdown_rec):
                 'showticklabels': True,
                 'tickvals': x_tick_vals,
                 'ticktext': x_tick_text,
-                'gridcolor': gridzero_color,
+                'gridcolor': grid_color,
                 'gridwidth': 1,
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
+                'zerolinecolor': grid_color,
                 'range': [-window_size_min, window_size_max],
                 'showspikes': True,
                 'spikemode': 'across',
@@ -679,10 +683,10 @@ def update_graph(dropdown_event, dropdown_rec):
             'showticklabels': True,
             'tickvals': y_tick_vals,
             'ticktext': y_tick_text,
-            'gridcolor': gridzero_color,
+            'gridcolor': grid_color,
             'zeroline': zeroline_state,
             'zerolinewidth': 1,
-            'zerolinecolor': gridzero_color,
+            'zerolinecolor': grid_color,
             'gridwidth': 1,
             'range': [min_y_vals, max_y_vals],
         }, row = idx+1, col = 1)

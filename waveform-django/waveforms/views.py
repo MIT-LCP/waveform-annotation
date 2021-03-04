@@ -1,9 +1,11 @@
 import os
 import wfdb
+from waveforms import forms
 from website.settings import base
-from waveforms.models import Annotation
+from waveforms.models import Annotation, UserSettings
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 
@@ -150,3 +152,45 @@ def viewer_tutorial(request):
 
     """
     return render(request, 'waveforms/tutorial.html', {})
+
+
+@login_required
+def viewer_settings(request):
+    """
+    Change the settings for the waveform viewer.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for hosting the change settings form.
+
+    """
+    user = request.user
+    try:
+        user_settings = UserSettings.objects.get(user=user)
+    except UserSettings.DoesNotExist:
+        user_settings = UserSettings(user=request.user)
+
+    if request.method == 'POST':
+        if 'change_settings' in request.POST:
+            settings_form = forms.GraphSettings(user=user, data=request.POST,
+                                                instance=user_settings)
+            if settings_form.is_valid():
+                settings_form.clean()
+                settings_form.save()
+                return redirect('waveform_published_home')
+            else:
+                messages.error(request, 'Invalid submission. See errors below.')
+        elif 'reset_default' in request.POST:
+            settings_form = forms.GraphSettings(user=user, instance=user_settings)
+            settings_form.reset_default()
+            return redirect('waveform_published_home')
+    else:
+        settings_form = forms.GraphSettings(user=user, instance=user_settings)
+
+    return render(request, 'waveforms/settings.html', {'user':request.user,
+        'settings_form':settings_form})
