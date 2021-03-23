@@ -58,7 +58,7 @@ def render_annotations(request):
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
-    records_path = os.path.join(PROJECT_PATH, 'RECORDS')
+    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
@@ -73,9 +73,10 @@ def render_annotations(request):
 
     # Get the events
     for rec in all_records:
-        header_path = os.path.join(PROJECT_PATH, rec, rec)
-        all_events = wfdb.rdheader(header_path).seg_name
-        all_events = [s for s in all_events if s != (rec+'_layout') and s != '~']
+        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
+        with open(records_path, 'r') as f:
+            all_events = f.read().splitlines()
+        all_events = [e for e in all_events if '_' in e]
         # Add annotations by event
         temp_anns = []
         for evt in all_events:

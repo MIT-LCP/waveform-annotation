@@ -163,6 +163,8 @@ STATICFILE_FINDERS = [
     'django_plotly_dash.finders.DashComponentFinder',
 ]
 
+RECORDS_FILE = 'RECORDS_VTVF'
+
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.

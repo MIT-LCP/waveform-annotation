@@ -139,9 +139,10 @@ def get_header_info(file_path):
     """
     Return all records/events in header from file path
     """
-    header_path = os.path.join(PROJECT_PATH, file_path, file_path)
-    file_contents = wfdb.rdheader(header_path).seg_name
-    file_contents = [s for s in file_contents if s != (file_path+'_layout') and s != '~']
+    records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
+    with open(records_path, 'r') as f:
+        file_contents = f.read().splitlines()
+    file_contents = [e for e in file_contents if '_' in e]
     return file_contents
 
 
@@ -252,7 +253,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value
     # Get the record file
-    records_path = os.path.join(PROJECT_PATH, 'RECORDS')
+    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
@@ -411,9 +412,9 @@ def update_text(dropdown_rec, dropdown_event):
         # Extract the header contents
         temp_rec = get_header_info(dropdown_rec)
         # Get the annotation information
-        ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
-        ann = wfdb.rdann(ann_path, 'cba')
-        ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
+        ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
+        ann = wfdb.rdann(ann_path, 'alm')
+        ann_event = ann.aux_note[0]
         # Update the annotation event text
         event_text = [
             html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
