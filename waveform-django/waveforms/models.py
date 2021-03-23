@@ -1,8 +1,15 @@
 from django.db import models
 
 
+class User(models.Model):
+    username = models.CharField(max_length=150, unique=True, blank=False,
+        default='')
+    join_date = models.DateField(auto_now_add=True)
+
+
 class Annotation(models.Model):
-    user = models.CharField(max_length=150, unique=False, blank=False, default='')
+    user = models.ForeignKey('User', related_name='annotation',
+        on_delete=models.CASCADE)
     record = models.CharField(max_length=50, blank=False)
     event = models.CharField(max_length=50, blank=False)
     decision = models.CharField(max_length=9, blank=False)
@@ -18,13 +25,15 @@ class Annotation(models.Model):
                 a.decision = self.decision
                 a.comments = self.comments
                 a.decision_date = self.decision_date
-                a.save(update_fields=['decision', 'comments', 'decision_date'])
+                a.save(update_fields=['decision', 'comments',
+                                      'decision_date'])
         if not exists_already:
             self.save()
 
 
 class UserSettings(models.Model):
-    user = models.CharField(max_length=150, unique=True, blank=False, default='')
+    user = models.ForeignKey('User', related_name='settings',
+        on_delete=models.CASCADE)
     fig_height = models.FloatField(blank=False, default=725.0)
     fig_width = models.FloatField(blank=False, default=875.0)
     margin_left = models.FloatField(blank=False, default=0.0)

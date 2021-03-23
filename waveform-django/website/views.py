@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 # Outside packages
 from waveforms import views
-from waveforms.models import UserSettings
+from waveforms.models import User, UserSettings
 from .forms import CreateUserForm, ResetPasswordForm
 
 
@@ -20,10 +20,12 @@ def register_page(request):
             form = CreateUserForm(request.POST)
             if form.is_valid():
                 form.save()
-                user = form.cleaned_data.get('username')
-                messages.success(request, 'Account was created for ' + user)
-                # Create the default settings file for that user
-                UserSettings(user=user).save()
+                username = form.cleaned_data.get('username')
+                messages.success(request, 'Account was created for ' + username)
+                # Create the default profile and settings for that user
+                new_user = User(username=username)
+                new_user.save()
+                UserSettings(user=new_user).save()
                 return redirect('login')
         return render(request, 'website/register.html', {'form': form})
 
