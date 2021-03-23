@@ -8,7 +8,7 @@ import pandas as pd
 import django.core.cache
 from website.middleware import get_current_user
 from website.settings import base
-from waveforms.models import Annotation, UserSettings
+from waveforms.models import User, Annotation, UserSettings
 # API query
 from schema import schema
 # Data analysis and visualization
@@ -151,6 +151,18 @@ def get_query(user, event, objects):
     Query the API to return desired objects for a given user and event
     """
     objects = ','.join(objects)
+    user_id = schema.execute("""
+        {{
+            all_users(username:"{}"){{
+                edges{{
+                    node{{
+                        id
+                    }}
+                }}
+            }}
+        }}
+    """.format(user))
+    user_id = user_id.data['all_users']['edges'][0]['node']['id']
     query = """
         {{
             all_annotations(user:"{}", event:"{}"){{
@@ -161,7 +173,7 @@ def get_query(user, event, objects):
                 }}
             }}
         }}
-    """.format(user, event, objects)
+    """.format(user_id, event, objects)
     res = schema.execute(query)
     return res
 
@@ -339,16 +351,13 @@ def get_record_event_options(click_submit, click_previous, click_next,
             submit_time = set_timezone.localize(submit_time)
             # Save the annotation to the database only if changes
             # were made or a new annotation
-            current_user = get_current_user()
-            res = get_query(current_user, event_value, ['record',
-                                                        'event',
-                                                        'decision',
-                                                        'comments',
-                                                        'decision_date'])
+            res = get_query(get_current_user(), event_value, ['record',
+                'event', 'decision', 'comments', 'decision_date'])
+            current_user = User.objects.get(username=get_current_user())
             if res.data['all_annotations']['edges'] != []:
                 current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
                 proposed_annotation = [record_value, event_value,
-                                    decision_value, comments_value]
+                                       decision_value, comments_value]
                 # Only save annotation if something has changed
                 if current_annotation[:4] != proposed_annotation:
                     annotation = Annotation(
@@ -430,7 +439,7 @@ def update_text(dropdown_rec, dropdown_event):
     [dash.dependencies.State('dropdown_rec', 'children')])
 def update_graph(dropdown_event, dropdown_rec):
     # Load in the default variables
-    current_user = get_current_user()
+    current_user = User.objects.get(username=get_current_user())
     user_settings = UserSettings.objects.get(user=current_user)
     # The figure height and width
     fig_height = user_settings.fig_height

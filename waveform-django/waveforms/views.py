@@ -2,7 +2,7 @@ import os
 import wfdb
 from waveforms import forms
 from website.settings import base
-from waveforms.models import Annotation, UserSettings
+from waveforms.models import User, Annotation, UserSettings
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -66,7 +66,7 @@ def render_annotations(request):
     all_anns = {}
 
     # Get all the annotations for the requested user
-    current_user = request.user.username
+    current_user = User.objects.get(username=request.user)
     all_annotations = Annotation.objects.filter(user=current_user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
@@ -125,9 +125,10 @@ def delete_annotation(request, set_record, set_event):
         HTML webpage responsible for rendering the annotations.
 
     """
+    user = User.objects.get(username=request.user)
     try:
         annotation = Annotation.objects.get(
-            user = request.user,
+            user = user,
             record = set_record,
             event = set_event
         )
@@ -170,7 +171,7 @@ def viewer_settings(request):
         HTML webpage responsible for hosting the change settings form.
 
     """
-    user = request.user
+    user = User.objects.get(username=request.user)
     try:
         user_settings = UserSettings.objects.get(user=user)
     except UserSettings.DoesNotExist:
