@@ -23,7 +23,7 @@ def register_page(request):
                 username = form.cleaned_data.get('username')
                 messages.success(request, 'Account was created for ' + username)
                 # Create the default profile and settings for that user
-                new_user = User(username=username)
+                new_user = User(username=username, is_admin=False)
                 new_user.save()
                 UserSettings(user=new_user).save()
                 return redirect('login')

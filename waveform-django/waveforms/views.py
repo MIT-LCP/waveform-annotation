@@ -27,13 +27,103 @@ def waveform_published_home(request, set_record='', set_event=''):
         HTML webpage responsible for hosting the waveform plot.
 
     """
+    user = User.objects.get(username=request.user.username)
     dash_context = {
         'set_record': {'value': set_record},
         'set_event': {'value': set_event}
     }
+    return render(request, 'waveforms/home.html', {'user': user,
+        'dash_context': dash_context})
 
-    return render(request, 'waveforms/home.html',
-        {'dash_context': dash_context})
+
+@login_required
+def admin_console(request):
+    """
+    Render all saved annotations to allow edits.
+
+    Parameters
+    ----------
+    N/A : N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for displaying the annotations.
+
+    """
+    user = User.objects.get(username=request.user.username)
+    if not user.is_admin:
+        return redirect('waveform_published_home')
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+
+    # Get the record files
+    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
+    with open(records_path, 'r') as f:
+        all_records = f.read().splitlines()
+
+    # Hold all of the annotation information
+    conflict_anns = {}
+    unanimous_anns = {}
+    all_anns = {}
+
+    # Get all the annotations
+    all_annotations = Annotation.objects.all()
+    records = [a.record for a in all_annotations]
+    events = [a.event for a in all_annotations]
+
+    # Get the events
+    for rec in all_records:
+        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
+        with open(records_path, 'r') as f:
+            all_events = f.read().splitlines()
+        all_events = [e for e in all_events if '_' in e]
+        # Add annotations by event
+        temp_conflict_anns = []
+        temp_unanimous_anns = []
+        temp_all_anns = []
+        for evt in all_events:
+            if (rec in records) and (evt in events):
+                same_anns = Annotation.objects.filter(record=rec, event=evt)
+                if len(set([a.decision for a in same_anns])) > 1:
+                    for ann in same_anns:
+                        temp_conflict_anns.append([ann.user.username,
+                                                    ann.event,
+                                                    ann.decision,
+                                                    ann.comments,
+                                                    ann.decision_date])
+                else:
+                    for ann in same_anns:
+                        temp_unanimous_anns.append([ann.user.username,
+                                                    ann.event,
+                                                    ann.decision,
+                                                    ann.comments,
+                                                    ann.decision_date])
+            else:
+                temp_all_anns.append(['-', evt, '-', '-', '-'])
+        # Get the completion stats for each record
+        if temp_conflict_anns != []:
+            conflict_anns[rec] = temp_conflict_anns
+        if temp_unanimous_anns != []:
+            unanimous_anns[rec] = temp_unanimous_anns
+        if temp_all_anns != []:
+            all_anns[rec] = temp_all_anns
+
+    # Categories to display for the annotations
+    categories = [
+        'user',
+        'event',
+        'decision',
+        'comments',
+        'decision_date'
+    ]
+
+    return render(request, 'waveforms/admin_console.html', {'user': user,
+        'categories': categories, 'conflict_anns': conflict_anns,
+        'unanimous_anns': unanimous_anns, 'all_anns': all_anns})
 
 
 @login_required

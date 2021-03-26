@@ -10,12 +10,15 @@
 </style>
 <!-- Plotly-based waveform viewer -->
 <div class="container">
-  <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
+  <span>{{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
   <!-- The title header of the webpage -->
   <h1>
     Waveform Annotation Viewer
   </h1>
   <h4>
+    {% if user.is_admin %}
+      <a href="{% url 'admin_console' %}">View admin console</a><br>
+    {% endif %}
     <a href="{% url 'render_annotations' %}">View current annotations</a><br>
     <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a><br>
     <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
