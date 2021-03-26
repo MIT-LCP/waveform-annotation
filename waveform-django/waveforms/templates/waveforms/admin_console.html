@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container">
+  <span>{{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
+  <h4><a href="{% url 'waveform_published_home' %}">Create more annotations</a></h4>
+  <h1>Admin Console</h1>
+  <h2>Conflicting Annotations</h2>
+  {% for rec,info in conflict_anns.items %}
+    <span style="float: left;">{{ rec }}</span>
+    <div>
+      <table style="width:100%">
+        <tr>
+          {% for cat in categories %}
+            <th>
+              {{ cat }}
+            </th>
+          {% endfor %}
+        </tr>
+        {% for val in info %}
+          <tr>
+            {% for v in val %}
+              <td>
+                {{ v }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div><br />
+  {% endfor %}
+  <h2>Unanimous Annotations</h2>
+  {% for rec,info in unanimous_anns.items %}
+    <span style="float: left;">{{ rec }}</span>
+    <div>
+      <table style="width:100%">
+        <tr>
+          {% for cat in categories %}
+            <th>
+              {{ cat }}
+            </th>
+          {% endfor %}
+        </tr>
+        {% for val in info %}
+          <tr>
+            {% for v in val %}
+              <td>
+                {{ v }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div><br />
+  {% endfor %}
+  <h2>Unfinished Annotations</h2>
+  {% for rec,info in all_anns.items %}
+    <span style="float: left;">{{ rec }}</span>
+    <div>
+      <table style="width:100%">
+        <tr>
+          {% for cat in categories %}
+            <th>
+              {{ cat }}
+            </th>
+          {% endfor %}
+        </tr>
+        {% for val in info %}
+          <tr>
+            {% for v in val %}
+              <td>
+                {{ v }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div><br />
+  {% endfor %}
+</div>
+
+{% endblock %}
