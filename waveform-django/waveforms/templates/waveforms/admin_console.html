@@ -7,6 +7,25 @@
   <span>{{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
   <h4><a href="{% url 'waveform_published_home' %}">Create more annotations</a></h4>
   <h1>Admin Console</h1>
+  <h2>All Users</h2>
+  <div>
+    <table style="width:100%">
+      <tr>
+        <th>Username</th>
+        <th>Join Date</th>
+        <th>Number of Annotations</th>
+        <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
+      </tr>
+      {% for u in all_users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.join_date }}</td>
+          <td>{{ u.num_annotations }}</td>
+          <td>{{ u.new_settings }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
   <h2>Conflicting Annotations</h2>
   {% for rec,info in conflict_anns.items %}
     <span style="float: left;">{{ rec }}</span>
