@@ -5,6 +5,7 @@ class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False,
         default='')
     join_date = models.DateField(auto_now_add=True)
+    is_admin = models.BooleanField(default=False)
 
 
 class Annotation(models.Model):
