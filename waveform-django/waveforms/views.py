@@ -121,9 +121,13 @@ def admin_console(request):
         'decision_date'
     ]
 
+    # Get all the current users
+    all_users = User.objects.all()
+
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'categories': categories, 'conflict_anns': conflict_anns,
-        'unanimous_anns': unanimous_anns, 'all_anns': all_anns})
+        'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
+        'all_users': all_users})
 
 
 @login_required

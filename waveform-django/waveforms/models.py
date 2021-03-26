@@ -4,8 +4,21 @@ from django.db import models
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False,
         default='')
-    join_date = models.DateField(auto_now_add=True)
+    join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
+
+    def num_annotations(self):
+        return len(Annotation.objects.filter(user=self))
+
+    def new_settings(self):
+        diff_settings = {}
+        all_fields = [f.name for f in UserSettings._meta.fields][2:]
+        for field in all_fields:
+            user_set = UserSettings.objects.get(user=self).__dict__[field]
+            default = UserSettings._meta.get_field(field).get_default()
+            if user_set != default:
+                diff_settings[field] = [default, user_set]
+        return diff_settings
 
 
 class Annotation(models.Model):
