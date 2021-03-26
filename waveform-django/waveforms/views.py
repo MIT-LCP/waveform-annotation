@@ -160,6 +160,7 @@ def render_annotations(request):
     all_annotations = Annotation.objects.filter(user=current_user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
+    all_anns_frac = f'{len(all_annotations)}/{len(all_records)}'
 
     # Get the events
     for rec in all_records:
@@ -192,9 +193,9 @@ def render_annotations(request):
         'decision_date'
     ]
 
-    return render(request, 'waveforms/annotations.html',
-        {'categories': categories,
-         'all_anns': all_anns})
+    return render(request, 'waveforms/annotations.html', {
+        'all_anns_frac': all_anns_frac, 'categories': categories,
+        'all_anns': all_anns})
 
 
 @login_required
