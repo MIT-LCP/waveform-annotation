@@ -180,38 +180,6 @@ def get_current_ann():
     return all_events[current_event].split('_')[0], all_events[current_event]
 
 
-def get_query(user, event, objects):
-    """
-    Query the API to return desired objects for a given user and event
-    """
-    objects = ','.join(objects)
-    user_id = schema.execute("""
-        {{
-            all_users(username:"{}"){{
-                edges{{
-                    node{{
-                        id
-                    }}
-                }}
-            }}
-        }}
-    """.format(user))
-    user_id = user_id.data['all_users']['edges'][0]['node']['id']
-    query = """
-        {{
-            all_annotations(user:"{}", event:"{}"){{
-                edges{{
-                    node{{
-                        {}
-                    }}
-                }}
-            }}
-        }}
-    """.format(user_id, event, objects)
-    res = schema.execute(query)
-    return res
-
-
 def get_dropdown(dropdown_value):
     """
     Retrieve the dropdown value from its dash context
@@ -263,17 +231,14 @@ def clear_text(temp_event):
     current_user = get_current_user()
     if (temp_event != '') and (temp_event != None) and (current_user != ''):
         # Get the decision
-        res = get_query(current_user, temp_event, ['decision'])
-        if res.data['all_annotations']['edges'] == []:
+        user = User.objects.get(username=current_user)
+        try:
+            res = Annotation.objects.get(user=user, event=temp_event)
+            reviewer_decision = res.decision
+            reviewer_comments = res.comments
+        except Annotation.DoesNotExist:
             reviewer_decision = None
-        else:
-            reviewer_decision = res.data['all_annotations']['edges'][0]['node']['decision']
-        # Get the comments
-        res = get_query(current_user, temp_event, ['comments'])
-        if res.data['all_annotations']['edges'] == []:
             reviewer_comments = ''
-        else:
-            reviewer_comments = res.data['all_annotations']['edges'][0]['node']['comments']
         return reviewer_decision, reviewer_comments
     else:
         return None, ''
@@ -385,11 +350,11 @@ def get_record_event_options(click_submit, click_previous, click_next,
             submit_time = set_timezone.localize(submit_time)
             # Save the annotation to the database only if changes
             # were made or a new annotation
-            res = get_query(get_current_user(), event_value, ['record',
-                'event', 'decision', 'comments', 'decision_date'])
             current_user = User.objects.get(username=get_current_user())
-            if res.data['all_annotations']['edges'] != []:
-                current_annotation = list(res.data['all_annotations']['edges'][0]['node'].values())
+            try:
+                res = Annotation.objects.get(user=current_user, event=event_value)
+                current_annotation = [res.record, res.event, res.decision,
+                                      res.comments]
                 proposed_annotation = [record_value, event_value,
                                        decision_value, comments_value]
                 # Only save annotation if something has changed
@@ -403,7 +368,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
                         decision_date = submit_time
                     )
                     annotation.update()
-            else:
+            except Annotation.DoesNotExist:
                 # Create new annotation since none already exist
                 annotation = Annotation(
                     user = current_user,
