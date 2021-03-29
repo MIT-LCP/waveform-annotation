@@ -160,8 +160,8 @@ def render_annotations(request):
     all_anns = {}
 
     # Get all the annotations for the requested user
-    current_user = User.objects.get(username=request.user)
-    all_annotations = Annotation.objects.filter(user=current_user)
+    user = User.objects.get(username=request.user)
+    all_annotations = Annotation.objects.filter(user=user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
     all_anns_frac = f'{len(all_annotations)}/{len(all_records)}'
@@ -197,7 +197,7 @@ def render_annotations(request):
         'decision_date'
     ]
 
-    return render(request, 'waveforms/annotations.html', {
+    return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
         'all_anns': all_anns})
 
@@ -248,7 +248,8 @@ def viewer_tutorial(request):
         HTML webpage responsible for hosting the tutorial.
 
     """
-    return render(request, 'waveforms/tutorial.html', {})
+    user = User.objects.get(username=request.user)
+    return render(request, 'waveforms/tutorial.html', {'user': user})
 
 
 @login_required
@@ -289,5 +290,5 @@ def viewer_settings(request):
     else:
         settings_form = forms.GraphSettings(user=user, instance=user_settings)
 
-    return render(request, 'waveforms/settings.html', {'user':request.user,
-        'settings_form':settings_form})
+    return render(request, 'waveforms/settings.html', {'user': user,
+        'settings_form': settings_form})

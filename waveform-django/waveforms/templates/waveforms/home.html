@@ -10,19 +10,30 @@
 </style>
 <!-- Plotly-based waveform viewer -->
 <div class="container">
-  <span>{{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
+  <span>User: {{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
   <!-- The title header of the webpage -->
-  <h1>
-    Waveform Annotation Viewer
-  </h1>
-  <h4>
-    {% if user.is_admin %}
-      <a href="{% url 'admin_console' %}">View admin console</a><br>
-    {% endif %}
-    <a href="{% url 'render_annotations' %}">View current annotations</a><br>
-    <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a><br>
-    <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
-  </h4>
+  <table class="table table-bordered">
+    <tr>
+      {% if user.is_admin %}
+        <th class="text-center">
+          <a href="{% url 'admin_console' %}">View admin console</a>
+        </th>
+      {% endif %}
+      <th class="text-center table-dark">
+        <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'render_annotations' %}">View current annotations</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+      </th>
+    </tr>
+  </table>
+  <h1>Waveform Annotation Viewer</h1>
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
 </div>
