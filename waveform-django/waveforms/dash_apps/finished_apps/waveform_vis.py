@@ -146,6 +146,40 @@ def get_header_info(file_path):
     return file_contents
 
 
+def get_current_ann():
+    """
+    Returns either the record or event value of the current annotation.
+    """
+    # Get the current user's annotations
+    current_user = User.objects.get(username=get_current_user())
+    user_annotations = Annotation.objects.filter(user=current_user)
+    completed_annotations = [a.event for a in user_annotations]
+
+    # Get all possible events
+    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
+    with open(records_path, 'r') as f:
+        all_records = f.read().splitlines()
+    all_events = []
+    for rec in all_records:
+        all_events.append(get_header_info(rec))
+    all_events = [item for sub_list in all_events for item in sub_list]
+
+    # Get the earliest annotation
+    ann_indices = sorted([all_events.index(a) for a in completed_annotations])
+    if ann_indices:
+        try:
+            current_event = next(a for a, b in enumerate(ann_indices, 0) if a != b)
+        except StopIteration:
+            if (ann_indices[-1]+1) == len(all_events):
+                current_event = 0
+            else:
+                current_event = ann_indices[-1] + 1
+    else:
+        current_event = 0
+
+    return all_events[current_event].split('_')[0], all_events[current_event]
+
+
 def get_query(user, event, objects):
     """
     Query the API to return desired objects for a given user and event
@@ -386,10 +420,9 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_record = set_record
             return_event = set_event
         else:
-            # Start with the first record and event if first load
-            return_record = all_records[0]
-            all_events = get_header_info(return_record)
-            return_event = all_events[0]
+            # Start with the first non-annotated record and event if it's the
+            # initial load
+            return_record, return_event = get_current_ann()
 
     # Update the annotation current record text
     return_record = [

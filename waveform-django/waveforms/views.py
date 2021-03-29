@@ -156,25 +156,27 @@ def render_annotations(request):
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
-    # Hold all of the annotation information
-    all_anns = {}
-
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
     all_annotations = Annotation.objects.filter(user=user)
     records = [a.record for a in all_annotations]
     events = [a.event for a in all_annotations]
-    all_anns_frac = f'{len(all_annotations)}/{len(all_records)}'
 
-    # Get the events
+    # Hold all of the annotation information
+    total_anns = 0
+    all_anns = {}
+
     for rec in all_records:
+        # Get the events
         records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
         with open(records_path, 'r') as f:
-            all_events = f.read().splitlines()
-        all_events = [e for e in all_events if '_' in e]
+            temp_events = f.read().splitlines()
+        temp_events = [e for e in temp_events if '_' in e]
+        total_anns += len(temp_events)
+
         # Add annotations by event
         temp_anns = []
-        for evt in all_events:
+        for evt in temp_events:
             if (rec in records) and (evt in events):
                 ann = all_annotations[events.index(evt)]
                 temp_anns.append([ann.event,
@@ -183,6 +185,7 @@ def render_annotations(request):
                                   ann.decision_date])
             else:
                 temp_anns.append([evt, '-', '-', '-'])
+
         # Get the completion stats for each record
         num_complete = len([a[3] for a in temp_anns if a[3] != '-'])
         progress_stats = '{}/{}'.format(num_complete, len(temp_anns))
@@ -196,6 +199,8 @@ def render_annotations(request):
         'comments',
         'decision_date'
     ]
+
+    all_anns_frac = f'{len(all_annotations)}/{total_anns}'
 
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
