@@ -3,10 +3,30 @@
 
 {% block content %}
 <div class="container">
-  <span>{{ request.user }} ... <a href="{% url 'logout' %}">Logout</a></span>
-  <h4>
-    <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
-  </h4>
+  <span>User: {{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
+  <table class="table table-bordered">
+    <tr>
+      {% if user.is_admin %}
+        <th class="text-center">
+          <a href="{% url 'admin_console' %}">View admin console</a>
+        </th>
+      {% endif %}
+      <th class="text-center">
+        <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'render_annotations' %}">View current annotations</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
+      </th>
+      <th class="text-center table-dark">
+        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+      </th>
+    </tr>
+  </table>
+  <h1>Form to change graph settings</h1>
+  <br \>
   {% if messages %}
     {% for message in messages %}
       {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
@@ -23,8 +43,6 @@
       </div>
     {% endfor %}
   {% endif %}
-  <h1>Form to change graph settings</h1>
-  <br>
   <form action="" method="post" enctype="multipart/form-data" class="form-signin no-pd" autocomplete="off">
     {% csrf_token %}
     {% for field in settings_form.visible_fields %}
