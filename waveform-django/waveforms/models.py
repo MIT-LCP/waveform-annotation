@@ -63,6 +63,7 @@ class UserSettings(models.Model):
     max_y_labels = models.IntegerField(blank=False, default=8)
     down_sample_ekg = models.IntegerField(blank=False, default=8)
     down_sample = models.IntegerField(blank=False, default=16)
+    signal_std = models.FloatField(blank=False, default=2.0)
     time_range_min = models.FloatField(blank=False, default=40.0)
     time_range_max = models.FloatField(blank=False, default=10.0)
     window_size_min = models.FloatField(blank=False, default=10.0)
