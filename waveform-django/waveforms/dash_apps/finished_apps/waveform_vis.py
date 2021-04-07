@@ -449,6 +449,8 @@ def update_graph(dropdown_event, dropdown_rec):
     margin_bottom = user_settings.margin_bottom
     # Grid color
     grid_color = user_settings.grid_color
+    # Background color
+    background_color = user_settings.background_color
     # The color and thickness of the signal
     sig_color = user_settings.sig_color
     sig_thickness = user_settings.sig_thickness
@@ -521,7 +523,7 @@ def update_graph(dropdown_event, dropdown_rec):
         'hovermode': 'x',
         'dragmode': drag_mode,
         'spikedistance':  -1,
-        'plot_bgcolor': '#ffffff',
+        'plot_bgcolor': background_color,
         'paper_bgcolor': '#ffffff',
         'font': {
             'size': 12
