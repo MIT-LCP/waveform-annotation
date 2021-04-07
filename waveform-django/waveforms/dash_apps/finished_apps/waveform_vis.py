@@ -198,8 +198,11 @@ def window_signal(y_vals):
     and maximum range... If a significant variation is signal is found
     then filter out extrema using normal distribution
     """
+    # Load in the default variables
+    current_user = User.objects.get(username=get_current_user())
+    user_settings = UserSettings.objects.get(user=current_user)
     # Standard deviation signal range to window
-    std_range = 2
+    std_range = user_settings.signal_std
     # Get parameters of the signal
     temp_std = np.nanstd(y_vals)
     temp_mean = np.mean(y_vals[np.isfinite(y_vals)])

@@ -13,7 +13,7 @@ class GraphSettings(forms.ModelForm):
             'fig_height', 'fig_width', 'margin_left', 'margin_top',
             'margin_right', 'margin_bottom', 'grid_color', 'background_color',
             'sig_color', 'sig_thickness', 'ann_color', 'grid_delta_major',
-            'max_y_labels', 'down_sample_ekg', 'down_sample',
+            'max_y_labels', 'down_sample_ekg', 'down_sample', 'signal_std',
             'time_range_min', 'time_range_max', 'window_size_min',
             'window_size_max'
         )
@@ -32,10 +32,12 @@ class GraphSettings(forms.ModelForm):
             'grid_delta_major': """EKG gridlines parameters / spacing""",
             'max_y_labels': """Set the maximum number of y-axis labels per 
                 signal""",
-            'down_sample': """Down-sample non-EKG signals (usually higher 
-                than EKG down-sampling rate)""",
             'down_sample_ekg': """Down-sample EKG signal to increase 
                 performance (average starting frequency = 250 Hz)""",
+            'down_sample': """Down-sample non-EKG signals (usually higher
+                than EKG down-sampling rate)""",
+            'signal_std': """The number of standard deviations to be shown
+                from the signal mean.""",
             'time_range_min': """How much total signal should be displayed 
                 before the event (seconds)""",
             'time_range_max': """How much total signal should be displayed 
@@ -61,6 +63,7 @@ class GraphSettings(forms.ModelForm):
             'max_y_labels': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
             'down_sample_ekg': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
             'down_sample': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
+            'signal_std': forms.NumberInput(attrs={'min': 0.1, 'type': 'number'}),
             'time_range_min': forms.NumberInput(attrs={'min': 0, 'max': 300, 'type': 'number'}),
             'time_range_max': forms.NumberInput(attrs={'min': 0, 'max': 300, 'type': 'number'}),
             'window_size_min': forms.NumberInput(attrs={'min': 0, 'max': 300, 'type': 'number'}),
@@ -80,8 +83,9 @@ class GraphSettings(forms.ModelForm):
             'ann_color': 'Annotation color',
             'grid_delta_major': 'Grid delta',
             'max_y_labels': 'Maximum y-labels',
-            'down_sample': 'Non-EKG downsample',
             'down_sample_ekg': 'EKG downsample',
+            'down_sample': 'Non-EKG downsample',
+            'signal_std': 'Signal range',
             'time_range_min': 'Total time before event',
             'time_range_max': 'Total time after event',
             'window_size_min': 'Initial time before event',
