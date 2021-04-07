@@ -55,6 +55,7 @@ class UserSettings(models.Model):
     margin_right = models.FloatField(blank=False, default=0.0)
     margin_bottom = models.FloatField(blank=False, default=0.0)
     grid_color = models.TextField(blank=False, default='#ff3c3c')
+    background_color = models.TextField(blank=False, default='#ffffff')
     sig_color = models.TextField(blank=False, default='#000000')
     sig_thickness = models.FloatField(blank=False, default=1.5)
     ann_color = models.TextField(blank=False, default='#3c3cc8')

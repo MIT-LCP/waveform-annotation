@@ -11,8 +11,8 @@ class GraphSettings(forms.ModelForm):
         model = UserSettings
         fields = (
             'fig_height', 'fig_width', 'margin_left', 'margin_top',
-            'margin_right', 'margin_bottom', 'grid_color', 'sig_color',
-            'sig_thickness', 'ann_color', 'grid_delta_major',
+            'margin_right', 'margin_bottom', 'grid_color', 'background_color',
+            'sig_color', 'sig_thickness', 'ann_color', 'grid_delta_major',
             'max_y_labels', 'down_sample_ekg', 'down_sample',
             'time_range_min', 'time_range_max', 'window_size_min',
             'window_size_max'
@@ -25,6 +25,7 @@ class GraphSettings(forms.ModelForm):
             'margin_right': """The right margin of the figure""",
             'margin_bottom': """The bottom margin of the figure""",
             'grid_color': """The grid color""",
+            'background_color': """The background color""",
             'sig_color': """The color of the signal""",
             'sig_thickness': """The thickness of the signal""",
             'ann_color': """The color of the annotation (zero-line)""",
@@ -52,6 +53,7 @@ class GraphSettings(forms.ModelForm):
             'margin_right': forms.NumberInput(attrs={'type': 'number'}),
             'margin_bottom': forms.NumberInput(attrs={'type': 'number'}),
             'grid_color': forms.TextInput(attrs={'type': 'color'}),
+            'background_color': forms.TextInput(attrs={'type': 'color'}),
             'sig_color': forms.TextInput(attrs={'type': 'color'}),
             'sig_thickness': forms.NumberInput(attrs={'min': 0, 'type': 'number'}),
             'ann_color': forms.TextInput(attrs={'type': 'color'}),
@@ -72,6 +74,7 @@ class GraphSettings(forms.ModelForm):
             'margin_right': 'Right margin',
             'margin_bottom': 'Bottom margin',
             'grid_color': 'Grid color',
+            'background_color': 'Background color',
             'sig_color': 'Signal color',
             'sig_thickness': 'Signal thickness',
             'ann_color': 'Annotation color',
