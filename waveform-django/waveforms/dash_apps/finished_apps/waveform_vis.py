@@ -96,7 +96,8 @@ app.layout = html.Div([
                 dcc.Textarea(id = 'reviewer_comments',
                              style = {
                                 'width': sidebar_width,
-                                'height': comment_box_height
+                                'height': comment_box_height,
+                                'font-size': label_fontsize
                              })
             ),
             # Submit annotation decision and comments
