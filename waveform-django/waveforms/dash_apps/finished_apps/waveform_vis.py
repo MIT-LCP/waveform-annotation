@@ -39,12 +39,9 @@ plot_config = {
     'modeBarButtonsToRemove': [
         'hoverClosestCartesian',
         'hoverCompareCartesian',
-        'toggleSpikelines'
-    ],
-    'modeBarButtonsToAdd': [
-        'sendDataToCloud',
-        'editInChartStudio',
-        'resetViews'
+        'toggleSpikelines',
+        'zoom2d',
+        'resetScale2d'
     ]
 }
 
@@ -483,7 +480,7 @@ def update_graph(dropdown_event, dropdown_rec):
     drag_mode = 'pan'
     # Set the zoom restrictions
     x_zoom_fixed = False
-    y_zoom_fixed = True
+    y_zoom_fixed = False
     # Determine the input record and event
     dropdown_rec = get_dropdown(dropdown_rec)
     dropdown_event = get_dropdown(dropdown_event)
@@ -676,6 +673,7 @@ def update_graph(dropdown_event, dropdown_rec):
                 'showticklabels': True,
                 'tickvals': x_tick_vals,
                 'ticktext': x_tick_text,
+                'tickangle': 0,
                 'gridcolor': grid_color,
                 'gridwidth': 1,
                 'zeroline': zeroline_state,
