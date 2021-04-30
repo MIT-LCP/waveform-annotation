@@ -133,6 +133,303 @@ app.layout = html.Div([
 ])
 
 
+def get_subplot(rows):
+    """
+    Create a graph layout based on the number of input signals (rows). For
+    more info:
+    https://plotly.com/python/subplots/
+
+    Parameters
+    ----------
+    rows : int
+        The number of signals or desired graph figures.
+
+    Returns
+    -------
+    N/A : plotly.graph_objects
+        Represents the data used to define appearance of the figure (subplot
+        layout, tick labels, etc.).
+
+    """
+    return make_subplots(
+        rows = rows,
+        cols = 1,
+        shared_xaxes = True,
+        vertical_spacing = 0
+    )
+
+
+def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
+               margin_bottom, rows, drag_mode, background_color):
+    """
+    Generate a dictionary that is used to generate and format the layout of
+    the figure. For more info:
+    https://plotly.com/python/reference/layout/
+
+    Parameters
+    ----------
+    fig_height : float
+        The height of the figure's SVG div.
+    fig_width : float
+        The width of the figure's SVG div.
+    margin_left : float
+        How much margin should be to the left of the figure.
+    margin_top : float
+        How much margin should be at the top of the figure.
+    margin_right : float
+        How much margin should be to the right of the figure.
+    margin_bottom : float
+        How much margin should be at the bottom of the figure.
+    rows : int
+        The number of signals or desired graph figures.
+    drag_mode : str
+        Set the initial dragmode (zoom, pan, etc.). See more here:
+        https://plotly.com/javascript/reference/#layout-dragmode.
+    background_color : str
+        Set the color of the background paper of the signal. This should be
+        in six-figure hexadecimal format (ex. '#ffffff').
+
+    Returns
+    -------
+    N/A : dict
+        Represents the layout of the figure.
+
+    """
+    return {
+        'height': fig_height,
+        'width': fig_width,
+        'margin': {'l': margin_left,
+                   't': margin_top,
+                   'r': margin_right,
+                   'b': margin_bottom},
+        'grid': {
+            'rows': rows,
+            'columns': 1,
+            'pattern': 'independent'
+        },
+        'showlegend': False,
+        'hovermode': 'x',
+        'dragmode': drag_mode,
+        'spikedistance':  -1,
+        'plot_bgcolor': background_color,
+        'paper_bgcolor': '#ffffff',
+        'font_color': '#000000',
+        'font': {
+            'size': 12
+        }
+    }
+
+
+def get_trace(x_vals, y_vals, x_string, y_string, sig_color, sig_thickness,
+              sig_name):
+    """
+    Generate a dictionary that is used to generate and format the signal trace
+    of the figure. For more info:
+    https://plotly.com/python/reference/scatter/#scatter
+
+    Parameters
+    ----------
+    x_vals : list[float,int]
+        The x-values to place the annotation.
+    y_vals : list[float,int]
+        The y-values to place the annotation.
+    x_string : str
+        Indicates which x-axis the signal belongs with.
+    y_string : str
+        Indicates which y-axis the signal belongs with.
+    sig_color : str
+        A string of the RGB representation of the desired signal color.
+        Ex: 'rgb(20,40,100)'
+    sig_thickness : float, int
+        Specifies the thickness of the signal.
+    sig_name : str
+        The name of the signal.
+
+    Returns
+    -------
+    N/A : dict
+        Represents the layout of the signal.
+
+    """
+    return go.Scatter({
+        'x': x_vals,
+        'y': y_vals.astype('float16'),
+        'xaxis': x_string,
+        'yaxis': y_string,
+        'type': 'scatter',
+        'line': {
+            'color': sig_color,
+            'width': sig_thickness
+        },
+        'name': sig_name
+    })
+
+
+def get_annotation(min_val, max_val, x_string, y_string, ann_color):
+    """
+    Plot the annotations for the signal. Should always be at the x=0 line for
+    viewing machine annotations. Make the line big enough to appear it's of
+    infinite height on initial load, but limit its height to increase speed.
+    For more info:
+    https://plotly.com/python/reference/layout/shapes/#layout-shapes
+
+    Parameters
+    ----------
+    min_val : float, int
+        The minimum value of the signal.
+    max_val : float, int
+        The maximum value of the signal.
+    x_string : str
+        Which x-axis the annotation is bound to.
+    y_string : str
+        Which y-axis the annotation is bound to.
+    ann_color : str
+        A string of the RGB representation of the desired annotation color.
+        Ex: 'rgb(20,40,100)'
+
+    Returns
+    -------
+    N/A : dict
+        Represents the annotation shape for the plot.
+
+    """
+    y_range = max_val - min_val
+    y_start = min_val - (0.5 * y_range)
+    y_stop = max_val + (0.5 * y_range)
+
+    return {
+        'type': 'line',
+        'x0': 0,
+        'y0': y_start,
+        'x1': 0,
+        'y1': y_stop,
+        'xref': x_string,
+        'yref': y_string,
+        'line': {
+            'color': ann_color,
+            'width': 3
+        }
+    }
+
+
+def get_xaxis(vals, grid_delta_major, show_ticks, title, zoom_fixed, grid_color,
+              zeroline_state, window_size_min, window_size_max):
+    """
+    Generate a dictionary that is used to generate and format the x-axis for
+    the figure. For more info:
+    https://plotly.com/python/reference/scatter/#scatter-xaxis
+
+    Parameters
+    ----------
+    vals : list
+        The tick values.
+    grid_delta_major : float, int
+        The spacing of the gridlines.
+    show_ticks : bool
+        Show the axis ticks and labels (True) or not (False).
+    title : str
+        The title to be placed on the x-axis.
+    zoom_fixed : bool
+        If True, prevent the user from scaling the x-axis. This applies to
+        both the horizontal drag animation on the x-axis and "Zoom" button
+        when selecting the bounding box.
+    grid_color : str
+        A string of the RGB representation of the desired color.
+        Ex: `rgb(20,40,100)`
+    zeroline_state : bool
+        Display the zeroline on the grid (True) or not (False).
+    window_size_min : float, int
+        The initial minimum range to display on the x-axis.
+    window_size_max : float, int
+        The initial maximum range to display on the x-axis.
+
+    Returns
+    -------
+    N/A : dict
+        Formatted information about the x-axis.
+
+    """
+    if show_ticks:
+        tick_vals = [round(n,1) for n in np.arange(min(vals), max(vals), grid_delta_major).tolist()]
+        tick_text = [str(round(n)) if n%1 == 0 else '' for n in tick_vals]
+    else:
+        tick_vals = None
+        tick_text = None
+
+    return {
+        'title': title,
+        'fixedrange': zoom_fixed,
+        'dtick': 0.2,
+        'showticklabels': show_ticks,
+        'tickvals': tick_vals,
+        'ticktext': tick_text,
+        'tickangle': 0,
+        'gridcolor': grid_color,
+        'gridwidth': 1,
+        'zeroline': zeroline_state,
+        'zerolinewidth': 1,
+        'zerolinecolor': grid_color,
+        'range': [-window_size_min, window_size_max],
+        'showspikes': True,
+        'spikemode': 'across',
+        'spikesnap': 'cursor',
+        'showline': True,
+    }
+
+
+def get_yaxis(title, zoom_fixed, grid_state, tick_vals, tick_text, grid_color,
+              zeroline_state, min_val, max_val):
+    """
+    Generate a dictionary that is used to generate and format the y-axis for
+    the figure. For more info:
+    https://plotly.com/python/reference/scatter/#scatter-yaxis
+
+    Parameters
+    ----------
+    title : str
+        The title to be placed on the y-axis.
+    zoom_fixed : bool, optional
+        If True, prevent the user from scaling the y-axis. This applies to
+        both the vertical drag animation on the y-axis and "Zoom" button when
+        selecting the bounding box.
+    grid_state : bool
+        Display the grid on the y-axis (True) or not (False).
+    tick_vals : list
+        The values where the ticks will be placed.
+    tick_text : list
+        The label for each respective tick location.
+    grid_color : str, optional
+        A string of the RGB representation of the desired color.
+        Ex: `rgb(20,40,100)`
+    zeroline_state : bool
+        Display the zeroline on the grid (True) or not (False).
+    min_val : float, int
+        The minimum value of the signal.
+    max_val : float, int
+        The maximum value of the signal.
+
+    Returns
+    -------
+    N/A : dict
+        Formatted information about the y-axis.
+
+    """
+    return {
+        'title': title,
+        'fixedrange': zoom_fixed,
+        'showgrid': grid_state,
+        'showticklabels': True,
+        'tickvals': tick_vals,
+        'ticktext': tick_text,
+        'gridcolor': grid_color,
+        'zeroline': zeroline_state,
+        'zerolinewidth': 1,
+        'zerolinecolor': grid_color,
+        'gridwidth': 1,
+        'range': [min_val, max_val],
+    }
+
+
 def get_header_info(file_path):
     """
     Return all records/events in header from file path
@@ -500,36 +797,12 @@ def update_graph(dropdown_event, dropdown_rec):
     index_stop = int(fs * (event_time + time_range_max))
 
     # Set the initial layout of the figure
-    # For more info: https://plotly.com/python/subplots/
-    fig = make_subplots(
-        rows = 4,
-        cols = 1,
-        shared_xaxes = True,
-        vertical_spacing = 0
+    fig = get_subplot(4)
+    fig.update_layout(
+        get_layout(fig_height, fig_width, margin_left, margin_top,
+                   margin_right, margin_bottom, n_sig, drag_mode,
+                   background_color)
     )
-    # For more info: https://plotly.com/python/reference/layout/
-    fig.update_layout({
-        'height': fig_height,
-        'width': fig_width,
-        'margin': {'l': margin_left,
-                   't': margin_top,
-                   'r': margin_right,
-                   'b': margin_bottom},
-        'grid': {
-            'rows': n_sig,
-            'columns': 1,
-            'pattern': 'independent'
-        },
-        'showlegend': False,
-        'hovermode': 'x',
-        'dragmode': drag_mode,
-        'spikedistance':  -1,
-        'plot_bgcolor': background_color,
-        'paper_bgcolor': '#ffffff',
-        'font': {
-            'size': 12
-        }
-    })
 
     # Put all EKG signals before BP and RESP, then all others following
     sig_order = []
@@ -614,94 +887,37 @@ def update_graph(dropdown_event, dropdown_rec):
             y_tick_text = [str(n) for n in y_tick_vals]
 
         # Create the signal to plot
-        # For more info: https://plotly.com/python/reference/scatter/#scatter
-        fig.add_trace(go.Scatter({
-            'x': x_vals,
-            'y': y_vals.astype('float16'),
-            'xaxis': x_string,
-            'yaxis': y_string,
-            'type': 'scatter',
-            'line': {
-                'color': sig_color,
-                'width': sig_thickness
-            },
-            'name': sig_name[r]
-        }), row = idx+1, col = 1)
+        fig.add_trace(
+            get_trace(x_vals, y_vals, x_string, y_string, sig_color,
+                      sig_thickness, sig_name[r]),
+            row = idx+1, col = 1)
+
         # Display where the event is
-        # For more info: https://plotly.com/python/reference/layout/shapes/#layout-shapes
-        fig.add_shape({
-            'type': 'line',
-            'x0': 0,
-            'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
-            'x1': 0,
-            'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
-            'xref': x_string,
-            'yref': y_string,
-            'line': {
-                'color': ann_color,
-                'width': 3
-            }
-        })
+        fig.add_shape(
+            get_annotation(min_y_vals, max_y_vals, x_string, y_string,
+                           ann_color))
 
         # Set the initial x-axis parameters
-        # For more info: https://plotly.com/python/reference/scatter/#scatter-xaxis
-        x_tick_vals = [round(n,1) for n in np.arange(min(x_vals), max(x_vals), grid_delta_major).tolist()]
-        x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
         if idx != (n_sig - 1):
-            fig.update_xaxes({
-                'title': None,
-                'fixedrange': x_zoom_fixed,
-                'dtick': 0.2,
-                'showticklabels': False,
-                'gridcolor': grid_color,
-                'gridwidth': 1,
-                'zeroline': zeroline_state,
-                'zerolinewidth': 1,
-                'zerolinecolor': grid_color,
-                'range': [-window_size_min, window_size_max],
-                'showspikes': True,
-                'spikemode': 'across',
-                'spikesnap': 'cursor',
-                'showline': True,
-            }, row = idx+1, col = 1)
+            fig.update_xaxes(
+                get_xaxis(x_vals, grid_delta_major, False, None, x_zoom_fixed,
+                          grid_color, zeroline_state, window_size_min,
+                          window_size_max),
+                row = idx+1, col = 1)
         else:
             # Add the x-axis title to the bottom figure
-            fig.update_xaxes({
-                'title': 'Time Since Event (s)',
-                'fixedrange': x_zoom_fixed,
-                'dtick': 0.2,
-                'showticklabels': True,
-                'tickvals': x_tick_vals,
-                'ticktext': x_tick_text,
-                'tickangle': 0,
-                'gridcolor': grid_color,
-                'gridwidth': 1,
-                'zeroline': zeroline_state,
-                'zerolinewidth': 1,
-                'zerolinecolor': grid_color,
-                'range': [-window_size_min, window_size_max],
-                'showspikes': True,
-                'spikemode': 'across',
-                'spikesnap': 'cursor',
-                'showline': True,
-            }, row = idx+1, col = 1)
+            fig.update_xaxes(
+                get_xaxis(x_vals, grid_delta_major, True,
+                          'Time Since Event (s)', x_zoom_fixed, grid_color,
+                          zeroline_state, window_size_min, window_size_max),
+                row = idx+1, col = 1)
 
         # Set the initial y-axis parameters
-        # For more info: https://plotly.com/python/reference/scatter/#scatter-yaxis
-        fig.update_yaxes({
-            'title': sig_name[r] + ' (' + units[r] + ')',
-            'fixedrange': y_zoom_fixed,
-            'showgrid': grid_state,
-            'showticklabels': True,
-            'tickvals': y_tick_vals,
-            'ticktext': y_tick_text,
-            'gridcolor': grid_color,
-            'zeroline': zeroline_state,
-            'zerolinewidth': 1,
-            'zerolinecolor': grid_color,
-            'gridwidth': 1,
-            'range': [min_y_vals, max_y_vals],
-        }, row = idx+1, col = 1)
+        fig.update_yaxes(
+            get_yaxis(f'{sig_name[r]} ({units[r]})', y_zoom_fixed, grid_state,
+                      y_tick_vals, y_tick_text, grid_color, zeroline_state,
+                      min_y_vals, max_y_vals),
+            row = idx+1, col = 1)
 
         fig.update_traces(xaxis = x_string)
 
