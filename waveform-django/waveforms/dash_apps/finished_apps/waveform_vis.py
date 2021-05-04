@@ -522,12 +522,100 @@ def get_dropdown(dropdown_value):
     return dropdown_value
 
 
+def order_sigs(ekg_sigs, sig_name):
+    """
+    Put all EKG signals before BP and RESP, then all others following.
+
+    Parameters
+    ----------
+    sig_name : list[str]
+        The list of signal names in the order from the WFDB record.
+
+    Returns
+    -------
+    sig_order : list[str]
+        The ordered list of signal names.
+
+    """
+    sig_order = []
+    bp_sigs = {'ABP'}
+    resp_sigs = {'RESP'}
+    if any(x not in ekg_sigs for x in sig_name):
+        for i,s in enumerate(sig_name):
+            if s in ekg_sigs:
+                sig_order.append(i)
+        # TODO: Could maybe do this faster using sets
+        for bps in bp_sigs:
+            if bps in sig_name:
+                sig_order.append(sig_name.index(bps))
+        for resps in resp_sigs:
+            if resps in sig_name:
+                sig_order.append(sig_name.index(resps))
+        for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
+            sig_order.append(sig_name.index(s))
+    else:
+        sig_order = range(n_sig)
+    return sig_order
+
+
+def format_y_vals(sig_order, sig_name, ekg_sigs, record, index_start,
+                  index_stop, down_sample_ekg, down_sample):
+    """
+    Format the y-values and separate the EKG signals to window them together.
+
+    Parameters
+    ----------
+    sig_order : list[int]
+        The ordered list of signal names from `order_sigs`.
+    sig_name : list[int]
+        The list of signal names in the order from the WFDB record.
+    ekg_sigs : list[str]
+        The list of all of the EKG signals.
+    record : wfdb.io.record.Record object
+        The WFDB record for the signal.
+    index_start : int
+        Where to start reading the signal.
+    index_stop : int
+        Where to stop reading the signal.
+    down_sample_ekg : int
+        The amount of downsampling for EKG signals.
+    down_sample : int
+        The amount of downsampling for non-EKG signals.
+
+    Returns
+    -------
+    ekg_y_vals : ndarray
+        Only the EKG signals.
+    all_y_vals : ndarray
+        All of the signals, including the EKG signals.
+
+    """
+    all_y_vals = []
+    ekg_y_vals = []
+    for r in sig_order:
+        sig_name_index = sig_name.index(sig_name[r])
+        if sig_name[r] in ekg_sigs:
+            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample_ekg]
+        else:
+            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
+        current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
+        all_y_vals.append(current_y_vals)
+        # Find unified range for all EKG signals
+        if sig_name[r] in ekg_sigs:
+            ekg_y_vals.append(current_y_vals)
+
+    # NOTE: Assuming there are always EKG signals
+    ekg_y_vals = np.stack(ekg_y_vals).flatten()
+    return ekg_y_vals, all_y_vals
+
+
 def window_signal(y_vals):
     """
-    This uses the Coefficient of Variation (CV) approach to determine
-    significant changes in the signal then return the adjusted minimum
-    and maximum range... If a significant variation is signal is found
-    then filter out extrema using normal distribution.
+    Filter out extreme values from being shown on graph range. This uses the
+    Coefficient of Variation (CV) approach to determine significant changes in
+    the signal then return the adjusted minimu and maximum range... If a
+    significant variation is signal is found then filter out extrema using
+    normal distribution.
 
     Parameters
     ----------
@@ -938,46 +1026,12 @@ def update_graph(dropdown_event, dropdown_rec):
                    background_color)
     )
 
-    # Put all EKG signals before BP and RESP, then all others following
-    sig_order = []
+    # Collect all of the signals and format their graph attributes
     ekg_sigs = {'II', 'III', 'V'}
-    bp_sigs = {'ABP'}
-    resp_sigs = {'RESP'}
-    if any(x not in ekg_sigs for x in sig_name):
-        for i,s in enumerate(sig_name):
-            if s in ekg_sigs:
-                sig_order.append(i)
-        # TODO: Could maybe do this faster using sets
-        for bps in bp_sigs:
-            if bps in sig_name:
-                sig_order.append(sig_name.index(bps))
-        for resps in resp_sigs:
-            if resps in sig_name:
-                sig_order.append(sig_name.index(resps))
-        for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
-            sig_order.append(sig_name.index(s))
-    else:
-        sig_order = range(n_sig)
-
-    # Collect all the signals
-    all_y_vals = []
-    ekg_y_vals = []
-    for r in sig_order:
-        sig_name_index = sig_name.index(sig_name[r])
-        if sig_name[r] in ekg_sigs:
-            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample_ekg]
-        else:
-            current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
-        current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
-        all_y_vals.append(current_y_vals)
-        # Find unified range for all EKG signals
-        if sig_name[r] in ekg_sigs:
-            ekg_y_vals.append(current_y_vals)
-
-    # NOTE: Assuming there are always EKG signals
-    # Flatten and change data type to prevent overflow
-    ekg_y_vals = np.stack(ekg_y_vals).flatten()
-    # Filter out extreme values from being shown on graph range
+    sig_order = order_sigs(ekg_sigs, sig_name)
+    ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, ekg_sigs,
+                                           record, index_start, index_stop,
+                                           down_sample_ekg, down_sample)
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
@@ -988,16 +1042,17 @@ def update_graph(dropdown_event, dropdown_rec):
         x_string = 'x' + str(idx+1)
         y_string = 'y' + str(idx+1)
         # Generate the waveform x-values and y-values
+        x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)]
         y_vals = all_y_vals[idx]
         # Set the initial y-axis parameters
+        grid_state = True
+        zeroline_state = False
         if sig_name[r] in ekg_sigs:
-            # Generate the x-values
-            x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)][::down_sample_ekg]
+            # Generate the downsampled x-values
+            x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
-            grid_state = True
             dtick_state = grid_delta_major
-            zeroline_state = False
             # Create the ticks
             y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
@@ -1005,14 +1060,12 @@ def update_graph(dropdown_event, dropdown_rec):
             # Create the labels
             y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
-            # Generate the x-values
-            x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)][::down_sample]
+            # Generate the downsampled x-values
+            x_vals = x_vals[::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
             min_y_vals, max_y_vals = window_signal(y_vals)
             # Set all the graph parameters
-            grid_state = True
             dtick_state = None
-            zeroline_state = False
             x_tick_vals = []
             x_tick_text = []
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
