@@ -321,7 +321,7 @@ def get_xaxis(vals, grid_delta_major, show_ticks, title, zoom_fixed, grid_color,
 
     Parameters
     ----------
-    vals : list
+    vals : list[float,int]
         The tick values.
     grid_delta_major : float, int
         The spacing of the gridlines.
@@ -394,9 +394,9 @@ def get_yaxis(title, zoom_fixed, grid_state, tick_vals, tick_text, grid_color,
         selecting the bounding box.
     grid_state : bool
         Display the grid on the y-axis (True) or not (False).
-    tick_vals : list
+    tick_vals : list[float,int]
         The values where the ticks will be placed.
-    tick_text : list
+    tick_text : list[str]
         The label for each respective tick location.
     grid_color : str, optional
         A string of the RGB representation of the desired color.
@@ -432,7 +432,19 @@ def get_yaxis(title, zoom_fixed, grid_state, tick_vals, tick_text, grid_color,
 
 def get_header_info(file_path):
     """
-    Return all records/events in header from file path
+    Return all records/events in header from file path.
+
+    Parameters
+    ----------
+    file_path : str
+        The directory of the record file to be read.
+
+    Returns
+    -------
+    file_contents : list[str]
+        The stripped and cleaned lines of the record file. Essentially, all
+        of the records to be read.
+
     """
     records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
@@ -444,6 +456,18 @@ def get_header_info(file_path):
 def get_current_ann():
     """
     Returns either the record or event value of the current annotation.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : str
+        The current record.
+    N/A : str
+        The current event.
+
     """
     # Get the current user's annotations
     current_user = User.objects.get(username=get_current_user())
@@ -477,7 +501,19 @@ def get_current_ann():
 
 def get_dropdown(dropdown_value):
     """
-    Retrieve the dropdown value from its dash context
+    Retrieve the dropdown value from its dash context.
+
+    Parameters
+    ----------
+    dropdown_value : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current state of the app.
+
+    Returns
+    -------
+    dropdown_value : str
+        The current selected dropdown.
+
     """
     try:
         dropdown_value = dropdown_value[0]['props']['children'][0]
@@ -491,7 +527,20 @@ def window_signal(y_vals):
     This uses the Coefficient of Variation (CV) approach to determine
     significant changes in the signal then return the adjusted minimum
     and maximum range... If a significant variation is signal is found
-    then filter out extrema using normal distribution
+    then filter out extrema using normal distribution.
+
+    Parameters
+    ----------
+    y_vals : numpy array
+        The y-values of the signal.
+
+    Returns
+    -------
+    min_y_vals : float, int
+        The minimum y-value of the windowed signal.
+    max_y_vals : float, int
+        The maximum y-value of the windowed signal.
+
     """
     # Load in the default variables
     current_user = User.objects.get(username=get_current_user())
@@ -520,12 +569,28 @@ def window_signal(y_vals):
     return min_y_vals, max_y_vals
 
 
-# Clear/preset reviewer decision and comments
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
     [dash.dependencies.Input('temp_event', 'value')])
 def clear_text(temp_event):
+    """
+    Clear the reviewer decision and comments if none has been created or load
+    them otherwise when loading a new record and event.
+
+    Parameters
+    ----------
+    temp_event : str
+        The current event.
+
+    Returns
+    -------
+    N/A : str
+        The decision of the user.
+    N/A : str
+        The comments of the user.
+
+    """
     current_user = get_current_user()
     if (temp_event != '') and (temp_event != None) and (current_user != ''):
         # Get the decision
@@ -542,7 +607,6 @@ def clear_text(temp_event):
         return None, ''
 
 
-# Dynamically update the record given the current record and event
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'children'),
      dash.dependencies.Output('dropdown_event', 'children')],
@@ -558,6 +622,38 @@ def clear_text(temp_event):
 def get_record_event_options(click_submit, click_previous, click_next,
                              set_record, set_event, record_value, event_value,
                              decision_value, comments_value):
+    """
+    Dynamically update the record given the current record and event.
+
+    Parameters
+    ----------
+    click_submit : int
+        The timestamp if the submit button was clicked in ms from epoch.
+    click_previous : int
+        The timestamp if the previous button was clicked in ms from epoch.
+    click_next : int
+        The timestamp if the next button was clicked in ms from epoch.
+    set_record : str
+        The desired record.
+    set_event : str
+        The desired event.
+    record_value : str
+        The current record.
+    event_value : str
+        The current event.
+    decision_value : str
+        The decision of the user.
+    comments_value : str
+        The comments of the user.
+
+    Returns
+    -------
+    return_record : list[html.Span object]
+        The current record in HTML form so it can be rendered on the page.
+    return_event : list[html.Span object]
+        The current event in HTML form so it can be rendered on the page.
+
+    """
     # Determine what triggered this function
     ctx = dash.callback_context
     # Prepare to return the record and event value
@@ -699,7 +795,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
     return return_record, return_event
 
 
-# Update the event text and set_event
 @app.callback(
     [dash.dependencies.Output('event_text', 'children'),
      dash.dependencies.Output('temp_record', 'value'),
@@ -707,6 +802,28 @@ def get_record_event_options(click_submit, click_previous, click_next,
     [dash.dependencies.Input('dropdown_rec', 'children'),
      dash.dependencies.Input('dropdown_event', 'children')])
 def update_text(dropdown_rec, dropdown_event):
+    """
+    Update the event text and set_event.
+
+    Parameters
+    ----------
+    dropdown_rec : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current record.
+    dropdown_event : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current record.
+
+    Returns
+    -------
+    event_text : list[html.Span object]
+        The current event in HTML form so it can be rendered on the page.
+    dropdown_rec : str
+        The new selected record.
+    dropdown_event
+        The new selected event.
+
+    """
     # Get the header file
     event_text = html.Span([''], style={'fontSize': event_fontsize})
     # Determine the record
@@ -728,12 +845,29 @@ def update_text(dropdown_rec, dropdown_event):
     return event_text, dropdown_rec, dropdown_event
 
 
-# Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_event', 'children')],
     [dash.dependencies.State('dropdown_rec', 'children')])
 def update_graph(dropdown_event, dropdown_rec):
+    """
+    Run the app and render the waveforms using the chosen initial conditions.
+
+    Parameters
+    ----------
+    dropdown_event : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current record.
+    dropdown_rec : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current record.
+
+    Returns
+    -------
+    N/A : plotly.subplots
+        The final figure.
+
+    """
     # Load in the default variables
     current_user = User.objects.get(username=get_current_user())
     user_settings = UserSettings.objects.get(user=current_user)
