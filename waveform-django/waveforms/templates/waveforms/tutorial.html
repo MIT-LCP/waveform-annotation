@@ -26,6 +26,20 @@
     </tr>
   </table>
   <h1>Annotator Tutorial</h1>
+  <h2>Basic Usage Instructions</h2>
+  <div><ul>
+    <li>After logging in, you should see your username with the option to logout in the top left corner.</li>
+    <li>Below that, you should see links to <a href="{% url 'render_annotations' %}">view your current annotations</a>, view a brief tutorial explaining the layout of the annotator (this page), and <a href="{% url 'viewer_settings' %}">a way to change the settings / preferences of your annotator</a> (including grid color, time before and after an event, the level of downsampling, etc.).</li>
+    <li>To begin annotating, go to the <a href="{% url 'waveform_published_home' %}">annotator home</a> and scroll down to view the entire annotator.
+    <li>On the top left side, you should see the name of the current annotation record, event, and label (It has been filtered so only VTach and VFib/VFlutter events are displayed. Please let us know if you see otherwise!).</li>
+    <li>Directly below this is where you can enter your decision for the label (True, False, or Uncertain) as well as your additional comments explaining your decision (this field is not necessary but may prove useful later on for either self-reference or research purposes).</li>
+    <li>You can submit the annotation with the "Submit" button, or go to the next or previous annotation without saving using the arrows. Submitting the annotation will automatically send you to the next event.</li>
+    <li>If you hover over the signals, you will be able to see its value and how it aligns with the other signals.</li>
+    <li>Also, you can click and drag the signal in any direction to view more of it.</li>
+    <li>At any point, you can view all of your previous annotations with the "<a href="{% url 'render_annotations' %}">View current annotations</a>" link and either edit or delete them if needed. You will also be able to see your progress on the annotations using the fractions on the far right side. Also note that if you reload the annotator home page at any point, you will be forwarded to your first non-annotated event.</li>
+    <li>You can also adjust the settings for the annotator using the "<a href="{% url 'viewer_settings' %}">Change annotator settings</a>" link; for example, you can reduce the downsampling to view more detail on the EKG signals if needed.</li>
+  </ul></div>
+  <h2>Interface Overview</h2>
   <div>
     <div class='col-4' style='display: inline-block;'>
       <ol>
