@@ -9,11 +9,10 @@
   <div class="container">
     <div>
       <div>
-
+        <br />
         <div>
           <h3>LOGIN</h3>
         </div>
-
         <div>
           <form method="POST" action="">
             {% csrf_token %}
@@ -28,13 +27,11 @@
             </div>
           </form>
         </div>
-
         {% for message in messages %}
           <p id="messages">
             {{ message }}
           </p>
         {% endfor %}	
-
         <div>
           <div>
             Don't have an account? <a href="{% url 'register' %}">Sign Up</a>
@@ -43,7 +40,15 @@
             Forgot your password? <a href="{% url 'password_reset' %}">Reset Password</a>
           </div>
         </div>
-
+        <br />
+        <div>
+          <h4>Instructions</h4>
+          <p><ol>
+            <li>To start, click on the "Sign Up" link below the "Login" button to create an account.</li>
+            <li>Enter your desired username and password. You will be asked to enter your password twice to confirm.</li>
+            <li>After creating an account, you can now sign in here.</li>
+          </ol></p>
+        </div>
       </div>
     </div>
   </div>
