@@ -158,13 +158,14 @@ def render_annotations(request):
 
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
-    all_annotations = Annotation.objects.filter(user=user)
-    records = [a.record for a in all_annotations]
-    events = [a.event for a in all_annotations]
+    completed_annotations = Annotation.objects.filter(user=user)
+    completed_records = [a.record for a in completed_annotations]
+    completed_events = [a.event for a in completed_annotations]
 
     # Hold all of the annotation information
     total_anns = 0
-    all_anns = {}
+    completed_anns = {}
+    incompleted_anns = {}
 
     for rec in all_records:
         # Get the events
@@ -175,22 +176,28 @@ def render_annotations(request):
         total_anns += len(temp_events)
 
         # Add annotations by event
-        temp_anns = []
+        temp_completed_anns = []
+        temp_incompleted_anns = []
         for evt in temp_events:
-            if (rec in records) and (evt in events):
-                ann = all_annotations[events.index(evt)]
-                temp_anns.append([ann.event,
-                                  ann.decision,
-                                  ann.comments,
-                                  ann.decision_date])
+            if (rec in completed_records) and (evt in completed_events):
+                ann = completed_annotations[completed_events.index(evt)]
+                temp_completed_anns.append([ann.event,
+                                            ann.decision,
+                                            ann.comments,
+                                            ann.decision_date])
             else:
-                temp_anns.append([evt, '-', '-', '-'])
+                temp_incompleted_anns.append([evt, '-', '-', '-'])
 
         # Get the completion stats for each record
-        num_complete = len([a[3] for a in temp_anns if a[3] != '-'])
-        progress_stats = '{}/{}'.format(num_complete, len(temp_anns))
-        temp_anns.insert(0, progress_stats)
-        all_anns[rec] = temp_anns
+        if temp_completed_anns != []:
+            progress_stats = '{}/{}'.format(len(temp_completed_anns),
+                                            len(temp_completed_anns))
+            temp_completed_anns.insert(0, progress_stats)
+            completed_anns[rec] = temp_completed_anns
+        if temp_incompleted_anns != []:
+            progress_stats = '0/{}'.format(len(temp_incompleted_anns))
+            temp_incompleted_anns.insert(0, progress_stats)
+            incompleted_anns[rec] = temp_incompleted_anns
 
     # Categories to display for the annotations
     categories = [
@@ -200,11 +207,12 @@ def render_annotations(request):
         'decision_date'
     ]
 
-    all_anns_frac = f'{len(all_annotations)}/{total_anns}'
+    all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
 
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
-        'all_anns': all_anns})
+        'completed_anns': completed_anns,
+        'incompleted_anns': incompleted_anns})
 
 
 @login_required
