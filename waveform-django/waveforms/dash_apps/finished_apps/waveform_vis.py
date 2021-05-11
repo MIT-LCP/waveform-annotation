@@ -959,35 +959,30 @@ def update_graph(dropdown_event, dropdown_rec):
     # Load in the default variables
     current_user = User.objects.get(username=get_current_user())
     user_settings = UserSettings.objects.get(user=current_user)
-    # The figure height and width
     fig_height = user_settings.fig_height
     fig_width = user_settings.fig_width
-    # The figure margins
+    # The figure margins / padding around the graph div
     margin_left = user_settings.margin_left
     margin_top = user_settings.margin_top
     margin_right = user_settings.margin_right
     margin_bottom = user_settings.margin_bottom
-    # Grid color
     grid_color = user_settings.grid_color
-    # Background color
     background_color = user_settings.background_color
-    # The color and thickness of the signal
     sig_color = user_settings.sig_color
     sig_thickness = user_settings.sig_thickness
-    # The color of the annotation
     ann_color = user_settings.ann_color
-    # ECG gridlines parameters
+    # EKG gridlines parameters (typically 0.2 as per paper standards)
     grid_delta_major = user_settings.grid_delta_major
-    # Set the maximum number of y-labels
     max_y_labels = user_settings.max_y_labels
     # Down-sample signal to increase performance: make higher if non-EKG
     # Average starting frequency = 250 Hz
     down_sample_ekg = user_settings.down_sample_ekg
     down_sample = user_settings.down_sample
-    # How much signal should be displayed before and after event (seconds)
+    # How much signal should be displayed before and after the event (seconds)
     time_range_min = user_settings.time_range_min
     time_range_max = user_settings.time_range_max
-    # How much signal should be displayed initially before and after event (seconds)
+    # How much signal should be displayed initially before and after the
+    # event (seconds)
     window_size_min = user_settings.window_size_min
     window_size_max = user_settings.window_size_max
 
@@ -997,14 +992,11 @@ def update_graph(dropdown_event, dropdown_rec):
     # Set the initial dragmode (`zoom`, `pan`, etc.)
     # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
     drag_mode = 'pan'
-    # Set the zoom restrictions
     x_zoom_fixed = False
     y_zoom_fixed = False
-    # Determine the input record and event
     dropdown_rec = get_dropdown(dropdown_rec)
     dropdown_event = get_dropdown(dropdown_event)
 
-    # Set some initial conditions
     record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
@@ -1027,6 +1019,7 @@ def update_graph(dropdown_event, dropdown_rec):
     )
 
     # Collect all of the signals and format their graph attributes
+    # Only II, III, and V signal names were collected here, append if needed
     ekg_sigs = {'II', 'III', 'V'}
     sig_order = order_sigs(ekg_sigs, sig_name)
     ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, ekg_sigs,
@@ -1037,18 +1030,16 @@ def update_graph(dropdown_event, dropdown_rec):
     min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
     max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
 
-    # Name the axes to create the subplots
+    # Name the axes and create the subplots
     for idx,r in enumerate(sig_order):
         x_string = 'x' + str(idx+1)
         y_string = 'y' + str(idx+1)
-        # Generate the waveform x-values and y-values
         x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)]
         y_vals = all_y_vals[idx]
         # Set the initial y-axis parameters
         grid_state = True
         zeroline_state = False
         if sig_name[r] in ekg_sigs:
-            # Generate the downsampled x-values
             x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
@@ -1060,7 +1051,6 @@ def update_graph(dropdown_event, dropdown_rec):
             # Create the labels
             y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
-            # Generate the downsampled x-values
             x_vals = x_vals[::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
             min_y_vals, max_y_vals = window_signal(y_vals)
@@ -1073,18 +1063,15 @@ def update_graph(dropdown_event, dropdown_rec):
             # Create the labels
             y_tick_text = [str(n) for n in y_tick_vals]
 
-        # Create the signal to plot
         fig.add_trace(
             get_trace(x_vals, y_vals, x_string, y_string, sig_color,
                       sig_thickness, sig_name[r]),
             row = idx+1, col = 1)
 
-        # Display where the event is
         fig.add_shape(
             get_annotation(min_y_vals, max_y_vals, x_string, y_string,
                            ann_color))
 
-        # Set the initial x-axis parameters
         if idx != (n_sig - 1):
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, False, None, x_zoom_fixed,
@@ -1092,14 +1079,12 @@ def update_graph(dropdown_event, dropdown_rec):
                           window_size_max),
                 row = idx+1, col = 1)
         else:
-            # Add the x-axis title to the bottom figure
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, True,
                           'Time Since Event (s)', x_zoom_fixed, grid_color,
                           zeroline_state, window_size_min, window_size_max),
                 row = idx+1, col = 1)
 
-        # Set the initial y-axis parameters
         fig.update_yaxes(
             get_yaxis(f'{sig_name[r]} ({units[r]})', y_zoom_fixed, grid_state,
                       y_tick_vals, y_tick_text, grid_color, zeroline_state,
