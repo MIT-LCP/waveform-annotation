@@ -50,12 +50,13 @@
       </th>
     </tr>
   </table>
-  <h1>Current Annotations</h1>
+  <h1>All Annotations</h1>
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
-  </div>
-  {% for rec,info in all_anns.items %}
+  </div><br /><br />
+  <div><h2>Incomplete Annotations</h2></div>
+  {% for rec,info in incompleted_anns.items %}
     <button class="accordion">
       <span style="float: left;">{{ rec }}</span>
       <span style="float: right;">{{ info.0 }}</span>
@@ -92,7 +93,46 @@
       </table>
     </div>
   {% endfor %}
-</div>
+  <br />
+  <div><h2>Complete Annotations</h2></div>
+  {% for rec,info in completed_anns.items %}
+    <button class="accordion">
+      <span style="float: left;">{{ rec }}</span>
+      <span style="float: right;">{{ info.0 }}</span>
+    </button>
+    <div class="panel">
+      <table style="width:100%">
+        <!-- Header names of the columns -->
+        <tr>
+          {% for cat in categories %}
+            <th>
+              {{ cat }}
+            </th>
+          {% endfor %}
+        </tr>
+        <!-- Values of each column -->
+        {% for val in info|slice:"1:" %}
+          <tr>
+            {% for v in val %}
+              <td>
+                {{ v }}
+              </td>
+            {% endfor %}
+            <td>
+              <a href="{% url 'waveform_published_specific' rec val.0 %}">Edit annotation</a>
+            </td>
+            <!-- Only display if annotation (timestamp) is found -->
+            {% if val.3 != "-" %}
+              <td>
+                <a href="{% url 'delete_annotation' rec val.0 %}">Delete annotation</a>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% endfor %}
+</div><br />
 
 <script>
   var acc = document.getElementsByClassName("accordion");
