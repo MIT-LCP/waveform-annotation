@@ -20,31 +20,33 @@ class GraphSettings(forms.ModelForm):
         help_texts = {
             'fig_height': """The figure height""",
             'fig_width': """The figure width""",
-            'margin_left': """The left margin of the figure""",
-            'margin_top': """The top margin of the figure""",
-            'margin_right': """The right margin of the figure""",
-            'margin_bottom': """The bottom margin of the figure""",
+            'margin_left': """The padding to the left of the figure""",
+            'margin_top': """The padding to the top of the figure""",
+            'margin_right': """The padding to the right of the figure""",
+            'margin_bottom': """The padding to the bottom of the figure""",
             'grid_color': """The grid color""",
             'background_color': """The background color""",
             'sig_color': """The color of the signal""",
             'sig_thickness': """The thickness of the signal""",
-            'ann_color': """The color of the annotation (zero-line)""",
-            'grid_delta_major': """EKG gridlines parameters / spacing""",
-            'max_y_labels': """Set the maximum number of y-axis labels per 
+            'ann_color': """The color of the event annotation (zero-line)""",
+            'grid_delta_major': """EKG gridline spacing in seconds (standard
+                EKG paper has large squares every 0.2 seconds)""",
+            'max_y_labels': """Set the maximum number of y-axis labels per
                 signal""",
-            'down_sample_ekg': """Down-sample EKG signal to increase 
+            'down_sample_ekg': """Downsample EKG signal to increase
                 performance (average starting frequency = 250 Hz)""",
-            'down_sample': """Down-sample non-EKG signals (usually higher
-                than EKG down-sampling rate)""",
+            'down_sample': """Downsample non-EKG signals to increase
+                performance (usually higher than EKG downsampling rate since
+                it consists of lower frequency signals)""",
             'signal_std': """The number of standard deviations to be shown
-                from the signal mean.""",
-            'time_range_min': """How much total signal should be displayed 
+                on each side from the signal mean""",
+            'time_range_min': """How much total signal should be displayed
                 before the event (seconds)""",
-            'time_range_max': """How much total signal should be displayed 
+            'time_range_max': """How much total signal should be displayed
                 after the event (seconds)""",
-            'window_size_min': """How much initial signal should be displayed 
+            'window_size_min': """How much initial signal should be displayed
                 before the event (seconds)""",
-            'window_size_max': """How much initial signal should be displayed 
+            'window_size_max': """How much initial signal should be displayed
                 after the event (seconds)"""
         }
         widgets = {
