@@ -33,6 +33,7 @@ DEBUG_TOOLBAR_CONFIG = {
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
+HEAD_DIR = os.path.dirname(BASE_DIR)
 LOGIN_URL = 'login'
 
 # For password resets
@@ -81,7 +82,7 @@ MIDDLEWARE = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join('db','db.sqlite3'),
+        'NAME': os.path.join(HEAD_DIR,'db','db.sqlite3')
     }
 }
 
