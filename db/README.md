@@ -1,0 +1,1 @@
+This directory holds the db.sqlite3 file, which will be created after the first use of 'python manage.py runserver'  
