@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from waveforms import views
 from waveforms.models import User, UserSettings
 from .forms import CreateUserForm, ResetPasswordForm
-
+import datetime
 
 def register_page(request):
     """
@@ -28,8 +28,6 @@ def register_page(request):
                 UserSettings(user=new_user).save()
                 return redirect('login')
         return render(request, 'website/register.html', {'form': form})
-
-
 def login_page(request):
     """
     Login the user upon request.
@@ -39,10 +37,16 @@ def login_page(request):
     else:
         if request.method == 'POST':
             username = request.POST.get('username')
-            password =request.POST.get('password')
+            password = request.POST.get('password')
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
+
+                # Update when user last logged in
+                user = User.objects.get(username=request.user.username)
+                user.last_logged_in = datetime.datetime.now()
+                user.save()
+
                 if 'annotations' in request.environ['QUERY_STRING']:
                     return redirect('render_annotations')
                 else:

@@ -33,6 +33,7 @@
       <tr>
         <th>Username</th>
         <th>Join Date</th>
+        <th>Last Login</th>
         <th>Number of Annotations</th>
         <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
       </tr>
@@ -40,6 +41,7 @@
         <tr>
           <td>{{ u.username }}</td>
           <td>{{ u.join_date }}</td>
+          <td>{{ u.last_logged_in}}</td>
           <td>{{ u.num_annotations }}</td>
           <td>{{ u.new_settings }}</td>
         </tr>

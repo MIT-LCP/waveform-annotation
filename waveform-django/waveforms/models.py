@@ -1,10 +1,10 @@
 from django.db import models
-
-
+from django.contrib.auth.models import User
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False,
         default='')
     join_date = models.DateTimeField(auto_now_add=True)
+    last_logged_in = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
 
     def num_annotations(self):
