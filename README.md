@@ -11,6 +11,8 @@ Platform for annotating physiological waveform data.
 - Within the `waveform-django` directory:
   - Run: `python manage.py runserver` to run the server.
 - You should be able to access the waveform landing page at: <http://localhost:8000/waveform-annotation/waveforms/>
+- If you would like to test out the email features:
+  - Run: `python -m smtpd -n -c DebuggingServer localhost:1025` in another terminal tab. You should be able to see the content of the email which would have been sent on the live site. If you do not run this command first before testing out the email features, you will receive a `ConnectionRefusedError: [Errno 61] Connection refused` error.
 
 ## Basic server commands
 - To migrate new models:
