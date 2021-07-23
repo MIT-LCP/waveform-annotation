@@ -1,12 +1,12 @@
 import os
-import wfdb
-from waveforms import forms
-from website.settings import base
-from waveforms.models import User, Annotation, UserSettings
 
-from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
+from waveforms.forms import GraphSettings, InviteUserForm
+from waveforms.models import User, Annotation, UserSettings
+from website.settings import base
 
 
 @login_required
@@ -35,7 +35,6 @@ def waveform_published_home(request, set_record='', set_event=''):
     return render(request, 'waveforms/home.html', {'user': user,
         'dash_context': dash_context})
 
-
 @login_required
 def admin_console(request):
     """
@@ -54,6 +53,24 @@ def admin_console(request):
     user = User.objects.get(username=request.user.username)
     if not user.is_admin:
         return redirect('waveform_published_home')
+
+    invite_user_form = InviteUserForm()
+
+    if request.method == 'POST':
+        if 'invite_user' in request.POST:
+            invite_user_form = InviteUserForm(request.POST)
+            if invite_user_form.is_valid():
+                invite_user_form.save(
+                    from_email = 'help@waveform-annotation.com',
+                    request = request
+                )
+                messages.success(request,
+                    f'User was successfully invited.')
+            else:
+                messages.error(request,
+                    f"""An error occurred. User was not successfully
+                    contacted.""")
+
     # Find the files
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -127,8 +144,7 @@ def admin_console(request):
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'categories': categories, 'conflict_anns': conflict_anns,
         'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-        'all_users': all_users})
-
+        'all_users': all_users, 'invite_user_form': invite_user_form})
 
 @login_required
 def render_annotations(request):
@@ -214,7 +230,6 @@ def render_annotations(request):
         'completed_anns': completed_anns,
         'incompleted_anns': incompleted_anns})
 
-
 @login_required
 def delete_annotation(request, set_record, set_event):
     """
@@ -245,7 +260,6 @@ def delete_annotation(request, set_record, set_event):
         pass
     return render_annotations(request)
 
-
 @login_required
 def viewer_tutorial(request):
     """
@@ -263,7 +277,6 @@ def viewer_tutorial(request):
     """
     user = User.objects.get(username=request.user)
     return render(request, 'waveforms/tutorial.html', {'user': user})
-
 
 @login_required
 def viewer_settings(request):
@@ -288,7 +301,7 @@ def viewer_settings(request):
 
     if request.method == 'POST':
         if 'change_settings' in request.POST:
-            settings_form = forms.GraphSettings(user=user, data=request.POST,
+            settings_form = GraphSettings(user=user, data=request.POST,
                                                 instance=user_settings)
             if settings_form.is_valid():
                 settings_form.clean()
@@ -297,11 +310,11 @@ def viewer_settings(request):
             else:
                 messages.error(request, 'Invalid submission. See errors below.')
         elif 'reset_default' in request.POST:
-            settings_form = forms.GraphSettings(user=user, instance=user_settings)
+            settings_form = GraphSettings(user=user, instance=user_settings)
             settings_form.reset_default()
             return redirect('waveform_published_home')
     else:
-        settings_form = forms.GraphSettings(user=user, instance=user_settings)
+        settings_form = GraphSettings(user=user, instance=user_settings)
 
     return render(request, 'waveforms/settings.html', {'user': user,
         'settings_form': settings_form})
