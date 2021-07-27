@@ -522,43 +522,55 @@ def get_dropdown(dropdown_value):
     return dropdown_value
 
 
-def order_sigs(ekg_sigs, sig_name):
+def order_sigs(ekg_sigs, n_ekg_sigs, sig_name):
     """
     Put all EKG signals before BP and RESP, then all others following.
 
     Parameters
     ----------
+    ekg_sigs : list[str]
+        The list of all of the EKG signals.
+    n_ekg_sigs : int
+        The total number of expected EKG signals.
     sig_name : list[str]
         The list of signal names in the order from the WFDB record.
 
     Returns
     -------
     sig_order : list[str]
-        The ordered list of signal names.
+        The ordered list of signal names. Should only be 4 elements long.
 
     """
     sig_order = []
-    bp_sigs = {'ABP'}
-    resp_sigs = {'RESP'}
-    if any(x not in ekg_sigs for x in sig_name):
-        for i,s in enumerate(sig_name):
-            if s in ekg_sigs:
-                sig_order.append(i)
-        # TODO: Could maybe do this faster using sets
-        for bps in bp_sigs:
-            if bps in sig_name:
-                sig_order.append(sig_name.index(bps))
-        for resps in resp_sigs:
-            if resps in sig_name:
-                sig_order.append(sig_name.index(resps))
-        for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
-            sig_order.append(sig_name.index(s))
-    else:
-        sig_order = range(n_sig)
+    bp_sigs = ['ABP', 'IBP1', 'IBP2', 'IBP5', 'IBP6', 'CVP', 'ICP', 'LAP',
+               'PAP']
+    resp_sigs = ['PLETH', 'Resp', 'CO2']
+
+    # Add a max of `n_ekg_sigs` EKG signals, the any number of BP and Resp.
+    # If not possible, try again twice by adding in order.
+    # If still not filled, just return the non-full `sig_order`.
+    n_ekgs = 0
+    for _ in range(3):
+        for ekgs in ekg_sigs:
+            if n_ekgs == n_ekg_sigs:
+                break
+            elif ekgs in sig_name:
+                sig_order.append(sig_name.index(ekgs))
+                n_ekgs += 1
+        if len(sig_order) < 4:
+            for bps in bp_sigs:
+                if (bps in sig_name) and (sig_name.index(bps) not in sig_order):
+                    sig_order.append(sig_name.index(bps))
+                    break
+            for resps in resp_sigs:
+                if (resps in sig_name) and (sig_name.index(resps) not in sig_order):
+                    sig_order.append(sig_name.index(resps))
+                    break
+
     return sig_order
 
 
-def format_y_vals(sig_order, sig_name, ekg_sigs, record, index_start,
+def format_y_vals(sig_order, sig_name, n_ekg_sigs, record, index_start,
                   index_stop, down_sample_ekg, down_sample):
     """
     Format the y-values and separate the EKG signals to window them together.
@@ -569,8 +581,8 @@ def format_y_vals(sig_order, sig_name, ekg_sigs, record, index_start,
         The ordered list of signal names from `order_sigs`.
     sig_name : list[int]
         The list of signal names in the order from the WFDB record.
-    ekg_sigs : list[str]
-        The list of all of the EKG signals.
+    n_ekg_sigs : int
+        The total number of expected EKG signals.
     record : wfdb.io.record.Record object
         The WFDB record for the signal.
     index_start : int
@@ -592,16 +604,16 @@ def format_y_vals(sig_order, sig_name, ekg_sigs, record, index_start,
     """
     all_y_vals = []
     ekg_y_vals = []
-    for r in sig_order:
+    for i,r in enumerate(sig_order):
         sig_name_index = sig_name.index(sig_name[r])
-        if sig_name[r] in ekg_sigs:
+        if i < n_ekg_sigs:
             current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample_ekg]
         else:
             current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
         current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
         all_y_vals.append(current_y_vals)
         # Find unified range for all EKG signals
-        if sig_name[r] in ekg_sigs:
+        if i < n_ekg_sigs:
             ekg_y_vals.append(current_y_vals)
 
     # NOTE: Assuming there are always EKG signals
@@ -974,6 +986,7 @@ def update_graph(dropdown_event, dropdown_rec):
     # EKG gridlines parameters (typically 0.2 as per paper standards)
     grid_delta_major = user_settings.grid_delta_major
     max_y_labels = user_settings.max_y_labels
+    n_ekg_sigs = user_settings.n_ekg_sigs
     # Down-sample signal to increase performance: make higher if non-EKG
     # Average starting frequency = 250 Hz
     down_sample_ekg = user_settings.down_sample_ekg
@@ -1019,10 +1032,10 @@ def update_graph(dropdown_event, dropdown_rec):
     )
 
     # Collect all of the signals and format their graph attributes
-    # Only II, III, and V signal names were collected here, append if needed
-    ekg_sigs = {'II', 'III', 'V'}
-    sig_order = order_sigs(ekg_sigs, sig_name)
-    ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, ekg_sigs,
+    ekg_sigs = ['II', 'V', 'V5', 'V1', 'V2', 'V3', 'V4', 'V6', 'I', 'III',
+                'aVR', 'aVF', 'aVL']
+    sig_order = order_sigs(ekg_sigs, n_ekg_sigs, sig_name)
+    ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs,
                                            record, index_start, index_stop,
                                            down_sample_ekg, down_sample)
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
@@ -1039,7 +1052,7 @@ def update_graph(dropdown_event, dropdown_rec):
         # Set the initial y-axis parameters
         grid_state = True
         zeroline_state = False
-        if sig_name[r] in ekg_sigs:
+        if idx < n_ekg_sigs:
             x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
