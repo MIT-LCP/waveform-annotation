@@ -46,6 +46,35 @@
       {% endfor %}
     </table>
   </div>
+  <br>
+  <h2>Annotation Requests</h2>
+  <div>
+    <table style="width:100%">
+      <tr>
+        <div class="row">
+          <div class="col"><strong>Username</strong></div>
+          <div class="col"><strong>Date of Request</strong></div>
+          <div class="col"></div>
+        </div>
+      </tr>
+      {% for u in all_users %}
+        {% if u.requested_annotations %}
+        <form action="" method="post">
+          {% csrf_token %}
+          <tr>
+            <div class="row">
+              <div class="col">{{ u.username  }}</div>
+              <div class="col">{{ u.when_requested }}</div>
+              <div class="col"><button class="btn btn-primary btn-rsp" name="give_annotations"
+                                value="{{ u.username }}" type="submit">Accept Request</button></div>
+              <br><br>
+            </div>
+          </tr>
+        </form>
+        {% endif %}
+      {% endfor %}
+    </table>
+  </div>
   <h2>Conflicting Annotations</h2>
   {% for rec,info in conflict_anns.items %}
     <span style="float: left;">{{ rec }}</span>

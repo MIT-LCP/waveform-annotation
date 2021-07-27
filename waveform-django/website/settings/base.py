@@ -165,7 +165,7 @@ STATICFILE_FINDERS = [
 ]
 
 RECORDS_FILE = 'RECORDS_VTVF'
-
+RECORDS_CSV = 'records.csv'
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.

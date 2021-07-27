@@ -1,4 +1,6 @@
 import os
+import datetime
+import csv
 import wfdb
 from waveforms import forms
 from website.settings import base
@@ -54,6 +56,8 @@ def admin_console(request):
     user = User.objects.get(username=request.user.username)
     if not user.is_admin:
         return redirect('waveform_published_home')
+
+
     # Find the files
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -61,6 +65,7 @@ def admin_console(request):
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
+    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
@@ -124,6 +129,60 @@ def admin_console(request):
     # Get all the current users
     all_users = User.objects.all()
 
+    # Allow admins to accept annotation requests
+
+    if request.method == 'POST':
+        if 'give_annotations' in request.POST:
+            annotator = User.objects.get(username=request.POST['give_annotations'])
+
+            # Get CSV data
+            csv_fields = ['Record', 'Users Assigned']
+            csv_rows = {}
+            with open(csv_path, 'r') as csv_file:
+                csvreader = csv.reader(csv_file, delimiter=',')
+                next(csvreader)
+                for row in csvreader:
+                    names = []
+                    for val in row[1:]:
+                        if val:
+                            names.append(val)
+                    csv_rows[row[0]] = names
+
+            # Add records to CSV if not already present
+            for rec in all_records:
+                if rec not in csv_rows.keys():
+                    csv_rows[rec] = []
+
+            # Add records to User
+            recs_to_ann = 20
+            max_ann_per_rec = 2
+            num_recs = 0
+            assigned_recs = []
+            for rec, names_list in csv_rows.items():
+                can_annotate = True
+                for name in names_list:
+                    if name == annotator.username:
+                        can_annotate = False
+                        break
+                if can_annotate and len(names_list) < max_ann_per_rec:
+                    names_list.append(annotator.username)
+                    assigned_recs.append(rec)
+                    num_recs += 1
+                if num_recs == len(csv_rows) or num_recs == recs_to_ann:
+                    break
+
+            # Update CSV
+            with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+                 csvwriter = csv.writer(csv_file)
+                 csvwriter.writerow(csv_fields)
+                 for key, val in csv_rows.items():
+                     row = [key]
+                     row.extend(val)
+                     csvwriter.writerows([row])
+
+            annotator.requested_annotations = False
+            annotator.save()
+
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'categories': categories, 'conflict_anns': conflict_anns,
         'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
@@ -158,6 +217,7 @@ def render_annotations(request):
 
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
+
     completed_annotations = Annotation.objects.filter(user=user)
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
@@ -167,14 +227,27 @@ def render_annotations(request):
     completed_anns = {}
     incompleted_anns = {}
 
-    for rec in all_records:
+    # Get assigned records from CSV
+    record_list = []
+    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                record_list.append(row[0])
+
+    for rec in record_list:
         # Get the events
         records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
         with open(records_path, 'r') as f:
             temp_events = f.read().splitlines()
         temp_events = [e for e in temp_events if '_' in e]
         total_anns += len(temp_events)
-
         # Add annotations by event
         temp_completed_anns = []
         temp_incompleted_anns = []
@@ -209,10 +282,19 @@ def render_annotations(request):
 
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
 
+    # Check if user requests more annotations
+    if request.method == 'POST':
+        if 'more_annotations' in request.POST:
+            user.requested_annotations = True
+            user.when_requested = datetime.datetime.now()
+            user.save()
+    requested_annotation = user.requested_annotations
+
+
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
-        'completed_anns': completed_anns,
-        'incompleted_anns': incompleted_anns})
+        'completed_anns': completed_anns,'requested_annotation': requested_annotation,
+        'incompleted_anns': incompleted_anns,})
 
 
 @login_required

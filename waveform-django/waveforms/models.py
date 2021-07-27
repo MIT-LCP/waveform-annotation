@@ -1,11 +1,12 @@
 from django.db import models
 
-
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False,
         default='')
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
+    requested_annotations = models.BooleanField(default=False)
+    when_requested = models.DateTimeField(auto_now_add=True)
 
     def num_annotations(self):
         return len(Annotation.objects.filter(user=self))
@@ -19,7 +20,6 @@ class User(models.Model):
             if user_set != default:
                 diff_settings[field] = [default, user_set]
         return diff_settings
-
 
 class Annotation(models.Model):
     user = models.ForeignKey('User', related_name='annotation',
