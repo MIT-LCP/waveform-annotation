@@ -446,7 +446,8 @@ def get_header_info(file_path):
         of the records to be read.
 
     """
-    records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
+    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER, file_path,
+                                base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         file_contents = f.read().splitlines()
     file_contents = [e for e in file_contents if '_' in e]
@@ -471,11 +472,13 @@ def get_current_ann():
     """
     # Get the current user's annotations
     current_user = User.objects.get(username=get_current_user())
-    user_annotations = Annotation.objects.filter(user=current_user)
+    user_annotations = Annotation.objects.filter(user=current_user,
+                                                 project=base.PROJECT_FOLDER)
     completed_annotations = [a.event for a in user_annotations]
 
     # Get all possible events
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
+    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+                                base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
     all_events = []
@@ -696,7 +699,8 @@ def clear_text(temp_event):
         # Get the decision
         user = User.objects.get(username=current_user)
         try:
-            res = Annotation.objects.get(user=user, event=temp_event)
+            res = Annotation.objects.get(
+                user=user, project=base.PROJECT_FOLDER, event=temp_event)
             reviewer_decision = res.decision
             reviewer_comments = res.comments
         except Annotation.DoesNotExist:
@@ -758,7 +762,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value
     # Get the record file
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
+    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+                                base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
@@ -846,7 +851,9 @@ def get_record_event_options(click_submit, click_previous, click_next,
             # were made or a new annotation
             current_user = User.objects.get(username=get_current_user())
             try:
-                res = Annotation.objects.get(user=current_user, event=event_value)
+                res = Annotation.objects.get(user=current_user,
+                                             project=base.PROJECT_FOLDER,
+                                             event=event_value)
                 current_annotation = [res.record, res.event, res.decision,
                                       res.comments]
                 proposed_annotation = [record_value, event_value,
@@ -855,6 +862,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 if current_annotation[:4] != proposed_annotation:
                     annotation = Annotation(
                         user = current_user,
+                        project = base.PROJECT_FOLDER,
                         record = record_value,
                         event = event_value,
                         decision = decision_value,
@@ -866,6 +874,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Create new annotation since none already exist
                 annotation = Annotation(
                     user = current_user,
+                    project = base.PROJECT_FOLDER,
                     record = record_value,
                     event = event_value,
                     decision = decision_value,
@@ -931,10 +940,9 @@ def update_text(dropdown_rec, dropdown_event):
     # Determine the event
     dropdown_event = get_dropdown(dropdown_event)
     if dropdown_rec and dropdown_event:
-        # Extract the header contents
-        temp_rec = get_header_info(dropdown_rec)
         # Get the annotation information
-        ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
+        ann_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+                                dropdown_rec, dropdown_event)
         ann = wfdb.rdann(ann_path, 'alm')
         ann_event = ann.aux_note[0]
         # Update the annotation event text
@@ -1010,7 +1018,8 @@ def update_graph(dropdown_event, dropdown_rec):
     dropdown_rec = get_dropdown(dropdown_rec)
     dropdown_event = get_dropdown(dropdown_event)
 
-    record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
+    record_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+                               dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
     n_sig = record[1]['n_sig']
