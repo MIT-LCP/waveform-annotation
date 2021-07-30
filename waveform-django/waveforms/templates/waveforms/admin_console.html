@@ -96,7 +96,7 @@
       <tr>
         <th>Username</th>
         <th>Join Date</th>
-        <th>Number of Annotations</th>
+        <th>Total Number of Annotations (across all projects)</th>
         <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
       </tr>
       {% for u in all_users %}
@@ -110,77 +110,86 @@
     </table>
     <br />
   </div>
-  <h2>Conflicting Annotations</h2>
-  {% for rec,info in conflict_anns.items %}
-    <span style="float: left;">{{ rec }}</span>
-    <div>
-      <table style="width:100%">
-        <tr>
-          {% for cat in categories %}
-            <th>
-              {{ cat }}
-            </th>
-          {% endfor %}
-        </tr>
-        {% for val in info %}
+  {% for project,k in conflict_anns.items %}
+    <h2>{{ project }}</h2>
+    <h3>Conflicting Annotations</h3>
+    {% for rec,info in k.items %}
+      <span style="float: left;">{{ rec }}</span>
+      <div>
+        <table style="width:100%">
           <tr>
-            {% for v in val %}
-              <td>
-                {{ v }}
-              </td>
+            {% for cat in categories %}
+              <th>
+                {{ cat }}
+              </th>
             {% endfor %}
           </tr>
-        {% endfor %}
-      </table>
-    </div><br />
+          {% for val in info %}
+            <tr>
+              {% for v in val %}
+                <td>
+                  {{ v }}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div><br />
+    {% endfor %}
   {% endfor %}
-  <h2>Unanimous Annotations</h2>
-  {% for rec,info in unanimous_anns.items %}
-    <span style="float: left;">{{ rec }}</span>
-    <div>
-      <table style="width:100%">
-        <tr>
-          {% for cat in categories %}
-            <th>
-              {{ cat }}
-            </th>
-          {% endfor %}
-        </tr>
-        {% for val in info %}
+  {% for project,k in unanimous_anns.items %}
+    <h2>{{ project }}</h2>
+    <h3>Unanimous Annotations</h3>
+    {% for rec,info in k.items %}
+      <span style="float: left;">{{ rec }}</span>
+      <div>
+        <table style="width:100%">
           <tr>
-            {% for v in val %}
-              <td>
-                {{ v }}
-              </td>
+            {% for cat in categories %}
+              <th>
+                {{ cat }}
+              </th>
             {% endfor %}
           </tr>
-        {% endfor %}
-      </table>
-    </div><br />
+          {% for val in info %}
+            <tr>
+              {% for v in val %}
+                <td>
+                  {{ v }}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div><br />
+    {% endfor %}
   {% endfor %}
-  <h2>Unfinished Annotations</h2>
-  {% for rec,info in all_anns.items %}
-    <span style="float: left;">{{ rec }}</span>
-    <div>
-      <table style="width:100%">
-        <tr>
-          {% for cat in categories %}
-            <th>
-              {{ cat }}
-            </th>
-          {% endfor %}
-        </tr>
-        {% for val in info %}
+  {% for project,k in all_anns.items %}
+    <h2>{{ project }}</h2>
+    <h3>Unfinished Annotations</h3>
+    {% for rec,info in k.items %}
+      <span style="float: left;">{{ rec }}</span>
+      <div>
+        <table style="width:100%">
           <tr>
-            {% for v in val %}
-              <td>
-                {{ v }}
-              </td>
+            {% for cat in categories %}
+              <th>
+                {{ cat }}
+              </th>
             {% endfor %}
           </tr>
-        {% endfor %}
-      </table>
-    </div><br />
+          {% for val in info %}
+            <tr>
+              {% for v in val %}
+                <td>
+                  {{ v }}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+      </div><br />
+    {% endfor %}
   {% endfor %}
 </div>
 
