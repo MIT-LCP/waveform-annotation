@@ -4,6 +4,7 @@ import math
 import pytz
 import datetime
 import numpy as np
+import csv
 import pandas as pd
 import django.core.cache
 from website.middleware import get_current_user
@@ -432,7 +433,7 @@ def get_yaxis(title, zoom_fixed, grid_state, tick_vals, tick_text, grid_color,
 
 def get_header_info(file_path):
     """
-    Return all records/events in header from file path.
+    Return all records/events in header assigned to user from file path.
 
     Parameters
     ----------
@@ -447,9 +448,25 @@ def get_header_info(file_path):
 
     """
     records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
+
+    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+    user = User.objects.get(username=get_current_user())
+    record_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                record_list.append(row[0])
+
     with open(records_path, 'r') as f:
         file_contents = f.read().splitlines()
-    file_contents = [e for e in file_contents if '_' in e]
+    file_contents = [e for e in file_contents if '_' in e and file_contents[0] in record_list]
+
     return file_contents
 
 
@@ -745,10 +762,26 @@ def get_record_event_options(click_submit, click_previous, click_next,
     # Determine what triggered this function
     ctx = dash.callback_context
     # Prepare to return the record and event value
+
+    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+    user = User.objects.get(username=get_current_user())
+    record_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                record_list.append(row[0])
+
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
+    all_records = [r for r in all_records if r in record_list]
 
     if ctx.triggered:
         # Extract all the events
