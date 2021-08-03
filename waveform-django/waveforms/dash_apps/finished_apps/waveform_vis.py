@@ -155,7 +155,7 @@ def get_subplot(rows):
         rows = rows,
         cols = 1,
         shared_xaxes = True,
-        vertical_spacing = 0
+        vertical_spacing = 0.02
     )
 
 
@@ -1049,8 +1049,8 @@ def update_graph(dropdown_event, dropdown_rec):
                                            down_sample_ekg, down_sample)
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
-    min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
-    max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
+    min_ekg_tick = min(ekg_y_vals)
+    max_ekg_tick = max(ekg_y_vals)
 
     # Name the axes and create the subplots
     for idx,r in enumerate(sig_order):
@@ -1065,7 +1065,6 @@ def update_graph(dropdown_event, dropdown_rec):
             x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
-            dtick_state = grid_delta_major
             # Create the ticks
             y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
@@ -1076,12 +1075,8 @@ def update_graph(dropdown_event, dropdown_rec):
             x_vals = x_vals[::down_sample]
             # Remove outliers to prevent weird axes scaling if possible
             min_y_vals, max_y_vals = window_signal(y_vals)
-            # Set all the graph parameters
-            dtick_state = None
-            x_tick_vals = []
-            x_tick_text = []
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()][1:-1]
+            y_tick_vals = [round(n,1) for n in np.linspace(min(y_vals), max(y_vals), max_y_labels).tolist()][1:-1]
             # Create the labels
             y_tick_text = [str(n) for n in y_tick_vals]
 
