@@ -134,6 +134,22 @@ app.layout = html.Div([
 ])
 
 
+def get_assigned_records(user):
+    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+    record_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                record_list.append(row[0])
+    return record_list
+
+
 def get_subplot(rows):
     """
     Create a graph layout based on the number of input signals (rows). For
@@ -449,19 +465,8 @@ def get_header_info(file_path):
     """
     records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
 
-    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
     user = User.objects.get(username=get_current_user())
-    record_list = []
-    with open(csv_path, 'r') as csv_file:
-        csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
-        for row in csvreader:
-            names = []
-            for val in row[1:]:
-                if val:
-                    names.append(val)
-            if user.username in names:
-                record_list.append(row[0])
+    record_list = get_assigned_records(user)
 
     with open(records_path, 'r') as f:
         file_contents = f.read().splitlines()
@@ -763,19 +768,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value
 
-    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
     user = User.objects.get(username=get_current_user())
-    record_list = []
-    with open(csv_path, 'r') as csv_file:
-        csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
-        for row in csvreader:
-            names = []
-            for val in row[1:]:
-                if val:
-                    names.append(val)
-            if user.username in names:
-                record_list.append(row[0])
+    record_list = get_assigned_records(user)
 
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)

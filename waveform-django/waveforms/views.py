@@ -290,11 +290,10 @@ def render_annotations(request):
             user.save()
     requested_annotation = user.requested_annotations
 
-
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
         'completed_anns': completed_anns,'requested_annotation': requested_annotation,
-        'incompleted_anns': incompleted_anns,})
+        'incompleted_anns': incompleted_anns})
 
 
 @login_required
