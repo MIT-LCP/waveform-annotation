@@ -45,7 +45,7 @@
         </div>
       {% endfor %}
     {% endif %}
-    <p><b>Invite a new user by email address.</b></p>
+    <p><b>Invite a new user by email address</b></p>
     <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="invite_user">
       {% csrf_token %}
       <div class="col-md-9">
@@ -72,6 +72,26 @@
         <button class="btn btn-primary btn-rsp" name="invite_user" type="submit">Invite User by Email</button>
       </div>
     </form>
+    <p><u><b>Invited users</b></u></p>
+    <table style="width:100%">
+      <tr>
+        <th>Email</th>
+        <th>Last Invite Date</th>
+        <th>Joined</th>
+        <th>Joined Username</th>
+      </tr>
+      {% for u in invited_users %}
+        <tr>
+          <td>{{ u.email }}</td>
+          <td>{{ u.last_invite_date }}</td>
+          <td>{{ u.joined }}</td>
+          <td>{{ u.joined_username }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    <br />
+
+    <p><u><b>Joined users</b></u></p>
     <table style="width:100%">
       <tr>
         <th>Username</th>
@@ -88,6 +108,7 @@
         </tr>
       {% endfor %}
     </table>
+    <br />
   </div>
   <h2>Conflicting Annotations</h2>
   {% for rec,info in conflict_anns.items %}

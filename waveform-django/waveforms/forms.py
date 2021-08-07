@@ -1,10 +1,12 @@
+import datetime
+
 from django import forms
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.template import loader
 from django.utils.translation import gettext_lazy as _
 
-from waveforms.models import User, UserSettings
+from waveforms.models import InvitedEmails, User, UserSettings
 
 
 class GraphSettings(forms.ModelForm):
@@ -151,6 +153,8 @@ class InviteUserForm(forms.Form):
 
         # Check to make sure the user doesn't already exist
         all_emails = {u.email for u in User.objects.all()}
+        # NOTE: Allow users to be invited multiple times in case the email
+        # doesn't go through
         if self.cleaned_data['email'] in all_emails:
             raise forms.ValidationError("""A user already has that email
                 associated with their account. Double check to make sure that
@@ -203,3 +207,8 @@ class InviteUserForm(forms.Form):
             subject_template_name, email_template_name, context, from_email,
             email, html_email_template_name=html_email_template_name
         )
+
+        new_invited_email = InvitedEmails()
+        new_invited_email.email = email
+        new_invited_email.last_invite_date = datetime.datetime.now()
+        new_invited_email.save()

@@ -2,10 +2,10 @@ import os
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 
 from waveforms.forms import GraphSettings, InviteUserForm
-from waveforms.models import User, Annotation, UserSettings
+from waveforms.models import Annotation, InvitedEmails, User, UserSettings
 from website.settings import base
 
 
@@ -138,13 +138,15 @@ def admin_console(request):
         'decision_date'
     ]
 
-    # Get all the current users
+    # Get all the current and invited users
     all_users = User.objects.all()
+    invited_users = InvitedEmails.objects.all()
 
     return render(request, 'waveforms/admin_console.html', {'user': user,
-        'categories': categories, 'conflict_anns': conflict_anns,
-        'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-        'all_users': all_users, 'invite_user_form': invite_user_form})
+        'invited_users': invited_users, 'categories': categories,
+        'conflict_anns': conflict_anns, 'unanimous_anns': unanimous_anns,
+        'all_anns': all_anns, 'all_users': all_users,
+        'invite_user_form': invite_user_form})
 
 @login_required
 def render_annotations(request):

@@ -23,6 +23,14 @@ class User(models.Model):
         return diff_settings
 
 
+class InvitedEmails(models.Model):
+    email = models.EmailField(max_length=255, unique=True, null=True,
+        blank=False, validators=[EmailValidator()])
+    last_invite_date = models.DateTimeField()
+    joined = models.BooleanField(default=False)
+    joined_username = models.CharField(max_length=150, unique=True,
+                                       blank=False, null=True)
+
 class Annotation(models.Model):
     user = models.ForeignKey('User', related_name='annotation',
         on_delete=models.CASCADE)
