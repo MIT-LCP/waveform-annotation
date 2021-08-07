@@ -1,9 +1,11 @@
+from django.core.validators import EmailValidator
 from django.db import models
 
 
 class User(models.Model):
-    username = models.CharField(max_length=150, unique=True, blank=False,
-        default='')
+    username = models.CharField(max_length=150, unique=True, blank=False)
+    email = models.EmailField(max_length=255, unique=True, null=True,
+        blank=False, validators=[EmailValidator()])
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
 
