@@ -14,6 +14,7 @@ class TestGraphQL(TestCase):
             query {
                 all_annotations {
                     user
+                    project
                     record
                     event
                     decision
@@ -26,6 +27,7 @@ class TestGraphQL(TestCase):
             query {
                 all_annotations {
                     user
+                    project
                     record
                     event
                     decision
@@ -37,6 +39,7 @@ class TestGraphQL(TestCase):
         for p in Annotation.objects.all():
             correct_output.append({
                 'user': p.user,
+                'project': p.project,
                 'record': p.record,
                 'event': p.event,
                 'slug': p.slug,

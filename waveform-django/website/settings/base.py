@@ -165,6 +165,7 @@ STATICFILE_FINDERS = [
 ]
 
 RECORDS_FILE = 'RECORDS_VTVF'
+PROJECT_FOLDER = '2021_data'
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

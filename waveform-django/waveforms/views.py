@@ -78,56 +78,67 @@ def admin_console(request):
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
+    project_options = os.listdir('record-files')
+    all_projects = [p for p in project_options if os.path.isdir(os.path.join('record-files', p))]
 
     # Hold all of the annotation information
+    all_records = {}
     conflict_anns = {}
     unanimous_anns = {}
     all_anns = {}
-
-    # Get all the annotations
-    all_annotations = Annotation.objects.all()
-    records = [a.record for a in all_annotations]
-    events = [a.event for a in all_annotations]
-
-    # Get the events
-    for rec in all_records:
-        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
+    for project in all_projects:
+        records_path = os.path.join(PROJECT_PATH, project,
+                                    base.RECORDS_FILE)
         with open(records_path, 'r') as f:
-            all_events = f.read().splitlines()
-        all_events = [e for e in all_events if '_' in e]
-        # Add annotations by event
-        temp_conflict_anns = []
-        temp_unanimous_anns = []
-        temp_all_anns = []
-        for evt in all_events:
-            if (rec in records) and (evt in events):
-                same_anns = Annotation.objects.filter(record=rec, event=evt)
-                if len(set([a.decision for a in same_anns])) > 1:
-                    for ann in same_anns:
-                        temp_conflict_anns.append([ann.user.username,
+            all_records[project] = f.read().splitlines()
+
+        # Get all the annotations
+        all_annotations = Annotation.objects.filter(project=project)
+        records = [a.record for a in all_annotations]
+        events = [a.event for a in all_annotations]
+
+        conflict_anns[project] = {}
+        unanimous_anns[project] = {}
+        all_anns[project] = {}
+
+        # Get the events
+        for rec in all_records[project]:
+            records_path = os.path.join(PROJECT_PATH, project, rec,
+                                        base.RECORDS_FILE)
+            with open(records_path, 'r') as f:
+                all_events = f.read().splitlines()
+            all_events = [e for e in all_events if '_' in e]
+            # Add annotations by event
+            temp_conflict_anns = []
+            temp_unanimous_anns = []
+            temp_all_anns = []
+            for evt in all_events:
+                if (rec in records) and (evt in events):
+                    same_anns = Annotation.objects.filter(
+                        project=project, record=rec, event=evt)
+                    if len(set([a.decision for a in same_anns])) > 1:
+                        for ann in same_anns:
+                            temp_conflict_anns.append([ann.user.username,
                                                     ann.event,
                                                     ann.decision,
                                                     ann.comments,
                                                     ann.decision_date])
+                    else:
+                        for ann in same_anns:
+                            temp_unanimous_anns.append([ann.user.username,
+                                                        ann.event,
+                                                        ann.decision,
+                                                        ann.comments,
+                                                        ann.decision_date])
                 else:
-                    for ann in same_anns:
-                        temp_unanimous_anns.append([ann.user.username,
-                                                    ann.event,
-                                                    ann.decision,
-                                                    ann.comments,
-                                                    ann.decision_date])
-            else:
-                temp_all_anns.append(['-', evt, '-', '-', '-'])
-        # Get the completion stats for each record
-        if temp_conflict_anns != []:
-            conflict_anns[rec] = temp_conflict_anns
-        if temp_unanimous_anns != []:
-            unanimous_anns[rec] = temp_unanimous_anns
-        if temp_all_anns != []:
-            all_anns[rec] = temp_all_anns
+                    temp_all_anns.append(['-', evt, '-', '-', '-'])
+            # Get the completion stats for each record
+            if temp_conflict_anns != []:
+                conflict_anns[project][rec] = temp_conflict_anns
+            if temp_unanimous_anns != []:
+                unanimous_anns[project][rec] = temp_unanimous_anns
+            if temp_all_anns != []:
+                all_anns[project][rec] = temp_all_anns
 
     # Categories to display for the annotations
     categories = [
@@ -144,9 +155,9 @@ def admin_console(request):
 
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'invited_users': invited_users, 'categories': categories,
-        'conflict_anns': conflict_anns, 'unanimous_anns': unanimous_anns,
-        'all_anns': all_anns, 'all_users': all_users,
-        'invite_user_form': invite_user_form})
+        'all_projects': all_projects, 'conflict_anns': conflict_anns,
+        'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
+        'all_users': all_users, 'invite_user_form': invite_user_form})
 
 @login_required
 def render_annotations(request):
@@ -170,13 +181,15 @@ def render_annotations(request):
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
+    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+                                base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
-    completed_annotations = Annotation.objects.filter(user=user)
+    completed_annotations = Annotation.objects.filter(
+        user=user, project=base.PROJECT_FOLDER)
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
 
@@ -187,7 +200,8 @@ def render_annotations(request):
 
     for rec in all_records:
         # Get the events
-        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
+        records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER, rec,
+                                    base.RECORDS_FILE)
         with open(records_path, 'r') as f:
             temp_events = f.read().splitlines()
         temp_events = [e for e in temp_events if '_' in e]
@@ -254,6 +268,7 @@ def delete_annotation(request, set_record, set_event):
     try:
         annotation = Annotation.objects.get(
             user = user,
+            project = base.PROJECT_FOLDER,
             record = set_record,
             event = set_event
         )

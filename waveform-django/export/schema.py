@@ -15,12 +15,12 @@ class UserType(DjangoObjectType):
 
 
 # View results at:
-# http://localhost:8000/waveform-annotation/graphql?query={all_annotations{edges{node{user{username},record,event,decision,comments,decision_date}}}}
+# http://localhost:8000/waveform-annotation/graphql?query={all_annotations{edges{node{user{username},project,record,event,decision,comments,decision_date}}}}
 class AnnotationType(DjangoObjectType):
     class Meta:
         model = Annotation
         user = graphene.Field(UserType)
-        filter_fields = ['user', 'record', 'event', 'decision',
+        filter_fields = ['user', 'project', 'record', 'event', 'decision',
                          'comments', 'decision_date']
         interfaces = (graphene.relay.Node, )
 

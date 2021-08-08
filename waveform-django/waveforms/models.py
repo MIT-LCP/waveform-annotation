@@ -1,6 +1,8 @@
 from django.core.validators import EmailValidator
 from django.db import models
 
+from website.settings import base
+
 
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False)
@@ -9,8 +11,11 @@ class User(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
 
-    def num_annotations(self):
-        return len(Annotation.objects.filter(user=self))
+    def num_annotations(self, project=None):
+        if project:
+            return len(Annotation.objects.filter(user=self, project=project))
+        else:
+            return len(Annotation.objects.filter(user=self))
 
     def new_settings(self):
         diff_settings = {}
@@ -34,6 +39,7 @@ class InvitedEmails(models.Model):
 class Annotation(models.Model):
     user = models.ForeignKey('User', related_name='annotation',
         on_delete=models.CASCADE)
+    project = models.CharField(max_length=50, blank=False)
     record = models.CharField(max_length=50, blank=False)
     event = models.CharField(max_length=50, blank=False)
     decision = models.CharField(max_length=9, blank=False)
@@ -41,10 +47,11 @@ class Annotation(models.Model):
     decision_date = models.DateTimeField(null=True, blank=False)
 
     def update(self):
-        all_annotations = Annotation.objects.all()
+        all_annotations = Annotation.objects.filter(project=base.PROJECT_FOLDER)
         exists_already = False
         for a in all_annotations:
-            if (a.user == self.user) and (a.record == self.record) and (a.event == self.event):
+            if ((a.user == self.user) and (a.project == self.project) and
+                 (a.record == self.record) and (a.event == self.event)):
                 exists_already = True
                 a.decision = self.decision
                 a.comments = self.comments
