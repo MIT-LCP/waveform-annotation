@@ -71,6 +71,7 @@ class UserSettings(models.Model):
     ann_color = models.TextField(blank=False, default='#3c3cc8')
     grid_delta_major = models.FloatField(blank=False, default=0.2)
     max_y_labels = models.IntegerField(blank=False, default=8)
+    n_ekg_sigs = models.IntegerField(blank=False, default=2)
     down_sample_ekg = models.IntegerField(blank=False, default=8)
     down_sample = models.IntegerField(blank=False, default=16)
     signal_std = models.FloatField(blank=False, default=2.0)

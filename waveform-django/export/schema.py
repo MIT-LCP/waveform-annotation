@@ -26,7 +26,7 @@ class AnnotationType(DjangoObjectType):
 
 
 # View results at:
-# http://localhost:8000/waveform-annotation/graphql?query={all_user_settings{edges{node{user{username},fig_height,fig_width,margin_left,margin_top,margin_right,margin_bottom,grid_color,sig_color,sig_thickness,ann_color,grid_delta_major,max_y_labels,down_sample_ekg,down_sample,time_range_min,time_range_max,window_size_min,window_size_max}}}}
+# http://localhost:8000/waveform-annotation/graphql?query={all_user_settings{edges{node{user{username},fig_height,fig_width,margin_left,margin_top,margin_right,margin_bottom,grid_color,sig_color,sig_thickness,ann_color,grid_delta_major,max_y_labels,n_ekg_sigs,down_sample_ekg,down_sample,time_range_min,time_range_max,window_size_min,window_size_max}}}}
 class UserSettingsType(DjangoObjectType):
     class Meta:
         model = UserSettings
@@ -35,9 +35,9 @@ class UserSettingsType(DjangoObjectType):
                          'margin_top', 'margin_right', 'margin_bottom',
                          'grid_color', 'sig_color', 'sig_thickness',
                          'ann_color', 'grid_delta_major', 'max_y_labels',
-                         'down_sample_ekg', 'down_sample', 'time_range_min',
-                         'time_range_max', 'window_size_min',
-                         'window_size_max']
+                         'n_ekg_sigs', 'down_sample_ekg', 'down_sample',
+                         'time_range_min', 'time_range_max',
+                         'window_size_min', 'window_size_max']
         interfaces = (graphene.relay.Node, )
 
 

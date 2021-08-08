@@ -19,9 +19,9 @@ class GraphSettings(forms.ModelForm):
             'fig_height', 'fig_width', 'margin_left', 'margin_top',
             'margin_right', 'margin_bottom', 'grid_color', 'background_color',
             'sig_color', 'sig_thickness', 'ann_color', 'grid_delta_major',
-            'max_y_labels', 'down_sample_ekg', 'down_sample', 'signal_std',
-            'time_range_min', 'time_range_max', 'window_size_min',
-            'window_size_max'
+            'max_y_labels', 'n_ekg_sigs', 'down_sample_ekg', 'down_sample',
+            'signal_std', 'time_range_min', 'time_range_max',
+            'window_size_min', 'window_size_max'
         )
         help_texts = {
             'fig_height': """The figure height""",
@@ -39,6 +39,8 @@ class GraphSettings(forms.ModelForm):
                 EKG paper has large squares every 0.2 seconds)""",
             'max_y_labels': """Set the maximum number of y-axis labels per
                 signal""",
+            'n_ekg_sigs': """Set the maximum number of EKG signals to
+                display.""",
             'down_sample_ekg': """Downsample EKG signal to increase
                 performance (average starting frequency = 250 Hz)""",
             'down_sample': """Downsample non-EKG signals to increase
@@ -69,6 +71,7 @@ class GraphSettings(forms.ModelForm):
             'ann_color': forms.TextInput(attrs={'type': 'color'}),
             'grid_delta_major': forms.NumberInput(attrs={'min': 0, 'type': 'number'}),
             'max_y_labels': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
+            'n_ekg_sigs': forms.NumberInput(attrs={'min': 1, 'max': 4, 'type': 'number'}),
             'down_sample_ekg': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
             'down_sample': forms.NumberInput(attrs={'min': 1, 'type': 'number'}),
             'signal_std': forms.NumberInput(attrs={'min': 0.1, 'type': 'number'}),
@@ -91,6 +94,7 @@ class GraphSettings(forms.ModelForm):
             'ann_color': 'Annotation color',
             'grid_delta_major': 'Grid delta',
             'max_y_labels': 'Maximum y-labels',
+            'n_ekg_sigs': 'Maximum EKG signals',
             'down_sample_ekg': 'EKG downsample',
             'down_sample': 'Non-EKG downsample',
             'signal_std': 'Signal range',
