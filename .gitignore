@@ -1,6 +1,13 @@
 # Django database
 db.sqlite3
 
+# WFDB files
+*.hea*
+*.alm*
+*.dat*
+*.mat*
+*.cba*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
