@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('waveforms', '0009_usersettings_signal_std'),
+        ('waveforms', '0011_invitedemails'),
     ]
 
     operations = [
