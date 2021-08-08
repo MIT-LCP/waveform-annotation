@@ -29,6 +29,69 @@
   <h1>Admin Console</h1>
   <h2>All Users</h2>
   <div>
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          <div class="alert alert-danger alert-dismissible">
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+          <div class="alert alert-info alert-dismissible">
+        {% else %}
+          <div class="alert alert-success alert-dismissible">
+        {% endif %}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          {{ message|safe }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <p><b>Invite a new user by email address</b></p>
+    <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="invite_user">
+      {% csrf_token %}
+      <div class="col-md-9">
+        {% for field in invite_user_form.visible_fields %}
+          <div class="form-group">
+            {{ field }}
+            {% for error in field.errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+        {% for error in invite_user_form.non_field_errors %}
+          <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+          </div>
+        {% endfor %}
+        {% for field in invite_user_form.hidden_fields %}
+          {{ field }}
+        {% endfor %}
+      </div>
+      <div class="btn-container-rsp mg-left">
+        <button class="btn btn-primary btn-rsp" name="invite_user" type="submit">Invite User by Email</button>
+      </div>
+    </form>
+    <p><u><b>Invited users</b></u></p>
+    <table style="width:100%">
+      <tr>
+        <th>Email</th>
+        <th>Last Invite Date</th>
+        <th>Joined</th>
+        <th>Joined Username</th>
+      </tr>
+      {% for u in invited_users %}
+        <tr>
+          <td>{{ u.email }}</td>
+          <td>{{ u.last_invite_date }}</td>
+          <td>{{ u.joined }}</td>
+          <td>{{ u.joined_username }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    <br />
+
+    <p><u><b>Joined users</b></u></p>
     <table style="width:100%">
       <tr>
         <th>Username</th>
@@ -45,6 +108,7 @@
         </tr>
       {% endfor %}
     </table>
+    <br />
   </div>
   <h2>Conflicting Annotations</h2>
   {% for rec,info in conflict_anns.items %}

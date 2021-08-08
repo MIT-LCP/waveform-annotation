@@ -1,6 +1,12 @@
-from django import forms
+import datetime
 
-from waveforms.models import UserSettings
+from django import forms
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMultiAlternatives
+from django.template import loader
+from django.utils.translation import gettext_lazy as _
+
+from waveforms.models import InvitedEmails, User, UserSettings
 
 
 class GraphSettings(forms.ModelForm):
@@ -128,3 +134,81 @@ class GraphSettings(forms.ModelForm):
         Save the cleaned form data
         """
         super().save()
+
+
+class InviteUserForm(forms.Form):
+    email = forms.EmailField(
+        label=_('Email'),
+        max_length=254,
+        widget=forms.EmailInput(attrs={'class': 'form-control',
+                                       'autocomplete': 'email'})
+    )
+
+    def clean(self):
+        """
+        Check for any invalid values that may break the code later.
+        """
+        if self.errors:
+            return
+
+        # Check to make sure the user doesn't already exist
+        all_emails = {u.email for u in User.objects.all()}
+        # NOTE: Allow users to be invited multiple times in case the email
+        # doesn't go through
+        if self.cleaned_data['email'] in all_emails:
+            raise forms.ValidationError("""A user already has that email
+                associated with their account. Double check to make sure that
+                they haven't already created an account.""")
+
+    def send_mail(self, subject_template_name, email_template_name, context,
+                  from_email, to_email, html_email_template_name=None):
+        """
+        Send an invite email to `to_email`.
+        """
+        subject = loader.render_to_string(subject_template_name, context)
+        # Email subject *must not* contain newlines
+        subject = ''.join(subject.splitlines())
+        body = loader.render_to_string(email_template_name, context)
+
+        email_message = EmailMultiAlternatives(subject, body, from_email,
+                                               [to_email])
+        if html_email_template_name is not None:
+            html_email = loader.render_to_string(html_email_template_name,
+                                                 context)
+            email_message.attach_alternative(html_email, 'text/html')
+
+        email_message.send()
+
+    def save(self, domain_override=None,
+             subject_template_name='registration/invite_user_subject.txt',
+             email_template_name='registration/invite_user_email.html',
+             use_https=False, from_email=None, request=None,
+             html_email_template_name=None, extra_email_context=None):
+        """
+        Send the invited user an email so they can sign up for an account.
+        """
+        email = self.cleaned_data['email']
+
+        if not domain_override:
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+        else:
+            site_name = domain = domain_override
+
+        context = {
+            'email': email,
+            'domain': domain,
+            'site_name': site_name,
+            'protocol': 'https' if use_https else 'http',
+            **(extra_email_context or {}),
+        }
+        self.send_mail(
+            subject_template_name, email_template_name, context, from_email,
+            email, html_email_template_name=html_email_template_name
+        )
+
+        new_invited_email = InvitedEmails()
+        new_invited_email.email = email
+        new_invited_email.last_invite_date = datetime.datetime.now()
+        new_invited_email.save()

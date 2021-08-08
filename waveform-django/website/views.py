@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from .forms import CreateUserForm, ResetPasswordForm, ChangePasswordForm
-from waveforms.models import User, UserSettings
+from waveforms.models import InvitedEmails, User, UserSettings
 
 
 def register_page(request):
@@ -21,6 +21,13 @@ def register_page(request):
                 form.save()
                 username = form.cleaned_data.get('username')
                 email = form.cleaned_data.get('email')
+                try:
+                    invited_user = InvitedEmails.objects.get(email=email)
+                    invited_user.joined = True
+                    invited_user.joined_username = username
+                    invited_user.save()
+                except InvitedEmails.DoesNotExist:
+                    pass
                 messages.success(request,
                                  f'Account was created for {username}')
                 # Create the default profile and settings for that user
