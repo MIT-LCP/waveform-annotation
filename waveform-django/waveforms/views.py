@@ -78,8 +78,8 @@ def admin_console(request):
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
-    project_options = os.listdir('record-files')
-    all_projects = [p for p in project_options if os.path.isdir(os.path.join('record-files', p))]
+    project_options = os.listdir(PROJECT_PATH)
+    all_projects = [p for p in project_options if os.path.isdir(os.path.join(PROJECT_PATH, p))]
 
     # Hold all of the annotation information
     all_records = {}
