@@ -40,13 +40,13 @@
         <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
       </th>
       <th class="text-center table-dark">
-        <a href="{% url 'render_annotations' %}">View current annotations</a>
+        <a href="{% url 'render_annotations' %}">View assigned events</a>
       </th>
       <th class="text-center">
         <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+        <a href="{% url 'viewer_settings' %}">Change viewer settings</a>
       </th>
     </tr>
   </table>
@@ -54,17 +54,38 @@
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
-    <br /><br />
+    <br><br>
+    {% if finished_assignment %}
     <form action="" method="post">
       {% csrf_token %}
-      {% if not requested_annotation %}
-        <button  class="btn btn-primary btn-rsp" name="more_annotations"
-                                 type="submit">Request More Annotations</button>
-      {% else %}
-        <button  class="btn btn-secondary btn-rsp" disabled name="more_annotations"
-                                 type="submit">Request Pending</button>
-      {% endif %}
+      <h2>Annotate More Events</h2>
+      <label for="num_events">Number of events to assign:</label>
+      <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
+             value="Must assign at least 100 events">
+      <br>
+      <label for="due_date">When can you complete your annotations of these events? </label>
+      <input id="due_date" type="date" name="due_date" min={{earliest}} value={{earliest}} required
+             title="Must be at least one week from now">
+      <br>
+      <input type="submit" name="more_annotations" class="btn btn-primary btn-rsp" value="Submit">
     </form>
+    {% else %}
+      <h2>Current Assignment</h2>
+      <span style="font-size: 20px; float: left;">Remaining Events: </span>
+      <span style="font-size: 20px; float: right;">{{remaining}}</span>
+      <br><br>
+      <span style="font-size: 20px; float: left;">Assignment Due Date: </span>
+      <span style="font-size: 20px; float: right;">{{due_date}}</span>
+    {% endif %}
+<!--      {% csrf_token %}-->
+<!--      {% if not requested_annotation %}-->
+<!--      <button  class="btn btn-primary btn-rsp" name="more_annotations"-->
+<!--               type="submit">Request More Annotations</button>-->
+<!--      {% else %}-->
+<!--        <button  class="btn btn-secondary btn-rsp" disabled name="more_annotations"-->
+<!--                                 type="submit">Request Pending</button>-->
+<!--      {% endif %}-->
+
   </div><br /><br />
   <div><h2>Incomplete Annotations</h2></div>
   {% for rec,info in incompleted_anns.items %}

@@ -134,9 +134,17 @@ app.layout = html.Div([
 ])
 
 
-def get_assigned_records(user):
+def get_assigned_events(user):
+    """
+    Return a list of events assigned to user
+
+    Parameters
+    ----------
+    user : User
+        Which user's assignments will be returned
+    """
     csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
-    record_list = []
+    event_list = []
     with open(csv_path, 'r') as csv_file:
         csvreader = csv.reader(csv_file, delimiter=',')
         next(csvreader)
@@ -146,8 +154,8 @@ def get_assigned_records(user):
                 if val:
                     names.append(val)
             if user.username in names:
-                record_list.append(row[0])
-    return record_list
+                event_list.append(row[0])
+    return event_list
 
 
 def get_subplot(rows):
@@ -466,11 +474,11 @@ def get_header_info(file_path):
     records_path = os.path.join(PROJECT_PATH, file_path, base.RECORDS_FILE)
 
     user = User.objects.get(username=get_current_user())
-    record_list = get_assigned_records(user)
+    event_list = get_assigned_events(user)
 
     with open(records_path, 'r') as f:
         file_contents = f.read().splitlines()
-    file_contents = [e for e in file_contents if '_' in e and file_contents[0] in record_list]
+    file_contents = [e for e in file_contents if '_' in e and e in event_list]
 
     return file_contents
 
@@ -497,16 +505,10 @@ def get_current_ann():
     completed_annotations = [a.event for a in user_annotations]
 
     # Get all possible events
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
-    all_events = []
-    for rec in all_records:
-        all_events.append(get_header_info(rec))
-    all_events = [item for sub_list in all_events for item in sub_list]
+    all_events = get_assigned_events(current_user)
 
     # Get the earliest annotation
-    ann_indices = sorted([all_events.index(a) for a in completed_annotations])
+    ann_indices = sorted([all_events.index(a) for a in completed_annotations if a in all_events])
     if ann_indices:
         try:
             current_event = next(a for a, b in enumerate(ann_indices, 0) if a != b)
@@ -766,16 +768,15 @@ def get_record_event_options(click_submit, click_previous, click_next,
     """
     # Determine what triggered this function
     ctx = dash.callback_context
-    # Prepare to return the record and event value
 
+    # Extract user's assigned events and records
     user = User.objects.get(username=get_current_user())
-    record_list = get_assigned_records(user)
-
-    # Get the record file
-    records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
-    all_records = [r for r in all_records if r in record_list]
+    user_events = get_assigned_events(user)
+    user_records = []
+    for event in user_events:
+        root_record = event[0:event.find('_')]
+        if root_record not in user_records:
+            user_records.append(root_record)
 
     if ctx.triggered:
         # Extract all the events
@@ -789,14 +790,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Event list not ended, keep record value the same
                 return_record = record_value
             else:
-                idr = all_records.index(record_value)
+                idr = user_records.index(record_value)
                 if idr == 0:
                     # Reached the beginning of the list, go to the end
-                    return_record = all_records[-1]
+                    return_record = user_records[-1]
                 else:
                     # Increment the record if not the end of the list
                     # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr-1]
+                    return_record = user_records[idr-1]
 
             # Update the events if the record is updated
             if return_record != record_value:
@@ -822,14 +823,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Event list not ended, keep record value the same
                 return_record = record_value
             else:
-                idr = all_records.index(record_value)
-                if idr == (len(all_records) - 1):
+                idr = user_records.index(record_value)
+                if idr == (len(user_records) - 1):
                     # Reached the end of the list, go back to the beginning
-                    return_record = all_records[0]
+                    return_record = user_records[0]
                 else:
                     # Increment the record if not the end of the list
                     # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr+1]
+                    return_record = user_records[idr+1]
 
             # Update the events if the record is updated
             if return_record != record_value:

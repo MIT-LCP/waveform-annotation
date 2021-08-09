@@ -1,13 +1,17 @@
+import os
+import csv
+
 from django.db import models
 from django.utils import timezone
+from website.settings import base
 
 class User(models.Model):
     username = models.CharField(max_length=150, unique=True, blank=False,
         default='')
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
-    requested_annotations = models.BooleanField(default=False)
-    when_requested = models.DateTimeField(default=timezone.now)
+    date_assigned = models.DateTimeField(default=timezone.now)
+    due_date = models.DateTimeField(default=timezone.now)
 
     def num_annotations(self):
         return len(Annotation.objects.filter(user=self))
@@ -21,6 +25,37 @@ class User(models.Model):
             if user_set != default:
                 diff_settings[field] = [default, user_set]
         return diff_settings
+
+    def is_overdue(self):
+        return self.due_date < timezone.now()
+
+    def events_remaining(self):
+        BASE_DIR = base.BASE_DIR
+        FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+        FILE_LOCAL = os.path.join('record-files')
+        PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+        csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+
+        # Get all assigned events
+        event_list = []
+        with open(csv_path, 'r') as csv_file:
+            csvreader = csv.reader(csv_file, delimiter=',')
+            next(csvreader)
+            for row in csvreader:
+                names = []
+                for val in row[1:]:
+                    if val:
+                        names.append(val)
+                if self.username in names:
+                    event_list.append(row[0])
+
+        # Remove events that have been completed
+        user_ann = Annotation.objects.filter(user=self)
+        for ann in user_ann:
+            if ann.event in event_list:
+                event_list.remove(ann.event)
+        return len(event_list)
+
 
 
 class Annotation(models.Model):

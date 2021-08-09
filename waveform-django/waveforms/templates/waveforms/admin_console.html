@@ -16,13 +16,13 @@
         <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'render_annotations' %}">View current annotations</a>
+        <a href="{% url 'render_annotations' %}">View assigned events</a>
       </th>
       <th class="text-center">
         <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+        <a href="{% url 'viewer_settings' %}">Change viewer settings</a>
       </th>
     </tr>
   </table>
@@ -33,7 +33,7 @@
       <tr>
         <th>Username</th>
         <th>Join Date</th>
-        <th>Number of Annotations</th>
+        <th>Events Annotated</th>
         <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
       </tr>
       {% for u in all_users %}
@@ -47,31 +47,41 @@
     </table>
   </div>
   <br>
-  <h2>Annotation Requests</h2>
+  <h2>User Assignments</h2>
   <div>
     <table style="width:100%">
       <tr>
         <div class="row">
           <div class="col"><strong>Username</strong></div>
-          <div class="col"><strong>Date of Request</strong></div>
-          <div class="col"></div>
+          <div class="col"><strong>Events Remaining</strong></div>
+          <div class="col"><strong>Date of Assignment</strong></div>
+          <div class="col"><strong>Assignment Due Date</strong></div>
+          <div class="col"><strong>Modify Due Date</strong></div>
+          <div class="col"><strong></strong></div>
         </div>
       </tr>
       {% for u in all_users %}
-        {% if u.requested_annotations %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <tr>
-            <div class="row">
-              <div class="col">{{ u.username  }}</div>
-              <div class="col">{{ u.when_requested }}</div>
-              <div class="col"><button class="btn btn-primary btn-rsp" name="give_annotations"
-                                value="{{ u.username }}" type="submit">Accept Request</button></div>
-              <br><br>
+      {% if u.events_remaining %}
+      <tr>
+        <div class="row">
+          <div class="col">{{ u.username  }}</div>
+          <div class="col">{{ u.events_remaining }}</div>
+          <div class="col">{{ u.date_assigned }}</div>
+          <div class="col">{{ u.due_date }}</div>
+          <form action="" method="post">
+            {% csrf_token %}
+            <div class="col">
+              <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
+              <input id="change_date" type="date" name="change_date" required min={{ today }}>
             </div>
-          </tr>
-        </form>
-        {% endif %}
+            <div class="col">
+              <input type="submit" name="submit_change" class="btn btn-primary btn-rsp" value="Change Date">
+            </div>
+          </form>
+          <br><br>
+        </div>
+      </tr>
+      {% endif %}
       {% endfor %}
     </table>
   </div>

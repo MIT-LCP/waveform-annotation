@@ -15,13 +15,13 @@
         <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'render_annotations' %}">View current annotations</a>
+        <a href="{% url 'render_annotations' %}">View assigned events</a>
       </th>
       <th class="text-center table-dark">
         <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+        <a href="{% url 'viewer_settings' %}">Change viewer settings</a>
       </th>
     </tr>
   </table>
@@ -36,8 +36,8 @@
     <li>You can submit the annotation with the "Submit" button, or go to the next or previous annotation without saving using the arrows. Submitting the annotation will automatically send you to the next event.</li>
     <li>If you hover over the signals, you will be able to see its value and how it aligns with the other signals.</li>
     <li>Also, you can click and drag the signal in any direction to view more of it.</li>
-    <li>At any point, you can view all of your previous annotations with the "<a href="{% url 'render_annotations' %}">View current annotations</a>" link and either edit or delete them if needed. You will also be able to see your progress on the annotations using the fractions on the far right side. Also note that if you reload the annotator home page at any point, you will be forwarded to your first non-annotated event.</li>
-    <li>You can also adjust the settings for the annotator using the "<a href="{% url 'viewer_settings' %}">Change annotator settings</a>" link; for example, you can reduce the downsampling to view more detail on the EKG signals if needed.</li>
+    <li>At any point, you can view all of your previous annotations with the "<a href="{% url 'render_annotations' %}">View assigned events</a>" link and either edit or delete them if needed. You will also be able to see your progress on the annotations using the fractions on the far right side. Also note that if you reload the annotator home page at any point, you will be forwarded to your first non-annotated event.</li>
+    <li>You can also adjust the settings for the annotator using the "<a href="{% url 'viewer_settings' %}">Change viewer settings</a>" link; for example, you can reduce the downsampling to view more detail on the EKG signals if needed.</li>
   </ul></div>
   <h2>Interface Overview</h2>
   <div>

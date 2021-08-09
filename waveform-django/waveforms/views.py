@@ -2,6 +2,7 @@ import os
 import datetime
 import csv
 import wfdb
+from datetime import datetime as dt
 from waveforms import forms
 from website.settings import base
 from waveforms.models import User, Annotation, UserSettings
@@ -9,7 +10,93 @@ from waveforms.models import User, Annotation, UserSettings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.http import HttpResponse
 
+
+# Find the files
+BASE_DIR = base.BASE_DIR
+FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+FILE_LOCAL = os.path.join('record-files')
+PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
+
+def update_assignments(csv_rows):
+    """
+    Update the assignments csv file
+
+    Parameters
+    ----------
+    csv_rows : str : [str]
+        A map where event names are the keys and
+        lists of assigned users are the values
+
+    Returns
+    -------
+    N/A
+
+    """
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+        csvwriter = csv.writer(csv_file)
+        csvwriter.writerow(['Events', 'Users Assigned'])
+        for key, val in csv_rows.items():
+            row = [key]
+            row.extend(val)
+            csvwriter.writerows([row])
+
+def get_all_assignments():
+    """
+    Return a dictionary that holds events as keys and a
+    list assigned users as values, based on assignment
+    csv file
+
+    Returns
+    -------
+    dict
+        Data within csv file
+    """
+
+    csv_rows = {}
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            csv_rows[row[0]] = names
+    return csv_rows
+
+
+def get_user_events(user):
+    """
+    Get the events assigned to a user in the CSV file
+
+    Parameters
+    ----------
+    user : User
+        The User whose events will be retrieved
+
+    Returns
+    -------
+    list
+        List of events assigned to the user
+    """
+
+    event_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                event_list.append(row[0])
+    return event_list
 
 @login_required
 def waveform_published_home(request, set_record='', set_event=''):
@@ -57,15 +144,6 @@ def admin_console(request):
     if not user.is_admin:
         return redirect('waveform_published_home')
 
-
-    # Find the files
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-
-    # Get the record files
-    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
@@ -82,7 +160,6 @@ def admin_console(request):
 
     # Get the events
     for rec in all_records:
-        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
         with open(records_path, 'r') as f:
             all_events = f.read().splitlines()
         all_events = [e for e in all_events if '_' in e]
@@ -129,64 +206,22 @@ def admin_console(request):
     # Get all the current users
     all_users = User.objects.all()
 
-    # Allow admins to accept annotation requests
+    # Allow admins to change assignment due dates
 
     if request.method == 'POST':
-        if 'give_annotations' in request.POST:
-            annotator = User.objects.get(username=request.POST['give_annotations'])
+        if 'submit_change' in request.POST:
+            user = User.objects.get(username=request.POST['user_info'])
+            new_date = dt.strptime(request.POST['change_date'], '%Y-%m-%d')
+            user.due_date = timezone.make_aware(new_date)
+            user.save()
+            return redirect('admin_console')
 
-            # Get CSV data
-            csv_fields = ['Record', 'Users Assigned']
-            csv_rows = {}
-            with open(csv_path, 'r') as csv_file:
-                csvreader = csv.reader(csv_file, delimiter=',')
-                next(csvreader)
-                for row in csvreader:
-                    names = []
-                    for val in row[1:]:
-                        if val:
-                            names.append(val)
-                    csv_rows[row[0]] = names
-
-            # Add records to CSV if not already present
-            for rec in all_records:
-                if rec not in csv_rows.keys():
-                    csv_rows[rec] = []
-
-            # Add records to User
-            recs_to_ann = 20
-            max_ann_per_rec = 2
-            num_recs = 0
-            assigned_recs = []
-            for rec, names_list in csv_rows.items():
-                can_annotate = True
-                for name in names_list:
-                    if name == annotator.username:
-                        can_annotate = False
-                        break
-                if can_annotate and len(names_list) < max_ann_per_rec:
-                    names_list.append(annotator.username)
-                    assigned_recs.append(rec)
-                    num_recs += 1
-                if num_recs == len(csv_rows) or num_recs == recs_to_ann:
-                    break
-
-            # Update CSV
-            with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
-                 csvwriter = csv.writer(csv_file)
-                 csvwriter.writerow(csv_fields)
-                 for key, val in csv_rows.items():
-                     row = [key]
-                     row.extend(val)
-                     csvwriter.writerows([row])
-
-            annotator.requested_annotations = False
-            annotator.save()
+    today = dt.strftime(timezone.now(), '%Y-%m-%d')
 
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'categories': categories, 'conflict_anns': conflict_anns,
         'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-        'all_users': all_users})
+        'all_users': all_users, 'today': today})
 
 
 @login_required
@@ -204,11 +239,6 @@ def render_annotations(request):
         HTML webpage responsible for displaying the annotations.
 
     """
-    # Find the files
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
     # Get the record files
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
@@ -227,26 +257,18 @@ def render_annotations(request):
     completed_anns = {}
     incompleted_anns = {}
 
-    # Get assigned records from CSV
-    record_list = []
-    csv_path = os.path.join(PROJECT_PATH, base.RECORDS_CSV)
-    with open(csv_path, 'r') as csv_file:
-        csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
-        for row in csvreader:
-            names = []
-            for val in row[1:]:
-                if val:
-                    names.append(val)
-            if user.username in names:
-                record_list.append(row[0])
+    # Get assigned events and completed events from CSV
+    event_list = get_user_events(user)
+    for e in completed_events:
+        if e not in event_list:
+            event_list.append(e)
 
-    for rec in record_list:
+    for rec in all_records:
         # Get the events
         records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
         with open(records_path, 'r') as f:
             temp_events = f.read().splitlines()
-        temp_events = [e for e in temp_events if '_' in e]
+        temp_events = [e for e in temp_events if '_' in e and e in event_list]
         total_anns += len(temp_events)
         # Add annotations by event
         temp_completed_anns = []
@@ -280,20 +302,83 @@ def render_annotations(request):
         'decision_date'
     ]
 
+    total_anns = len(event_list)
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
+
+    remaining = total_anns - len(completed_annotations)
+    finished_assignment = False
+    if len(completed_annotations) == total_anns:
+        finished_assignment = True
+
+    # End assignment if deadline has passed
+    if user.is_overdue() and finished_assignment is False:
+        csv_rows = get_all_assignments()
+        for event, names in csv_rows.items():
+            try:
+                names.remove(user.username)
+            except ValueError:
+                pass
+        update_assignments(csv_rows)
+        return redirect('render_annotations')
 
     # Check if user requests more annotations
     if request.method == 'POST':
         if 'more_annotations' in request.POST:
-            user.requested_annotations = True
-            user.when_requested = datetime.datetime.now()
+            csv_rows = get_all_assignments()
+
+            # Add events to CSV if not already present
+            for rec in all_records:
+                records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
+                with open(records_path, 'r') as f:
+                    temp_events = f.read().splitlines()
+                temp_events = [e for e in temp_events if '_' in e]
+                for e in temp_events:
+                    if e not in csv_rows.keys():
+                        csv_rows[e] = []
+
+            # Assign user events that have not been previously assigned to them
+            completed_annotations = Annotation.objects.filter(user=user)
+            completed_events = [a.event for a in completed_annotations]
+
+            events_to_ann = int(request.POST["num_events"])
+            due_date = request.POST["due_date"]
+
+            max_ann_per_event = 2
+            num_events = 0
+            assigned_events = []
+            for event, names_list in csv_rows.items():
+                if event in completed_events:
+                    continue
+                can_annotate = True
+                for name in names_list:
+                    if name == user.username:
+                        can_annotate = False
+                        break
+                if can_annotate and len(names_list) < max_ann_per_event:
+                    names_list.append(user.username)
+                    assigned_events.append(event)
+                    num_events += 1
+                if num_events == len(csv_rows) or num_events == events_to_ann:
+                    break
+
+            # Update CSV
+            update_assignments(csv_rows)
+
+            # Update Due Date
+            due_date = dt.strptime(due_date, '%Y-%m-%d')
+            user.due_date = timezone.make_aware(due_date)
+            user.date_assigned = timezone.now()
             user.save()
-    requested_annotation = user.requested_annotations
+            return redirect('render_annotations')
+
+    # Set earliest due date to be in one week
+    earliest = dt.strftime(timezone.now() + datetime.timedelta(days=7), '%Y-%m-%d')
 
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
-        'completed_anns': completed_anns,'requested_annotation': requested_annotation,
-        'incompleted_anns': incompleted_anns})
+        'finished_assignment': finished_assignment, 'remaining': remaining,
+        'completed_anns': completed_anns, 'due_date': user.due_date,
+        'incompleted_anns': incompleted_anns, 'earliest': earliest})
 
 
 @login_required
@@ -317,9 +402,9 @@ def delete_annotation(request, set_record, set_event):
     user = User.objects.get(username=request.user)
     try:
         annotation = Annotation.objects.get(
-            user = user,
-            record = set_record,
-            event = set_event
+            user=user,
+            record=set_record,
+            event=set_event
         )
         annotation.delete()
     except Annotation.DoesNotExist:
