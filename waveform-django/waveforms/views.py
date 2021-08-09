@@ -207,7 +207,6 @@ def admin_console(request):
     all_users = User.objects.all()
 
     # Allow admins to change assignment due dates
-
     if request.method == 'POST':
         if 'submit_change' in request.POST:
             user = User.objects.get(username=request.POST['user_info'])
@@ -215,6 +214,22 @@ def admin_console(request):
             user.due_date = timezone.make_aware(new_date)
             user.save()
             return redirect('admin_console')
+
+    overdue_users = []
+    for u in all_users:
+        if u.is_overdue() and u.events_remaining() > 0:
+            overdue_users.append(u)
+    if overdue_users:
+        csv_rows = get_all_assignments()
+        for u in overdue_users:
+            for event, names in csv_rows.items():
+                if u.username in names:
+                    try:
+                        Annotation.objects.get(user=u, event=event)
+                    except Annotation.DoesNotExist:
+                        names.remove(u.username)
+        update_assignments(csv_rows)
+        return redirect('admin_console')
 
     today = dt.strftime(timezone.now(), '%Y-%m-%d')
 
@@ -305,19 +320,19 @@ def render_annotations(request):
     total_anns = len(event_list)
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
 
-    remaining = total_anns - len(completed_annotations)
-    finished_assignment = False
-    if len(completed_annotations) == total_anns:
-        finished_assignment = True
+    finished_assignment = (user.events_remaining() == 0)
+    remaining = user.events_remaining()
 
-    # End assignment if deadline has passed
-    if user.is_overdue() and finished_assignment is False:
+    # End assignment if deadline has passed. Remove only unfinished events
+    if user.is_overdue() and user.events_remaining() > 0:
         csv_rows = get_all_assignments()
         for event, names in csv_rows.items():
-            try:
-                names.remove(user.username)
-            except ValueError:
-                pass
+            if user.username in names:
+                try:
+                    Annotation.objects.get(user=user, event=event)
+                except Annotation.DoesNotExist:
+                    names.remove(user.username)
+
         update_assignments(csv_rows)
         return redirect('render_annotations')
 
