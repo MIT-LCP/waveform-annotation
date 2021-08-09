@@ -628,7 +628,7 @@ def window_signal(y_vals):
     """
     Filter out extreme values from being shown on graph range. This uses the
     Coefficient of Variation (CV) approach to determine significant changes in
-    the signal then return the adjusted minimu and maximum range... If a
+    the signal then return the adjusted minimum and maximum range... If a
     significant variation is signal is found then filter out extrema using
     normal distribution.
 
@@ -657,14 +657,16 @@ def window_signal(y_vals):
     temp_zero = np.all(y_vals==0)
     if not temp_nan and not temp_zero:
         # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
-        # TODO: Lazy fix but need to think about this more
-        if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.25):
-            y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
-            min_y_vals = np.nanmin(y_vals)
-            max_y_vals = np.nanmax(y_vals)
+        # NOTE: I used to set a default range of +-1 if the signal was very
+        #       small but I decided to do away with that since it messed too
+        #       many signals up, especially for the `2021_data`.
+        new_y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+        if (len(new_y_vals) == 0) or (len(new_y_vals) == len(y_vals)):
+            min_y_vals = np.nanmin(y_vals) - temp_std
+            max_y_vals = np.nanmax(y_vals) + temp_std
         else:
-            min_y_vals = np.nanmin(y_vals) - 1
-            max_y_vals = np.nanmax(y_vals) + 1
+            min_y_vals = np.nanmin(new_y_vals)
+            max_y_vals = np.nanmax(new_y_vals)
     else:
         # Set default min and max values if all NaN or 0
         min_y_vals = -1
@@ -1076,7 +1078,7 @@ def update_graph(dropdown_event, dropdown_rec):
             # Remove outliers to prevent weird axes scaling if possible
             min_y_vals, max_y_vals = window_signal(y_vals)
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
-            y_tick_vals = [round(n,1) for n in np.linspace(min(y_vals), max(y_vals), max_y_labels).tolist()][1:-1]
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()][1:-1]
             # Create the labels
             y_tick_text = [str(n) for n in y_tick_vals]
 
@@ -1089,7 +1091,9 @@ def update_graph(dropdown_event, dropdown_rec):
             get_annotation(min_y_vals, max_y_vals, x_string, y_string,
                            ann_color))
 
-        if idx != (n_sig - 1):
+        # TODO: Won't work with <4 sigs displayed (although that should be
+        #       fixed first)
+        if idx != (4 - 1):
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, False, None, x_zoom_fixed,
                           grid_color, zeroline_state, window_size_min,
