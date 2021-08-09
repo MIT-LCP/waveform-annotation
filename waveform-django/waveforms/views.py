@@ -11,7 +11,6 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.http import HttpResponse
 
 
 # Find the files
@@ -160,6 +159,7 @@ def admin_console(request):
 
     # Get the events
     for rec in all_records:
+        records_path = os.path.join(PROJECT_PATH, rec, base.RECORDS_FILE)
         with open(records_path, 'r') as f:
             all_events = f.read().splitlines()
         all_events = [e for e in all_events if '_' in e]
