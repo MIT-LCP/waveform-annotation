@@ -60,12 +60,8 @@
       {% csrf_token %}
       <h2>Annotate More Events</h2>
       <label for="num_events">Number of events to assign:</label>
-      <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
+      <input id="num_events" type="number" name="num_events" value="100" min="1" max="800" required
              value="Must assign at least 100 events">
-      <br>
-      <label for="due_date">When can you complete your annotations of these events? </label>
-      <input id="due_date" type="date" name="due_date" min={{earliest}} value={{earliest}} required
-             title="Must be at least one week from now">
       <br>
       <input type="submit" name="more_annotations" class="btn btn-primary btn-rsp" value="Submit">
     </form>
@@ -73,18 +69,7 @@
       <h2>Current Assignment</h2>
       <span style="font-size: 20px; float: left;">Remaining Events: </span>
       <span style="font-size: 20px; float: right;">{{remaining}}</span>
-      <br><br>
-      <span style="font-size: 20px; float: left;">Assignment Due Date: </span>
-      <span style="font-size: 20px; float: right;">{{due_date}}</span>
     {% endif %}
-<!--      {% csrf_token %}-->
-<!--      {% if not requested_annotation %}-->
-<!--      <button  class="btn btn-primary btn-rsp" name="more_annotations"-->
-<!--               type="submit">Request More Annotations</button>-->
-<!--      {% else %}-->
-<!--        <button  class="btn btn-secondary btn-rsp" disabled name="more_annotations"-->
-<!--                                 type="submit">Request Pending</button>-->
-<!--      {% endif %}-->
 
   </div><br /><br />
   <div><h2>Incomplete Annotations</h2></div>

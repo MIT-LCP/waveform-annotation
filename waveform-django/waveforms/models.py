@@ -11,7 +11,7 @@ class User(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
     date_assigned = models.DateTimeField(default=timezone.now)
-    due_date = models.DateTimeField(default=timezone.now)
+    last_login = models.DateTimeField(default=timezone.now)
 
     def num_annotations(self):
         return len(Annotation.objects.filter(user=self))
@@ -25,9 +25,6 @@ class User(models.Model):
             if user_set != default:
                 diff_settings[field] = [default, user_set]
         return diff_settings
-
-    def is_overdue(self):
-        return self.due_date < timezone.now()
 
     def events_remaining(self):
         BASE_DIR = base.BASE_DIR

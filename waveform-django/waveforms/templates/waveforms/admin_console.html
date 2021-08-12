@@ -33,6 +33,7 @@
       <tr>
         <th>Username</th>
         <th>Join Date</th>
+        <th>Last Login</th>
         <th>Events Annotated</th>
         <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
       </tr>
@@ -40,6 +41,7 @@
         <tr>
           <td>{{ u.username }}</td>
           <td>{{ u.join_date }}</td>
+          <td>{{ u.last_login }}</td>
           <td>{{ u.num_annotations }}</td>
           <td>{{ u.new_settings }}</td>
         </tr>
@@ -55,8 +57,6 @@
           <div class="col"><strong>Username</strong></div>
           <div class="col"><strong>Events Remaining</strong></div>
           <div class="col"><strong>Date of Assignment</strong></div>
-          <div class="col"><strong>Assignment Due Date</strong></div>
-          <div class="col"><strong>Modify Due Date</strong></div>
           <div class="col"><strong></strong></div>
         </div>
       </tr>
@@ -67,15 +67,11 @@
           <div class="col">{{ u.username  }}</div>
           <div class="col">{{ u.events_remaining }}</div>
           <div class="col">{{ u.date_assigned }}</div>
-          <div class="col">{{ u.due_date }}</div>
           <form action="" method="post">
             {% csrf_token %}
-            <div class="col">
               <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
-              <input id="change_date" type="date" name="change_date" required min={{ today }}>
-            </div>
             <div class="col">
-              <input type="submit" name="submit_change" class="btn btn-primary btn-rsp" value="Change Date">
+              <input type="submit" name="submit_change" class="btn btn-warning btn-rsp" value="Revoke Assignments">
             </div>
           </form>
           <br><br>

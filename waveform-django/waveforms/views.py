@@ -206,31 +206,6 @@ def admin_console(request):
     # Get all the current users
     all_users = User.objects.all()
 
-    # Allow admins to change assignment due dates
-    if request.method == 'POST':
-        if 'submit_change' in request.POST:
-            user = User.objects.get(username=request.POST['user_info'])
-            new_date = dt.strptime(request.POST['change_date'], '%Y-%m-%d')
-            user.due_date = timezone.make_aware(new_date)
-            user.save()
-            return redirect('admin_console')
-
-    overdue_users = []
-    for u in all_users:
-        if u.is_overdue() and u.events_remaining() > 0:
-            overdue_users.append(u)
-    if overdue_users:
-        csv_rows = get_all_assignments()
-        for u in overdue_users:
-            for event, names in csv_rows.items():
-                if u.username in names:
-                    try:
-                        Annotation.objects.get(user=u, event=event)
-                    except Annotation.DoesNotExist:
-                        names.remove(u.username)
-        update_assignments(csv_rows)
-        return redirect('admin_console')
-
     today = dt.strftime(timezone.now(), '%Y-%m-%d')
 
     return render(request, 'waveforms/admin_console.html', {'user': user,
@@ -323,19 +298,6 @@ def render_annotations(request):
     finished_assignment = (user.events_remaining() == 0)
     remaining = user.events_remaining()
 
-    # End assignment if deadline has passed. Remove only unfinished events
-    if user.is_overdue() and user.events_remaining() > 0:
-        csv_rows = get_all_assignments()
-        for event, names in csv_rows.items():
-            if user.username in names:
-                try:
-                    Annotation.objects.get(user=user, event=event)
-                except Annotation.DoesNotExist:
-                    names.remove(user.username)
-
-        update_assignments(csv_rows)
-        return redirect('render_annotations')
-
     # Check if user requests more annotations
     if request.method == 'POST':
         if 'more_annotations' in request.POST:
@@ -356,7 +318,6 @@ def render_annotations(request):
             completed_events = [a.event for a in completed_annotations]
 
             events_to_ann = int(request.POST["num_events"])
-            due_date = request.POST["due_date"]
 
             max_ann_per_event = 2
             num_events = 0
@@ -380,20 +341,14 @@ def render_annotations(request):
             update_assignments(csv_rows)
 
             # Update Due Date
-            due_date = dt.strptime(due_date, '%Y-%m-%d')
-            user.due_date = timezone.make_aware(due_date)
             user.date_assigned = timezone.now()
             user.save()
             return redirect('render_annotations')
 
-    # Set earliest due date to be in one week
-    earliest = dt.strftime(timezone.now() + datetime.timedelta(days=7), '%Y-%m-%d')
-
     return render(request, 'waveforms/annotations.html', {'user': user,
         'all_anns_frac': all_anns_frac, 'categories': categories,
         'finished_assignment': finished_assignment, 'remaining': remaining,
-        'completed_anns': completed_anns, 'due_date': user.due_date,
-        'incompleted_anns': incompleted_anns, 'earliest': earliest})
+        'completed_anns': completed_anns, 'incompleted_anns': incompleted_anns})
 
 
 @login_required
