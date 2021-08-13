@@ -15,21 +15,20 @@ from website.settings import base
 
 def user_rank(global_ranks, username):
     """
-    Return location of current user in leaderboard category
+    Return location of current user in leaderboard category.
 
     Parameters
     ----------
     global_ranks : list : list
-        Contains info of users in a specific category
-
+        Contains info of users in a specific category.
     username : str
-        Name of user to find in leaderboard
+        Name of user to find in leaderboard.
 
     Returns
     -------
     user_data : list : int, int
-        The rank of the user in the specified category
-        and the number of annotations made
+        The rank of the user in the specified category and the number of
+        annotations made.
 
     """
     user_data = []
@@ -38,20 +37,23 @@ def user_rank(global_ranks, username):
             user_data.append([global_ranks.index(info) + 1, info[1]])
     return user_data
 
+
 def update_assignments(csv_data, project_folder):
     """
-    Update the assignment csv file to include new assignments
+    Update the assignment CSV file to include new assignments.
+
     Parameters
     ----------
     csv_data : str : [str]
-        A map where event names are the keys and
-        lists of assigned users are the values
+        A map where event names are the keys and lists of assigned users are
+        the values.
     project_folder : str
-        The name of the folder whose assignments will be updated
+        The name of the folder whose assignments will be updated.
 
     Returns
     -------
     N/A
+
     """
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -71,19 +73,19 @@ def update_assignments(csv_data, project_folder):
 
 def get_all_assignments(project_folder):
     """
-    Return a dictionary that holds events as keys and a
-    list assigned users as values, based on assignment
-    csv file
+    Return a dictionary that holds events as keys and a list assigned to users
+    as values, based on the assignment CSV file.
 
     Parameters
     ----------
     project_folder : str
-        The name of the folder whose assignments will be retrieved
+        The name of the folder whose assignments will be retrieved.
 
     Returns
     -------
-    dict
-        Data within csv file
+    N/A : dict
+        Data within csv file.
+
     """
 
     # Find the files
@@ -111,19 +113,20 @@ def get_all_assignments(project_folder):
 
 def get_user_events(user, project_folder):
     """
-    Get the events assigned to a user in the CSV file
+    Get the events assigned to a user in the CSV file.
 
     Parameters
     ----------
     user : User
-        The User whose events will be retrieved
+        The User whose events will be retrieved.
     project_folder : str
-        The project used to retrieve the events
+        The project used to retrieve the events.
 
     Returns
     -------
-    list
-        List of events assigned to the user
+    N/A : list
+        List of events assigned to the user.
+
     """
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -306,13 +309,13 @@ def admin_console(request):
     all_users = User.objects.all()
     invited_users = InvitedEmails.objects.all()
 
-    return render(request, 'waveforms/admin_console.html', {'user': user,
-                                                            'invited_users': invited_users, 'categories': categories,
-                                                            'all_projects': all_projects,
-                                                            'conflict_anns': conflict_anns,
-                                                            'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-                                                            'all_users': all_users,
-                                                            'invite_user_form': invite_user_form})
+    return render(request, 'waveforms/admin_console.html',
+                  {'user': user, 'invited_users': invited_users,
+                   'categories': categories, 'all_projects': all_projects,
+                   'conflict_anns': conflict_anns,
+                   'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
+                   'all_users': all_users,
+                   'invite_user_form': invite_user_form})
 
 
 @login_required
@@ -337,28 +340,34 @@ def render_annotations(request):
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
-    # Get list where each element is a list of records from a project folder
-    all_projects = base.ALL_PROJECTS
-
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
-    completed_annotations = Annotation.objects.filter(user=user)
+    # All annotations
+    all_annotations = Annotation.objects.filter(user=user)
+    # Completed annotations
+    completed_annotations = all_annotations.filter(decision__in=['True',
+                                                                 'False'])
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
+    # Uncertain / saved annotations
+    uncertain_annotations = all_annotations.filter(decision='Uncertain')
+    uncertain_records = [a.record for a in uncertain_annotations]
+    uncertain_events = [a.event for a in uncertain_annotations]
 
     # Hold all of the annotation information
-    total_anns = 0
     completed_anns = {}
+    uncertain_anns = {}
     incompleted_anns = {}
 
-    # Get all assigned and annotated user events
+    # Get list where each element is a list of records from a project folder
+    all_projects = base.ALL_PROJECTS
+    # Get all user events
     user_events = {}
     for project in all_projects:
         user_events[project] = get_user_events(user, project)
-    for ann in completed_annotations:
+    for ann in all_annotations:
         if ann.event not in user_events[ann.project]:
             user_events[ann.project].append(ann.event)
-
     # Get all user records
     user_records = {}
     for project in all_projects:
@@ -368,17 +377,21 @@ def render_annotations(request):
             rec = evt[:evt.find('_')]
             if rec not in user_records[project]:
                 user_records[project].append(rec)
+    for ann in all_annotations:
+        if ann.record not in user_records[ann.project]:
+            user_records[ann.project].append(ann.record)
 
-    for project, event_list in user_events.items():
-        total_anns += len(event_list)
+    # Get the total number of annotations
+    total_anns = len(all_annotations)
 
     # Display user events
-    for project, record_list in user_records.items():
-        for rec in record_list:
+    for project,record_list in user_records.items():
+        for rec in sorted(record_list):
             temp_events = [e for e in user_events[project] if e[:e.find('_')] == rec]
 
             # Add annotations by event
             temp_completed_anns = []
+            temp_uncertain_anns = []
             temp_incompleted_anns = []
             for evt in temp_events:
                 if (rec in completed_records) and (evt in completed_events):
@@ -387,22 +400,34 @@ def render_annotations(request):
                                                 ann.decision,
                                                 ann.comments,
                                                 ann.decision_date])
+                elif (rec in uncertain_records) and (evt in uncertain_events):
+                    ann = uncertain_annotations[uncertain_events.index(evt)]
+                    temp_uncertain_anns.append([ann.event,
+                                                ann.decision,
+                                                ann.comments,
+                                                ann.decision_date])
                 else:
                     temp_incompleted_anns.append([evt, '-', '-', '-'])
 
             # Get the completion stats for each record
             if temp_completed_anns != []:
-                progress_stats = '{}/{}'.format(len(temp_completed_anns),
-                                                len(temp_completed_anns))
+                progress_stats = f'{len(temp_completed_anns)}/{len(completed_annotations)}'
                 temp_completed_anns.insert(0, progress_stats)
                 temp_completed_anns.insert(1, project)
                 completed_anns[rec] = temp_completed_anns
+            if temp_uncertain_anns != []:
+                progress_stats = f'{len(temp_uncertain_anns)}/{len(uncertain_annotations)}'
+                temp_uncertain_anns.insert(0, progress_stats)
+                temp_uncertain_anns.insert(1, project)
+                uncertain_anns[rec] = temp_uncertain_anns
             if temp_incompleted_anns != []:
-                progress_stats = '0/{}'.format(len(temp_incompleted_anns))
+                total_incompleted_anns = total_anns - \
+                                        len(completed_annotations) - \
+                                        len(uncertain_annotations)
+                progress_stats = f'{len(temp_incompleted_anns)}/{total_incompleted_anns}'
                 temp_incompleted_anns.insert(0, progress_stats)
                 temp_incompleted_anns.insert(1, project)
                 incompleted_anns[rec] = temp_incompleted_anns
-
 
     categories = [
         'event',
@@ -458,6 +483,7 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
                    'categories': categories, 'completed_anns': completed_anns,
+                   'uncertain_anns': uncertain_anns,
                    'incompleted_anns': incompleted_anns,
                    'finished_assignment': finished_assignment,
                    'remaining': total_anns-len(completed_annotations)})
