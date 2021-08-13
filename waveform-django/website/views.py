@@ -44,9 +44,9 @@ def login_page(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                user = User.objects.get(username=username)
-                user.last_login = timezone.now()
-                user.save()
+                current_user = User.objects.get(username=username)
+                current_user.last_login = timezone.now()
+                current_user.save()
                 if 'annotations' in request.environ['QUERY_STRING']:
                     return redirect('render_annotations')
                 else:

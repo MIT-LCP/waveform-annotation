@@ -143,6 +143,22 @@ def admin_console(request):
     if not user.is_admin:
         return redirect('waveform_published_home')
 
+    # Allow admin to end user assignments
+    if request.method == 'POST':
+        if 'end_assignment' in request.POST:
+            user = User.objects.get(username=request.POST['user_info'])
+            csv_rows = get_all_assignments()
+            for event, names in csv_rows.items():
+                if user.username in names:
+                    try:
+                        print('got')
+                        Annotation.objects.get(user=user, event=event)
+                    except Annotation.DoesNotExist:
+                        print('not got')
+                        names.remove(user.username)
+            update_assignments(csv_rows)
+            return redirect('admin_console')
+
     records_path = os.path.join(PROJECT_PATH, base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
@@ -206,12 +222,10 @@ def admin_console(request):
     # Get all the current users
     all_users = User.objects.all()
 
-    today = dt.strftime(timezone.now(), '%Y-%m-%d')
-
     return render(request, 'waveforms/admin_console.html', {'user': user,
         'categories': categories, 'conflict_anns': conflict_anns,
         'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-        'all_users': all_users, 'today': today})
+        'all_users': all_users})
 
 
 @login_required

@@ -63,7 +63,6 @@ class Annotation(models.Model):
     decision = models.CharField(max_length=9, blank=False)
     comments = models.TextField(default='')
     decision_date = models.DateTimeField(null=True, blank=False)
-
     def update(self):
         all_annotations = Annotation.objects.all()
         exists_already = False
