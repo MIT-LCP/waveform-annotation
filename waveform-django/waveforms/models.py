@@ -1,5 +1,9 @@
+import csv
+import os
+
 from django.core.validators import EmailValidator
 from django.db import models
+from django.utils import timezone
 
 from website.settings import base
 
@@ -10,6 +14,8 @@ class User(models.Model):
         blank=False, validators=[EmailValidator()])
     join_date = models.DateTimeField(auto_now_add=True)
     is_admin = models.BooleanField(default=False)
+    last_login = models.DateTimeField(default=timezone.now)
+    date_assigned = models.DateTimeField(default=timezone.now)
 
     def num_annotations(self, project=None):
         if project:
@@ -27,6 +33,28 @@ class User(models.Model):
                 diff_settings[field] = [default, user_set]
         return diff_settings
 
+    def events_remaining(self):
+        BASE_DIR = base.BASE_DIR
+        FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+        FILE_LOCAL = os.path.join('record-files')
+        PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+
+        count = 0
+        for project in base.ALL_PROJECTS:
+            event_list = []
+            csv_path = os.path.join(PROJECT_PATH, project, base.ASSIGNMENT_FILE)
+            with open(csv_path, 'r') as csv_file:
+                csvreader = csv.reader(csv_file, delimiter=',')
+                next(csvreader)
+                for row in csvreader:
+                    if self.username in row[1:]:
+                        event_list.append(row[0])
+
+            complete_ann = Annotation.objects.filter(user=self, project=project)
+            complete_events = [e.event for e in complete_ann]
+            event_list = [e for e in event_list if e not in complete_events]
+            count += len(event_list)
+        return count
 
 class InvitedEmails(models.Model):
     email = models.EmailField(max_length=255, unique=True, null=True,
@@ -47,7 +75,7 @@ class Annotation(models.Model):
     decision_date = models.DateTimeField(null=True, blank=False)
 
     def update(self):
-        all_annotations = Annotation.objects.filter(project=base.PROJECT_FOLDER)
+        all_annotations = Annotation.objects.all()
         exists_already = False
         for a in all_annotations:
             if ((a.user == self.user) and (a.project == self.project) and
