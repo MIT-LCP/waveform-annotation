@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <spam>User: {{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></spam>
+  <table class="table table-bordered">
+    <tr>
+      {% if user.is_admin %}
+      <th class="text-center">
+        <a href="{% url 'admin_console' %}">Admin Console</a>
+      </th>
+      {% endif %}
+      <th class="text-center">
+        <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'render_annotations' %}">Current Assignment</a>
+      </th>
+      <th class="text-center table-dark">
+        <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
+      </th>
+    </tr>
+  </table>
+  <style>
+      * {
+          box-sizing: border-box;
+      }
+
+      .row {
+          margin-left: -5px;
+          margin-right: -5px;
+      }
+
+      .column {
+          float: left;
+          width: 50%;
+          padding: 10px;
+      }
+
+      .row::after {
+          content: "";
+          clear: both;
+          display: table;
+      }
+
+      .stats table {
+          table-layout: fixed;
+          width: 100%;
+          border: 2px solid black;
+      }
+
+      .stats th {
+          background-color: white;
+          padding: 10px;
+          border: 1px solid black;
+          border-collapse: collapse;
+          width: 33%;
+      }
+
+      .stats td {
+          padding: 10px;
+          border: 1px solid black;
+          border-collapse: collapse;
+          width: 300px;
+      }
+
+      .stats tr:nth-child(odd) {
+          border: 1px solid black;
+          background-color: #f2f2f2;
+      }
+  </style>
+  <h1>Personal Rankings</h1>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Today</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for rank, val in user_today %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Past 7 Days</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for rank, val in user_week %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>This Month</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for rank, val in user_month %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>All Time</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for rank, val in user_all %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Decided True</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total True</th>
+        </tr>
+        {% for rank, val in user_true %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="2" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Decided False</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>Total False</th>
+        </tr>
+        {% for rank, val in user_false %}
+        <tr>
+          {% if rank == 1 %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ rank }}</td>
+          {% endif %}
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br><br>
+  <h1>Global Leaderboard</h1>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Today</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for user, val in glob_today|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Past 7 Days</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for user, val in glob_week|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>This Month</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for user, val in glob_month|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>All Time</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total Annotations</th>
+        </tr>
+        {% for user, val in glob_all|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Decided True</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total True</th>
+        </tr>
+        {% for user, val in glob_true|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(0,122,254,0.23)">
+            <h2>Decided False</h2></th>
+        </tr>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Total False</th>
+        </tr>
+        {% for user, val in glob_false|slice:":10" %}
+        <tr>
+          {% if forloop.first %}
+          <td>1 &#127942;</td>
+          {% else %}
+          <td>{{ forloop.counter }}</td>
+          {% endif %}
+          <td>{{ user }}</td>
+          <td>{{ val }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  <br>
+  <br>
+</div>
+{% endblock %}
