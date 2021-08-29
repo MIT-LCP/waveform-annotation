@@ -8,20 +8,23 @@
     <tr>
       {% if user.is_admin %}
         <th class="text-center">
-          <a href="{% url 'admin_console' %}">View admin console</a>
+          <a href="{% url 'admin_console' %}">Admin Console</a>
         </th>
       {% endif %}
       <th class="text-center">
-        <a href="{% url 'waveform_published_home' %}">Create more annotations</a>
+        <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'render_annotations' %}">View current annotations</a>
+        <a href="{% url 'render_annotations' %}">Current Assignment</a>
       </th>
       <th class="text-center">
-        <a href="{% url 'viewer_tutorial' %}">View annotator tutorial</a>
+        <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
+      </th>
+      <th class="text-center">
+        <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
       </th>
       <th class="text-center table-dark">
-        <a href="{% url 'viewer_settings' %}">Change annotator settings</a>
+        <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
       </th>
     </tr>
   </table>

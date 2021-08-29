@@ -1,12 +1,41 @@
 import os
+from datetime import timedelta
+from operator import itemgetter
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
 from waveforms.forms import GraphSettings, InviteUserForm
 from waveforms.models import Annotation, InvitedEmails, User, UserSettings
 from website.settings import base
+
+
+def user_rank(global_ranks, username):
+    """
+    Return location of current user in leaderboard category
+
+    Parameters
+    ----------
+    global_ranks : list : list
+        Contains info of users in a specific category
+
+    username : str
+        Name of user to find in leaderboard
+
+    Returns
+    -------
+    user_data : list : int, int
+        The rank of the user in the specified category
+        and the number of annotations made
+
+    """
+    user_data = []
+    for info in global_ranks:
+        if info[0] == username:
+            user_data.append([global_ranks.index(info) + 1, info[1]])
+    return user_data
 
 
 @login_required
@@ -33,7 +62,8 @@ def waveform_published_home(request, set_record='', set_event=''):
         'set_event': {'value': set_event}
     }
     return render(request, 'waveforms/home.html', {'user': user,
-        'dash_context': dash_context})
+                                                   'dash_context': dash_context})
+
 
 @login_required
 def admin_console(request):
@@ -61,14 +91,14 @@ def admin_console(request):
             invite_user_form = InviteUserForm(request.POST)
             if invite_user_form.is_valid():
                 invite_user_form.save(
-                    from_email = 'help@waveform-annotation.com',
-                    request = request
+                    from_email='help@waveform-annotation.com',
+                    request=request
                 )
                 messages.success(request,
-                    f'User was successfully invited.')
+                                 f'User was successfully invited.')
             else:
                 messages.error(request,
-                    f"""An error occurred. User was not successfully
+                               f"""An error occurred. User was not successfully
                     contacted.""")
 
     # Find the files
@@ -119,10 +149,10 @@ def admin_console(request):
                     if len(set([a.decision for a in same_anns])) > 1:
                         for ann in same_anns:
                             temp_conflict_anns.append([ann.user.username,
-                                                    ann.event,
-                                                    ann.decision,
-                                                    ann.comments,
-                                                    ann.decision_date])
+                                                       ann.event,
+                                                       ann.decision,
+                                                       ann.comments,
+                                                       ann.decision_date])
                     else:
                         for ann in same_anns:
                             temp_unanimous_anns.append([ann.user.username,
@@ -154,10 +184,13 @@ def admin_console(request):
     invited_users = InvitedEmails.objects.all()
 
     return render(request, 'waveforms/admin_console.html', {'user': user,
-        'invited_users': invited_users, 'categories': categories,
-        'all_projects': all_projects, 'conflict_anns': conflict_anns,
-        'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-        'all_users': all_users, 'invite_user_form': invite_user_form})
+                                                            'invited_users': invited_users, 'categories': categories,
+                                                            'all_projects': all_projects,
+                                                            'conflict_anns': conflict_anns,
+                                                            'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
+                                                            'all_users': all_users,
+                                                            'invite_user_form': invite_user_form})
+
 
 @login_required
 def render_annotations(request):
@@ -242,9 +275,10 @@ def render_annotations(request):
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
 
     return render(request, 'waveforms/annotations.html', {'user': user,
-        'all_anns_frac': all_anns_frac, 'categories': categories,
-        'completed_anns': completed_anns,
-        'incompleted_anns': incompleted_anns})
+                                                          'all_anns_frac': all_anns_frac, 'categories': categories,
+                                                          'completed_anns': completed_anns,
+                                                          'incompleted_anns': incompleted_anns})
+
 
 @login_required
 def delete_annotation(request, set_record, set_event):
@@ -267,15 +301,83 @@ def delete_annotation(request, set_record, set_event):
     user = User.objects.get(username=request.user)
     try:
         annotation = Annotation.objects.get(
-            user = user,
-            project = base.PROJECT_FOLDER,
-            record = set_record,
-            event = set_event
+            user=user,
+            project=base.PROJECT_FOLDER,
+            record=set_record,
+            event=set_event
         )
         annotation.delete()
     except Annotation.DoesNotExist:
         pass
     return render_annotations(request)
+
+
+@login_required()
+def leaderboard(request):
+    current_user = User.objects.get(username=request.user.username)
+    all_users = User.objects.all()
+    now = timezone.now().date()
+    seven_days = now - timedelta(days=7)
+
+    # Get global leaderboard info
+    glob_today = []
+    glob_week = []
+    glob_month = []
+    glob_all = []
+    glob_true = []
+    glob_false = []
+    for user in all_users:
+        user_anns = Annotation.objects.filter(user=user).exclude(decision='Uncertain')
+        num_today = 0
+        num_week = 0
+        num_month = 0
+        num_all = 0
+        num_true = 0
+        num_false = 0
+        for ann in user_anns:
+            if ann.decision_date.day == now.day:
+                num_today += 1
+            if now >= ann.decision_date.date() >= seven_days:
+                num_week += 1
+            if ann.decision_date.month == now.month:
+                num_month += 1
+            if ann.decision == "True":
+                num_true += 1
+            else:
+                num_false += 1
+            num_all += 1
+        glob_today.append([user.username, num_today])
+        glob_week.append([user.username, num_week])
+        glob_month.append([user.username, num_month])
+        glob_all.append([user.username, num_all])
+        glob_true.append([user.username, num_true])
+        glob_false.append([user.username, num_false])
+
+    glob_today = sorted(glob_today, key=itemgetter(1), reverse=True)
+    glob_week = sorted(glob_week, key=itemgetter(1), reverse=True)
+    glob_month = sorted(glob_month, key=itemgetter(1), reverse=True)
+    glob_all = sorted(glob_all, key=itemgetter(1), reverse=True)
+    glob_true = sorted(glob_true, key=itemgetter(1), reverse=True)
+    glob_false = sorted(glob_false, key=itemgetter(1), reverse=True)
+
+    # Extract User stats
+    username = current_user.username
+    user_today = user_rank(glob_today, username)
+    user_week = user_rank(glob_week, username)
+    user_month = user_rank(glob_month, username)
+    user_all = user_rank(glob_all, username)
+    user_true = user_rank(glob_true, username)
+    user_false = user_rank(glob_false, username)
+
+    return render(request, 'waveforms/leaderboard.html', {'user': current_user,
+                                                          'glob_today': glob_today, 'glob_week': glob_week,
+                                                          'glob_month': glob_month, 'glob_all': glob_all,
+                                                          'glob_true': glob_true, 'glob_false': glob_false,
+                                                          'user_today': user_today, 'user_week': user_week,
+                                                          'user_month': user_month, 'user_all': user_all,
+                                                          'user_true': user_true, 'user_false': user_false
+                                                          })
+
 
 @login_required
 def viewer_tutorial(request):
@@ -294,6 +396,7 @@ def viewer_tutorial(request):
     """
     user = User.objects.get(username=request.user)
     return render(request, 'waveforms/tutorial.html', {'user': user})
+
 
 @login_required
 def viewer_settings(request):
@@ -319,7 +422,7 @@ def viewer_settings(request):
     if request.method == 'POST':
         if 'change_settings' in request.POST:
             settings_form = GraphSettings(user=user, data=request.POST,
-                                                instance=user_settings)
+                                          instance=user_settings)
             if settings_form.is_valid():
                 settings_form.clean()
                 settings_form.save()
@@ -334,4 +437,4 @@ def viewer_settings(request):
         settings_form = GraphSettings(user=user, instance=user_settings)
 
     return render(request, 'waveforms/settings.html', {'user': user,
-        'settings_form': settings_form})
+                                                       'settings_form': settings_form})
