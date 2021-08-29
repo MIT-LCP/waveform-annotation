@@ -107,11 +107,13 @@
           <td>{{ u.events_remaining }}</td>
           <td>{{ u.date_assigned }}</td>
           <td>
-            <form action="" method="post">
-              {% csrf_token %}
-              <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
-              <input type="submit" name="end_assignment" class="btn btn-warning btn-rsp" value="Revoke Assignments">
-            </form>
+            {% if u.events_remaining > 0 %}
+              <form action="" method="post">
+                {% csrf_token %}
+                <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
+                <input type="submit" name="end_assignment" class="btn btn-warning btn-rsp" value="Revoke Assignments">
+              </form>
+            {% endif %}
           </td>
         </tr>
       {% endfor %}
