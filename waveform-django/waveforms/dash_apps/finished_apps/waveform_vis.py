@@ -1,6 +1,7 @@
 import os
 import wfdb
 import math
+import csv
 import pytz
 import datetime
 import numpy as np
@@ -25,6 +26,7 @@ BASE_DIR = base.BASE_DIR
 FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
 sidebar_width = '210px'
 event_fontsize = '24px'
@@ -53,6 +55,12 @@ app.layout = html.Div([
     dcc.Loading(id = 'loading-1', children = [
         # Area to submit annotations
         html.Div([
+            # The project display
+            html.Label(['Project:']),
+            html.Div(
+                id = 'dropdown_project',
+                children = html.Span([''], style={'fontSize': event_fontsize})
+            ),
             # The record display
             html.Label(['Record:']),
             html.Div(
@@ -114,7 +122,7 @@ app.layout = html.Div([
                         style = {'height': button_height,
                                  'width': arrow_width,
                                  'font-size': 'large'}),
-        ], style = {'display': 'inline-block', 'vertical-align': '75px',
+        ], style = {'display': 'inline-block', 'vertical-align': '35px',
                     'padding-right': '10px'}),
         # The plot itself
         html.Div([
@@ -124,13 +132,93 @@ app.layout = html.Div([
             ),
         ], style = {'display': 'inline-block'})
     ], type = 'default'),
-    # Hidden div inside the app that stores the desired record and event
+    # Hidden div inside the app that stores the desired project, record, and event
+    dcc.Input(id = 'set_project', type = 'hidden', value = ''),
     dcc.Input(id = 'set_record', type = 'hidden', value = ''),
     dcc.Input(id = 'set_event', type = 'hidden', value = ''),
-    # Hidden div inside the app that stores the current record and event
+    # Hidden div inside the app that stores the current project, record, and event
+    dcc.Input(id = 'temp_project', type = 'hidden', value = ''),
     dcc.Input(id = 'temp_record', type = 'hidden', value = ''),
     dcc.Input(id = 'temp_event', type = 'hidden', value = ''),
 ])
+
+
+def get_user_events(user, project_folder):
+    """
+    Get the events assigned to a user in the CSV file
+
+    Parameters
+    ----------
+    user : User
+        The User whose events will be retrieved
+    project_folder : str
+        The project used to retrieve the events
+
+    Returns
+    -------
+    list
+        List of events assigned to the user
+    """
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
+
+    event_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                event_list.append(row[0])
+    user_ann = Annotation.objects.filter(user=user, project=project_folder)
+    event_list += [a.event for a in user_ann if a not in event_list]
+
+    return event_list
+
+
+def get_user_records(user):
+    """
+    Get the records assigned to a user in the CSV file
+
+    Parameters
+    ----------
+    user : User
+        The User whose records will be retrieved
+    project_folder : str
+        The project used to retrieve the records
+
+    Returns
+    -------
+    dict
+        Dict of records assigned to the user by project
+    """
+    annotations = Annotation.objects.filter(user=user)
+
+    user_events = {}
+    for project in ALL_PROJECTS:
+        user_events[project] = get_user_events(user, project)
+
+    # Get all user records
+    user_records = {}
+    for project in ALL_PROJECTS:
+        events = user_events[project]
+        user_records[project] = []
+        for evt in events:
+            rec = evt[:evt.find('_')]
+            if rec not in user_records[project]:
+                user_records[project].append(rec)
+
+    for ann in annotations:
+        if ann.record not in user_records[ann.project]:
+            user_records[ann.project].append(ann.record)
+    return user_records
 
 
 def get_subplot(rows):
@@ -430,12 +518,14 @@ def get_yaxis(title, zoom_fixed, grid_state, tick_vals, tick_text, grid_color,
     }
 
 
-def get_header_info(file_path):
+def get_header_info(project, file_path):
     """
     Return all records/events in header from file path.
 
     Parameters
     ----------
+    project : str
+        Which project the record is in
     file_path : str
         The directory of the record file to be read.
 
@@ -446,11 +536,13 @@ def get_header_info(file_path):
         of the records to be read.
 
     """
-    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER, file_path,
+    current_user = User.objects.get(username=get_current_user())
+    records_path = os.path.join(PROJECT_PATH, project, file_path,
                                 base.RECORDS_FILE)
     with open(records_path, 'r') as f:
         file_contents = f.read().splitlines()
-    file_contents = [e for e in file_contents if '_' in e]
+    all_events = get_user_events(current_user, project)
+    file_contents = [e for e in file_contents if '_' in e and e in all_events]
     return file_contents
 
 
@@ -468,26 +560,26 @@ def get_current_ann():
         The current record.
     N/A : str
         The current event.
+    N/A : str
+        The current project.
 
     """
     # Get the current user's annotations
     current_user = User.objects.get(username=get_current_user())
-    user_annotations = Annotation.objects.filter(user=current_user,
-                                                 project=base.PROJECT_FOLDER)
-    completed_annotations = [a.event for a in user_annotations]
+    user_annotations = Annotation.objects.filter(user=current_user)
+    completed_events = []
+    for a in user_annotations:
+        completed_events.append([a.project, a.event])
 
-    # Get all possible events
-    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
-                                base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
     all_events = []
-    for rec in all_records:
-        all_events.append(get_header_info(rec))
-    all_events = [item for sub_list in all_events for item in sub_list]
+    for project in ALL_PROJECTS:
+        proj_events = get_user_events(current_user, project)
+        for event in proj_events:
+            all_events.append([project, event])
 
     # Get the earliest annotation
-    ann_indices = sorted([all_events.index(a) for a in completed_annotations])
+    ann_indices = sorted([all_events.index(a) for a in completed_events])
+
     if ann_indices:
         try:
             current_event = next(a for a, b in enumerate(ann_indices, 0) if a != b)
@@ -499,7 +591,11 @@ def get_current_ann():
     else:
         current_event = 0
 
-    return all_events[current_event].split('_')[0], all_events[current_event]
+    if all_events != []:
+        return all_events[current_event][1].split('_')[0], all_events[current_event][1],\
+            all_events[current_event][0]
+    else:
+        return 'N/A', 'N/A', 'N/A'
 
 
 def get_dropdown(dropdown_value):
@@ -677,8 +773,9 @@ def window_signal(y_vals):
 @app.callback(
     [dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('temp_event', 'value')])
-def clear_text(temp_event):
+    [dash.dependencies.Input('temp_event', 'value'),
+     dash.dependencies.Input('temp_project', 'value')])
+def clear_text(temp_event, temp_project):
     """
     Clear the reviewer decision and comments if none has been created or load
     them otherwise when loading a new record and event.
@@ -687,7 +784,8 @@ def clear_text(temp_event):
     ----------
     temp_event : str
         The current event.
-
+    temp_project : str
+        The current project
     Returns
     -------
     N/A : str
@@ -697,12 +795,12 @@ def clear_text(temp_event):
 
     """
     current_user = get_current_user()
-    if (temp_event != '') and (temp_event != None) and (current_user != ''):
+    if (temp_event != '') and (temp_event is not None) and (current_user != ''):
         # Get the decision
         user = User.objects.get(username=current_user)
         try:
             res = Annotation.objects.get(
-                user=user, project=base.PROJECT_FOLDER, event=temp_event)
+                user=user, project=temp_project, event=temp_event)
             reviewer_decision = res.decision
             reviewer_comments = res.comments
         except Annotation.DoesNotExist:
@@ -715,19 +813,22 @@ def clear_text(temp_event):
 
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'children'),
-     dash.dependencies.Output('dropdown_event', 'children')],
+     dash.dependencies.Output('dropdown_event', 'children'),
+     dash.dependencies.Output('dropdown_project', 'children')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
+     dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value')],
     [dash.dependencies.State('set_event', 'value'),
+     dash.dependencies.State('temp_project', 'value'),
      dash.dependencies.State('temp_record', 'value'),
      dash.dependencies.State('temp_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
 def get_record_event_options(click_submit, click_previous, click_next,
-                             set_record, set_event, record_value, event_value,
-                             decision_value, comments_value):
+                             set_project, set_record, set_event, project_value,
+                             record_value, event_value, decision_value, comments_value):
     """
     Dynamically update the record given the current record and event.
 
@@ -739,10 +840,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
         The timestamp if the previous button was clicked in ms from epoch.
     click_next : int
         The timestamp if the next button was clicked in ms from epoch.
+    set_project : str
+        The desired project.
     set_record : str
         The desired record.
     set_event : str
         The desired event.
+    project_value : str
+        The current project.
     record_value : str
         The current record.
     event_value : str
@@ -764,20 +869,43 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value
     # Get the record file
-    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
-                                base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
-
+    current_user = User.objects.get(username=get_current_user())
+    all_records = get_user_records(current_user)
     if ctx.triggered:
-        # Extract all the events
-        all_events = get_header_info(record_value)
-
         # Determine what triggered the function
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
         if click_id == 'previous_annotation':
+            # Determine the project
+            all_events = get_header_info(project_value, record_value)
+            if all_records[project_value].index(record_value) > 0 or \
+                    all_events.index(event_value) > 0:
+                # Project list not ended, keep project value the same
+                return_project = project_value
+            else:
+                idr = ALL_PROJECTS.index(project_value)
+                if idr == 0:
+                    # Reached beginning of project list, go to end
+                    idr = -1
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
+                        idr -= 1
+                    return_project = ALL_PROJECTS[idr]
+                else:
+                    # Decrement the project if not the end of the list
+                    idr -= 1
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
+                        idr -= 1
+                        if idr == -1:
+                            idr = len(ALL_PROJECTS) - 1
+                    return_project = ALL_PROJECTS[idr]
+
+            # Update the records/events to use correct project
+            all_records = all_records[return_project]
+
             # Determine the record
-            if all_events.index(event_value) > 0:
+            if return_project != project_value:
+                return_record = all_records[-1]
+            elif all_events.index(event_value) > 0:
                 # Event list not ended, keep record value the same
                 return_record = record_value
             else:
@@ -786,14 +914,16 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     # Reached the beginning of the list, go to the end
                     return_record = all_records[-1]
                 else:
-                    # Increment the record if not the end of the list
+                    # Decrement the record if not the end of the list
                     # TODO: Increment to the next non-annotated waveform instead?
                     return_record = all_records[idr-1]
 
             # Update the events if the record is updated
+            all_events = get_header_info(return_project, return_record)
             if return_record != record_value:
                 # Extract all the events
-                all_events = get_header_info(return_record)
+                all_events = [e for e in all_events if e.find(return_record) != -1]
+
             # Check to see if overflow has occurred
             if event_value not in all_events:
                 ide = len(all_events)
@@ -809,8 +939,37 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 return_event = all_events[ide-1]
 
         elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
+            # Determine the project
+            all_events = get_header_info(project_value, record_value)
+            if all_records[project_value].index(record_value) < \
+                    (len(all_records[project_value]) - 1) or \
+                    all_events.index(event_value) < (len(all_events)-1):
+                # Project list not ended, keep project value the same
+                return_project = project_value
+            else:
+                idr = ALL_PROJECTS.index(project_value)
+                if idr == (len(ALL_PROJECTS) - 1):
+                    # Reached end of project list, go to front
+                    idr = 0
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
+                        idr += 1
+                    return_project = ALL_PROJECTS[idr]
+                else:
+                    # Increment the project if not the end of the list
+                    idr += 1
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
+                        idr += 1
+                        if idr == len(ALL_PROJECTS):
+                            idr = 0
+                    return_project = ALL_PROJECTS[idr]
+
+            # Update the records to use correct project
+            all_records = all_records[return_project]
+
             # Determine the record
-            if all_events.index(event_value) < (len(all_events) - 1):
+            if return_project != project_value and len(all_records) > 0:
+                return_record = all_records[0]
+            elif all_events.index(event_value) < (len(all_events) - 1):
                 # Event list not ended, keep record value the same
                 return_record = record_value
             else:
@@ -824,9 +983,11 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     return_record = all_records[idr+1]
 
             # Update the events if the record is updated
+            all_events = get_header_info(return_project, return_record)
             if return_record != record_value:
                 # Extract all the events
-                all_events = get_header_info(return_record)
+                all_events = [e for e in all_events if e.find(return_record) != -1]
+
             # Check to see if overflow has occurred
             if event_value not in all_events:
                 ide = -1
@@ -854,17 +1015,17 @@ def get_record_event_options(click_submit, click_previous, click_next,
             current_user = User.objects.get(username=get_current_user())
             try:
                 res = Annotation.objects.get(user=current_user,
-                                             project=base.PROJECT_FOLDER,
+                                             project=return_project,
                                              event=event_value)
-                current_annotation = [res.record, res.event, res.decision,
-                                      res.comments]
-                proposed_annotation = [record_value, event_value,
+                current_annotation = [res.project, res.record, res.event,
+                                      res.decision, res.comments]
+                proposed_annotation = [project_value, event_value,
                                        decision_value, comments_value]
                 # Only save annotation if something has changed
                 if current_annotation[:4] != proposed_annotation:
                     annotation = Annotation(
                         user = current_user,
-                        project = base.PROJECT_FOLDER,
+                        project = project_value,
                         record = record_value,
                         event = event_value,
                         decision = decision_value,
@@ -876,7 +1037,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Create new annotation since none already exist
                 annotation = Annotation(
                     user = current_user,
-                    project = base.PROJECT_FOLDER,
+                    project = project_value,
                     record = record_value,
                     event = event_value,
                     decision = decision_value,
@@ -887,13 +1048,16 @@ def get_record_event_options(click_submit, click_previous, click_next,
     else:
         # See if record and event was requested (never event without record)
         if set_record != '':
+            return_project = set_project
             return_record = set_record
             return_event = set_event
         else:
-            # Start with the first non-annotated record and event if it's the
-            # initial load
-            return_record, return_event = get_current_ann()
+            return_record, return_event, return_project = get_current_ann()
 
+    # Update the annotation current project text
+    return_project = [
+        html.Span(['{}'.format(return_project)], style={'fontSize': event_fontsize})
+    ]
     # Update the annotation current record text
     return_record = [
         html.Span(['{}'.format(return_record)], style={'fontSize': event_fontsize})
@@ -902,28 +1066,32 @@ def get_record_event_options(click_submit, click_previous, click_next,
     return_event = [
         html.Span(['{}'.format(return_event)], style={'fontSize': event_fontsize})
     ]
-
-    return return_record, return_event
+    return return_record, return_event, return_project
 
 
 @app.callback(
     [dash.dependencies.Output('event_text', 'children'),
      dash.dependencies.Output('temp_record', 'value'),
-     dash.dependencies.Output('temp_event', 'value')],
+     dash.dependencies.Output('temp_event', 'value'),
+     dash.dependencies.Output('temp_project', 'value')],
     [dash.dependencies.Input('dropdown_rec', 'children'),
-     dash.dependencies.Input('dropdown_event', 'children')])
-def update_text(dropdown_rec, dropdown_event):
+     dash.dependencies.Input('dropdown_event', 'children'),
+     dash.dependencies.Input('dropdown_project', 'children')])
+def update_text(dropdown_rec, dropdown_event, dropdown_project):
     """
     Update the event text and set_event.
 
     Parameters
     ----------
+    dropdown_project : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current project.
     dropdown_rec : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
         dictionary (if single input trigger) of the current record.
     dropdown_event : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current record.
+        dictionary (if single input trigger) of the current event.
 
     Returns
     -------
@@ -941,25 +1109,35 @@ def update_text(dropdown_rec, dropdown_event):
     dropdown_rec = get_dropdown(dropdown_rec)
     # Determine the event
     dropdown_event = get_dropdown(dropdown_event)
-    if dropdown_rec and dropdown_event:
-        # Get the annotation information
-        ann_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
-                                dropdown_rec, dropdown_event)
-        ann = wfdb.rdann(ann_path, 'alm')
-        ann_event = ann.aux_note[0]
-        # Update the annotation event text
-        event_text = [
-            html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
-        ]
+    # Determine project
+    dropdown_project = get_dropdown(dropdown_project)
 
-    return event_text, dropdown_rec, dropdown_event
+    if dropdown_rec and dropdown_event and dropdown_project:
+        if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+           (dropdown_project == 'N/A')):
+            event_text = [
+                html.Span(['N/A', html.Br(), html.Br()], style={'fontSize': event_fontsize})
+            ]
+        else:
+            # Get the annotation information
+            ann_path = os.path.join(PROJECT_PATH, dropdown_project,
+                                    dropdown_rec, dropdown_event)
+            ann = wfdb.rdann(ann_path, 'alm')
+            ann_event = ann.aux_note[0]
+            # Update the annotation event text
+            event_text = [
+                html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
+            ]
+
+    return event_text, dropdown_rec, dropdown_event, dropdown_project
 
 
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_event', 'children')],
-    [dash.dependencies.State('dropdown_rec', 'children')])
-def update_graph(dropdown_event, dropdown_rec):
+    [dash.dependencies.State('dropdown_rec', 'children'),
+     dash.dependencies.State('dropdown_project', 'children')])
+def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     """
     Run the app and render the waveforms using the chosen initial conditions.
 
@@ -970,8 +1148,10 @@ def update_graph(dropdown_event, dropdown_rec):
         dictionary (if single input trigger) of the current record.
     dropdown_rec : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current record.
-
+        dictionary (if single input trigger) of the current event.
+    dropdown_project : list[dict], dict
+        Either a list (if multiple input triggers) of dictionaries or a single
+        dictionary (if single input trigger) of the current project.
     Returns
     -------
     N/A : plotly.subplots
@@ -1017,10 +1197,60 @@ def update_graph(dropdown_event, dropdown_rec):
     drag_mode = 'pan'
     x_zoom_fixed = False
     y_zoom_fixed = False
+    # Set the initial y-axis parameters
+    grid_state = True
+    zeroline_state = False
     dropdown_rec = get_dropdown(dropdown_rec)
     dropdown_event = get_dropdown(dropdown_event)
+    dropdown_project = get_dropdown(dropdown_project)
 
-    record_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
+    if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+       (dropdown_project == 'N/A')):
+        fig = get_subplot(4)
+        fig.update_layout(
+            get_layout(fig_height, fig_width, margin_left, margin_top,
+                       margin_right, margin_bottom, 4, drag_mode,
+                       background_color)
+        )
+        for idx in range(4):
+            n_vals = 100
+            x_string = 'x' + str(idx+1)
+            x_vals = np.linspace(-window_size_min, window_size_max, n_vals)
+            y_string = 'y' + str(idx+1)
+            y_vals = np.zeros(n_vals)
+            fig.add_trace(
+                get_trace(x_vals, y_vals, x_string, y_string, sig_color,
+                          sig_thickness, 'N/A'),
+                row = idx+1, col = 1)
+
+            fig.add_shape(
+                get_annotation(-1, 1, x_string, y_string, ann_color)
+            )
+
+            if idx != (4 - 1):
+                fig.update_xaxes(
+                    get_xaxis(x_vals, grid_delta_major, False, None,
+                            x_zoom_fixed, grid_color, zeroline_state,
+                            window_size_min, window_size_max),
+                    row = idx+1, col = 1)
+            else:
+                fig.update_xaxes(
+                    get_xaxis(x_vals, grid_delta_major, True, 'Time Since Event (s)',
+                            x_zoom_fixed, grid_color, zeroline_state,
+                            window_size_min, window_size_max),
+                    row = idx+1, col = 1)
+
+            fig.update_yaxes(
+                get_yaxis(f'N/A (N/A)', y_zoom_fixed, grid_state,
+                          [-1, 0, 1], ['-1', '0', '1'], grid_color,
+                          zeroline_state, -1, 1),
+                row = idx+1, col = 1)
+
+            fig.update_traces(xaxis = x_string)
+
+        return (fig)
+
+    record_path = os.path.join(PROJECT_PATH, dropdown_project,
                                dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
@@ -1060,9 +1290,6 @@ def update_graph(dropdown_event, dropdown_rec):
         y_string = 'y' + str(idx+1)
         x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)]
         y_vals = all_y_vals[idx]
-        # Set the initial y-axis parameters
-        grid_state = True
-        zeroline_state = False
         if idx < n_ekg_sigs:
             x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals

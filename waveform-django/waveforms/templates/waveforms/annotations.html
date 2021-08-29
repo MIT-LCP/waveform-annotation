@@ -58,10 +58,28 @@
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
   </div><br /><br />
+  <div>
+    {% if finished_assignment %}
+    <form action="" method="post">
+      {% csrf_token %}
+      <h2>Annotate More Events</h2>
+      <label for="num_events">Number of events to assign:</label>
+      <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
+             value="Must assign at least 100 events">
+      <br>
+      <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
+    </form>
+    {% else %}
+      <h2>Current Assignment</h2>
+      <span style="font-size: 20px; float: left;">Remaining Events: </span>
+      <span style="font-size: 20px; float: right;">{{remaining}}</span>
+    {% endif %}
+    <br><br>
+  </div>
   <div><h2>Incomplete Annotations</h2></div>
   {% for rec,info in incompleted_anns.items %}
     <button class="accordion">
-      <span style="float: left;">{{ rec }}</span>
+      <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
       <span style="float: right;">{{ info.0 }}</span>
     </button>
     <div class="panel">
@@ -75,7 +93,7 @@
           {% endfor %}
         </tr>
         <!-- Values of each column -->
-        {% for val in info|slice:"1:" %}
+        {% for val in info|slice:"2:" %}
           <tr>
             {% for v in val %}
               <td>
@@ -83,7 +101,7 @@
               </td>
             {% endfor %}
             <td>
-              <a href="{% url 'waveform_published_specific' rec val.0 %}">Edit annotation</a>
+              <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
             </td>
             <!-- Only display if annotation (timestamp) is found -->
             {% if val.3 != "-" %}
@@ -100,7 +118,7 @@
   <div><h2>Complete Annotations</h2></div>
   {% for rec,info in completed_anns.items %}
     <button class="accordion">
-      <span style="float: left;">{{ rec }}</span>
+      <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
       <span style="float: right;">{{ info.0 }}</span>
     </button>
     <div class="panel">
@@ -114,7 +132,7 @@
           {% endfor %}
         </tr>
         <!-- Values of each column -->
-        {% for val in info|slice:"1:" %}
+        {% for val in info|slice:"2:" %}
           <tr>
             {% for v in val %}
               <td>
@@ -122,12 +140,12 @@
               </td>
             {% endfor %}
             <td>
-              <a href="{% url 'waveform_published_specific' rec val.0 %}">Edit annotation</a>
+              <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
             </td>
             <!-- Only display if annotation (timestamp) is found -->
             {% if val.3 != "-" %}
               <td>
-                <a href="{% url 'delete_annotation' rec val.0 %}">Delete annotation</a>
+                <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
               </td>
             {% endif %}
           </tr>

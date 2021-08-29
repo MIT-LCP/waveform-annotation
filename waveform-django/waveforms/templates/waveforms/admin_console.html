@@ -93,19 +93,47 @@
       {% endfor %}
     </table>
     <br />
+    <p><u><b>Active Assignments</b></u></p>
+    <table style="width:100%">
+      <tr>
+        <th>Username</th>
+        <th>Events Remaining</th>
+        <th>Assignment Start Date</th>
+        <th></th>
+      </tr>
+      {% for u in all_users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.events_remaining }}</td>
+          <td>{{ u.date_assigned }}</td>
+          <td>
+            {% if u.events_remaining > 0 %}
+              <form action="" method="post">
+                {% csrf_token %}
+                <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
+                <input type="submit" name="end_assignment" class="btn btn-warning btn-rsp" value="Revoke Assignments">
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    <br />
 
     <p><u><b>Joined users</b></u></p>
     <table style="width:100%">
       <tr>
         <th>Username</th>
         <th>Join Date</th>
-        <th>Total Number of Annotations (across all projects)</th>
+        <th>Last Login</th>
+        <th>Annotations Created</th>
         <th>New Settings &lt;{field: [default,user set], ...}&gt;</th>
       </tr>
       {% for u in all_users %}
         <tr>
           <td>{{ u.username }}</td>
           <td>{{ u.join_date }}</td>
+          <td>{{ u.last_login }}</td>
           <td>{{ u.num_annotations }}</td>
           <td>{{ u.new_settings }}</td>
         </tr>

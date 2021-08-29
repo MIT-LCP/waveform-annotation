@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from .forms import CreateUserForm, ResetPasswordForm, ChangePasswordForm
 from waveforms.models import InvitedEmails, User, UserSettings
@@ -51,6 +52,9 @@ def login_page(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
+                user = User.objects.get(username=username)
+                user.last_login = timezone.now()
+                user.save()
                 if 'annotations' in request.environ['QUERY_STRING']:
                     return redirect('render_annotations')
                 else:

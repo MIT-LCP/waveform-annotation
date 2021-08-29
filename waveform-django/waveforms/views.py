@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from operator import itemgetter
+import csv
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -37,14 +38,122 @@ def user_rank(global_ranks, username):
             user_data.append([global_ranks.index(info) + 1, info[1]])
     return user_data
 
+def update_assignments(csv_data, project_folder):
+    """
+    Update the assignment csv file to include new assignments
+    Parameters
+    ----------
+    csv_data : str : [str]
+        A map where event names are the keys and
+        lists of assigned users are the values
+    project_folder : str
+        The name of the folder whose assignments will be updated
+
+    Returns
+    -------
+    N/A
+    """
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+        csvwriter = csv.writer(csv_file)
+        csvwriter.writerow(['Events', 'Users Assigned'])
+        for key, val in csv_data.items():
+            row = [key]
+            row.extend(val)
+            csvwriter.writerows([row])
+
+
+def get_all_assignments(project_folder):
+    """
+    Return a dictionary that holds events as keys and a
+    list assigned users as values, based on assignment
+    csv file
+
+    Parameters
+    ----------
+    project_folder : str
+        The name of the folder whose assignments will be retrieved
+
+    Returns
+    -------
+    dict
+        Data within csv file
+    """
+
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
+
+    csv_data = {}
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            try:
+                csv_data[row[0]] = names
+            except IndexError:
+                break
+    return csv_data
+
+
+def get_user_events(user, project_folder):
+    """
+    Get the events assigned to a user in the CSV file
+
+    Parameters
+    ----------
+    user : User
+        The User whose events will be retrieved
+    project_folder : str
+        The project used to retrieve the events
+
+    Returns
+    -------
+    list
+        List of events assigned to the user
+    """
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
+
+    event_list = []
+    with open(csv_path, 'r') as csv_file:
+        csvreader = csv.reader(csv_file, delimiter=',')
+        next(csvreader)
+        for row in csvreader:
+            names = []
+            for val in row[1:]:
+                if val:
+                    names.append(val)
+            if user.username in names:
+                event_list.append(row[0])
+    return event_list
 
 @login_required
-def waveform_published_home(request, set_record='', set_event=''):
+def waveform_published_home(request, set_project='', set_record='', set_event=''):
     """
     Render waveform main page for published databases.
 
     Parameters
     ----------
+    set_project: string, optional
+        Preset project dropdown values used for page load
     set_record : string, optional
         Preset record dropdown values used for page load.
     set_event : string, optional
@@ -58,9 +167,11 @@ def waveform_published_home(request, set_record='', set_event=''):
     """
     user = User.objects.get(username=request.user.username)
     dash_context = {
+        'set_project': {'value': set_project},
         'set_record': {'value': set_record},
         'set_event': {'value': set_event}
     }
+
     return render(request, 'waveforms/home.html', {'user': user,
                                                    'dash_context': dash_context})
 
@@ -100,6 +211,18 @@ def admin_console(request):
                 messages.error(request,
                                f"""An error occurred. User was not successfully
                     contacted.""")
+        elif 'end_assignment' in request.POST:
+            user = User.objects.get(username=request.POST['user_info'])
+            for project in base.ALL_PROJECTS:
+                csv_data = get_all_assignments(project)
+                for event, names in csv_data.items():
+                    if user.username in names:
+                        try:
+                            Annotation.objects.get(user=user, project=project, event=event)
+                        except Annotation.DoesNotExist:
+                            names.remove(user.username)
+                update_assignments(csv_data, project)
+            return redirect('admin_console')
 
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -207,22 +330,19 @@ def render_annotations(request):
         HTML webpage responsible for displaying the annotations.
 
     """
+
     # Find the files
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
-    # Get the record files
-    records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER,
-                                base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        all_records = f.read().splitlines()
+    # Get list where each element is a list of records from a project folder
+    all_projects = base.ALL_PROJECTS
 
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
-    completed_annotations = Annotation.objects.filter(
-        user=user, project=base.PROJECT_FOLDER)
+    completed_annotations = Annotation.objects.filter(user=user)
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
 
@@ -231,57 +351,120 @@ def render_annotations(request):
     completed_anns = {}
     incompleted_anns = {}
 
-    for rec in all_records:
-        # Get the events
-        records_path = os.path.join(PROJECT_PATH, base.PROJECT_FOLDER, rec,
-                                    base.RECORDS_FILE)
-        with open(records_path, 'r') as f:
-            temp_events = f.read().splitlines()
-        temp_events = [e for e in temp_events if '_' in e]
-        total_anns += len(temp_events)
+    # Get all assigned and annotated user events
+    user_events = {}
+    for project in all_projects:
+        user_events[project] = get_user_events(user, project)
+    for ann in completed_annotations:
+        if ann.event not in user_events[ann.project]:
+            user_events[ann.project].append(ann.event)
 
-        # Add annotations by event
-        temp_completed_anns = []
-        temp_incompleted_anns = []
-        for evt in temp_events:
-            if (rec in completed_records) and (evt in completed_events):
-                ann = completed_annotations[completed_events.index(evt)]
-                temp_completed_anns.append([ann.event,
-                                            ann.decision,
-                                            ann.comments,
-                                            ann.decision_date])
-            else:
-                temp_incompleted_anns.append([evt, '-', '-', '-'])
+    # Get all user records
+    user_records = {}
+    for project in all_projects:
+        events = user_events[project]
+        user_records[project] = []
+        for evt in events:
+            rec = evt[:evt.find('_')]
+            if rec not in user_records[project]:
+                user_records[project].append(rec)
 
-        # Get the completion stats for each record
-        if temp_completed_anns != []:
-            progress_stats = '{}/{}'.format(len(temp_completed_anns),
-                                            len(temp_completed_anns))
-            temp_completed_anns.insert(0, progress_stats)
-            completed_anns[rec] = temp_completed_anns
-        if temp_incompleted_anns != []:
-            progress_stats = '0/{}'.format(len(temp_incompleted_anns))
-            temp_incompleted_anns.insert(0, progress_stats)
-            incompleted_anns[rec] = temp_incompleted_anns
+    for project, event_list in user_events.items():
+        total_anns += len(event_list)
 
-    # Categories to display for the annotations
+    # Display user events
+    for project, record_list in user_records.items():
+        for rec in record_list:
+            temp_events = [e for e in user_events[project] if e[:e.find('_')] == rec]
+
+            # Add annotations by event
+            temp_completed_anns = []
+            temp_incompleted_anns = []
+            for evt in temp_events:
+                if (rec in completed_records) and (evt in completed_events):
+                    ann = completed_annotations[completed_events.index(evt)]
+                    temp_completed_anns.append([ann.event,
+                                                ann.decision,
+                                                ann.comments,
+                                                ann.decision_date])
+                else:
+                    temp_incompleted_anns.append([evt, '-', '-', '-'])
+
+            # Get the completion stats for each record
+            if temp_completed_anns != []:
+                progress_stats = '{}/{}'.format(len(temp_completed_anns),
+                                                len(temp_completed_anns))
+                temp_completed_anns.insert(0, progress_stats)
+                temp_completed_anns.insert(1, project)
+                completed_anns[rec] = temp_completed_anns
+            if temp_incompleted_anns != []:
+                progress_stats = '0/{}'.format(len(temp_incompleted_anns))
+                temp_incompleted_anns.insert(0, progress_stats)
+                temp_incompleted_anns.insert(1, project)
+                incompleted_anns[rec] = temp_incompleted_anns
+
+
     categories = [
         'event',
         'decision',
         'comments',
         'decision_date'
     ]
-
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
+    finished_assignment = len(completed_annotations) == total_anns
 
-    return render(request, 'waveforms/annotations.html', {'user': user,
-                                                          'all_anns_frac': all_anns_frac, 'categories': categories,
-                                                          'completed_anns': completed_anns,
-                                                          'incompleted_anns': incompleted_anns})
+    if request.method == 'POST':
+        if 'new_assignment' in request.POST:
+            available_projects = [p for p in all_projects if p not in base.BLACKLIST]
+            num_events = int(request.POST['num_events'])
+
+            # Add events to user_assignments if not already present
+            for project in available_projects:
+                records_path = os.path.join(PROJECT_PATH, project, base.RECORDS_FILE)
+                with open(records_path, 'r') as f:
+                    record_list = f.read().splitlines()
+                all_events = []
+                for record in record_list:
+                    event_path = os.path.join(PROJECT_PATH, project, record,
+                                              base.RECORDS_FILE)
+                    with open(event_path, 'r') as f:
+                        all_events += f.read().splitlines()
+                all_events = [e for e in all_events if '_' in e]
+                csv_data = get_all_assignments(project)
+                for event in all_events:
+                    if event not in csv_data.keys():
+                        csv_data[event] = []
+
+                if num_events == 0:
+                    update_assignments(csv_data, project)
+                    break
+                # Assign user events that have not been previously assigned to them
+                finished_ann = Annotation.objects.filter(user=user, project=project)
+                finished_event = [a.event for a in finished_ann]
+                max_ann = 2
+
+                for event, names_list in csv_data.items():
+                    if event not in finished_event and \
+                            user.username not in names_list and \
+                            len(names_list) < max_ann and \
+                            num_events > 0:
+                        names_list.append(user.username)
+                        num_events -= 1
+
+                update_assignments(csv_data, project)
+
+            return redirect('render_annotations')
+
+    return render(request, 'waveforms/annotations.html',
+                  {'user': user, 'all_anns_frac': all_anns_frac,
+                   'categories': categories, 'completed_anns': completed_anns,
+                   'incompleted_anns': incompleted_anns,
+                   'finished_assignment': finished_assignment,
+                   'remaining': total_anns-len(completed_annotations)})
 
 
 @login_required
-def delete_annotation(request, set_record, set_event):
+def delete_annotation(request, set_project, set_record, set_event):
     """
     Delete annotation.
 
@@ -301,10 +484,10 @@ def delete_annotation(request, set_record, set_event):
     user = User.objects.get(username=request.user)
     try:
         annotation = Annotation.objects.get(
-            user=user,
-            project=base.PROJECT_FOLDER,
-            record=set_record,
-            event=set_event
+            user = user,
+            project = set_project,
+            record = set_record,
+            event = set_event
         )
         annotation.delete()
     except Annotation.DoesNotExist:

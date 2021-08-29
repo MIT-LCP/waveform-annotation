@@ -165,7 +165,11 @@ STATICFILE_FINDERS = [
 ]
 
 RECORDS_FILE = 'RECORDS_VTVF'
-PROJECT_FOLDER = '2021_data'
+ASSIGNMENT_FILE = 'user_assignments.csv'
+ALL_PROJECTS = ['2015_data', '2021_data']
+
+# Projects in blacklist cannot be automatically assigned to users
+BLACKLIST = ['2015_data']
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
