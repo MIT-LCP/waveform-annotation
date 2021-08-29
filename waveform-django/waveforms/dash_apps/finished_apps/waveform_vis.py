@@ -26,7 +26,7 @@ BASE_DIR = base.BASE_DIR
 FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-all_projects = base.ALL_PROJECTS
+ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
 sidebar_width = '210px'
 event_fontsize = '24px'
@@ -122,7 +122,7 @@ app.layout = html.Div([
                         style = {'height': button_height,
                                  'width': arrow_width,
                                  'font-size': 'large'}),
-        ], style = {'display': 'inline-block', 'vertical-align': '75px',
+        ], style = {'display': 'inline-block', 'vertical-align': '35px',
                     'padding-right': '10px'}),
         # The plot itself
         html.Div([
@@ -202,12 +202,12 @@ def get_user_records(user):
     annotations = Annotation.objects.filter(user=user)
 
     user_events = {}
-    for project in all_projects:
+    for project in ALL_PROJECTS:
         user_events[project] = get_user_events(user, project)
 
     # Get all user records
     user_records = {}
-    for project in all_projects:
+    for project in ALL_PROJECTS:
         events = user_events[project]
         user_records[project] = []
         for evt in events:
@@ -549,9 +549,11 @@ def get_header_info(project, file_path):
 def get_current_ann():
     """
     Returns either the record or event value of the current annotation.
+
     Parameters
     ----------
     N/A
+
     Returns
     -------
     N/A : str
@@ -560,6 +562,7 @@ def get_current_ann():
         The current event.
     N/A : str
         The current project.
+
     """
     # Get the current user's annotations
     current_user = User.objects.get(username=get_current_user())
@@ -569,7 +572,7 @@ def get_current_ann():
         completed_events.append([a.project, a.event])
 
     all_events = []
-    for project in all_projects:
+    for project in ALL_PROJECTS:
         proj_events = get_user_events(current_user, project)
         for event in proj_events:
             all_events.append([project, event])
@@ -588,8 +591,11 @@ def get_current_ann():
     else:
         current_event = 0
 
-    return all_events[current_event][1].split('_')[0], all_events[current_event][1],\
-        all_events[current_event][0]
+    if all_events != []:
+        return all_events[current_event][1].split('_')[0], all_events[current_event][1],\
+            all_events[current_event][0]
+    else:
+        return 'N/A', 'N/A', 'N/A'
 
 
 def get_dropdown(dropdown_value):
@@ -877,21 +883,21 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Project list not ended, keep project value the same
                 return_project = project_value
             else:
-                idr = all_projects.index(project_value)
+                idr = ALL_PROJECTS.index(project_value)
                 if idr == 0:
                     # Reached beginning of project list, go to end
                     idr = -1
-                    while len(all_records[all_projects[idr]]) == 0:
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
                         idr -= 1
-                    return_project = all_projects[idr]
+                    return_project = ALL_PROJECTS[idr]
                 else:
                     # Decrement the project if not the end of the list
                     idr -= 1
-                    while len(all_records[all_projects[idr]]) == 0:
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
                         idr -= 1
                         if idr == -1:
-                            idr = len(all_projects) - 1
-                    return_project = all_projects[idr]
+                            idr = len(ALL_PROJECTS) - 1
+                    return_project = ALL_PROJECTS[idr]
 
             # Update the records/events to use correct project
             all_records = all_records[return_project]
@@ -941,21 +947,21 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Project list not ended, keep project value the same
                 return_project = project_value
             else:
-                idr = all_projects.index(project_value)
-                if idr == (len(all_projects) - 1):
+                idr = ALL_PROJECTS.index(project_value)
+                if idr == (len(ALL_PROJECTS) - 1):
                     # Reached end of project list, go to front
                     idr = 0
-                    while len(all_records[all_projects[idr]]) == 0:
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
                         idr += 1
-                    return_project = all_projects[idr]
+                    return_project = ALL_PROJECTS[idr]
                 else:
                     # Increment the project if not the end of the list
                     idr += 1
-                    while len(all_records[all_projects[idr]]) == 0:
+                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
                         idr += 1
-                        if idr == len(all_projects):
+                        if idr == len(ALL_PROJECTS):
                             idr = 0
-                    return_project = all_projects[idr]
+                    return_project = ALL_PROJECTS[idr]
 
             # Update the records to use correct project
             all_records = all_records[return_project]
@@ -1106,16 +1112,22 @@ def update_text(dropdown_rec, dropdown_event, dropdown_project):
     # Determine project
     dropdown_project = get_dropdown(dropdown_project)
 
-    if dropdown_rec and dropdown_event:
-        # Get the annotation information
-        ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                                dropdown_rec, dropdown_event)
-        ann = wfdb.rdann(ann_path, 'alm')
-        ann_event = ann.aux_note[0]
-        # Update the annotation event text
-        event_text = [
-            html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
-        ]
+    if dropdown_rec and dropdown_event and dropdown_project:
+        if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+           (dropdown_project == 'N/A')):
+            event_text = [
+                html.Span(['N/A', html.Br(), html.Br()], style={'fontSize': event_fontsize})
+            ]
+        else:
+            # Get the annotation information
+            ann_path = os.path.join(PROJECT_PATH, dropdown_project,
+                                    dropdown_rec, dropdown_event)
+            ann = wfdb.rdann(ann_path, 'alm')
+            ann_event = ann.aux_note[0]
+            # Update the annotation event text
+            event_text = [
+                html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
+            ]
 
     return event_text, dropdown_rec, dropdown_event, dropdown_project
 
@@ -1185,9 +1197,59 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     drag_mode = 'pan'
     x_zoom_fixed = False
     y_zoom_fixed = False
+    # Set the initial y-axis parameters
+    grid_state = True
+    zeroline_state = False
     dropdown_rec = get_dropdown(dropdown_rec)
     dropdown_event = get_dropdown(dropdown_event)
     dropdown_project = get_dropdown(dropdown_project)
+
+    if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+       (dropdown_project == 'N/A')):
+        fig = get_subplot(4)
+        fig.update_layout(
+            get_layout(fig_height, fig_width, margin_left, margin_top,
+                       margin_right, margin_bottom, 4, drag_mode,
+                       background_color)
+        )
+        for idx in range(4):
+            n_vals = 100
+            x_string = 'x' + str(idx+1)
+            x_vals = np.linspace(-window_size_min, window_size_max, n_vals)
+            y_string = 'y' + str(idx+1)
+            y_vals = np.zeros(n_vals)
+            fig.add_trace(
+                get_trace(x_vals, y_vals, x_string, y_string, sig_color,
+                          sig_thickness, 'N/A'),
+                row = idx+1, col = 1)
+
+            fig.add_shape(
+                get_annotation(-1, 1, x_string, y_string, ann_color)
+            )
+
+            if idx != (4 - 1):
+                fig.update_xaxes(
+                    get_xaxis(x_vals, grid_delta_major, False, None,
+                            x_zoom_fixed, grid_color, zeroline_state,
+                            window_size_min, window_size_max),
+                    row = idx+1, col = 1)
+            else:
+                fig.update_xaxes(
+                    get_xaxis(x_vals, grid_delta_major, True, 'Time Since Event (s)',
+                            x_zoom_fixed, grid_color, zeroline_state,
+                            window_size_min, window_size_max),
+                    row = idx+1, col = 1)
+
+            fig.update_yaxes(
+                get_yaxis(f'N/A (N/A)', y_zoom_fixed, grid_state,
+                          [-1, 0, 1], ['-1', '0', '1'], grid_color,
+                          zeroline_state, -1, 1),
+                row = idx+1, col = 1)
+
+            fig.update_traces(xaxis = x_string)
+
+        return (fig)
+
     record_path = os.path.join(PROJECT_PATH, dropdown_project,
                                dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
@@ -1228,9 +1290,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
         y_string = 'y' + str(idx+1)
         x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)]
         y_vals = all_y_vals[idx]
-        # Set the initial y-axis parameters
-        grid_state = True
-        zeroline_state = False
         if idx < n_ekg_sigs:
             x_vals = x_vals[::down_sample_ekg]
             min_y_vals = min_ekg_y_vals
