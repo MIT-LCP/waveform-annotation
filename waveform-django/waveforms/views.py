@@ -3,6 +3,7 @@ from datetime import timedelta
 from operator import itemgetter
 import csv
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -199,6 +200,8 @@ def admin_console(request):
         return redirect('waveform_published_home')
 
     invite_user_form = InviteUserForm()
+    add_admin_form = forms.Form()
+    remove_admin_form = forms.Form()
 
     if request.method == 'POST':
         if 'invite_user' in request.POST:
@@ -226,6 +229,18 @@ def admin_console(request):
                             names.remove(user.username)
                 update_assignments(csv_data, project)
             return redirect('admin_console')
+        elif 'add_admin' in request.POST:
+            new_admin = User.objects.get(
+                username__exact=request.POST['add_admin']
+            )
+            new_admin.is_admin = True
+            new_admin.save()
+        elif 'remove_admin' in request.POST:
+            new_admin = User.objects.get(
+                username__exact=request.POST['remove_admin']
+            )
+            new_admin.is_admin = False
+            new_admin.save()
 
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -315,7 +330,9 @@ def admin_console(request):
                    'conflict_anns': conflict_anns,
                    'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
                    'all_users': all_users,
-                   'invite_user_form': invite_user_form})
+                   'invite_user_form': invite_user_form,
+                   'add_admin_form': add_admin_form,
+                   'remove_admin_form': remove_admin_form})
 
 
 @login_required
