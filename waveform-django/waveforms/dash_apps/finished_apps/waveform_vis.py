@@ -87,7 +87,7 @@ app.layout = html.Div([
                 options = [
                     {'label': 'True (alarm is correct)', 'value': 'True'},
                     {'label': 'False (alarm is incorrect)', 'value': 'False'},
-                    {'label': 'Uncertain', 'value': 'Uncertain'}
+                    {'label': 'Uncertain / Save for later', 'value': 'Uncertain'}
                 ],
                 labelStyle = {'display': 'block'},
                 style = {'width': sidebar_width,},
@@ -145,19 +145,20 @@ app.layout = html.Div([
 
 def get_user_events(user, project_folder):
     """
-    Get the events assigned to a user in the CSV file
+    Get the events assigned to a user in the CSV file.
 
     Parameters
     ----------
     user : User
-        The User whose events will be retrieved
+        The User whose events will be retrieved.
     project_folder : str
-        The project used to retrieve the events
+        The project used to retrieve the events.
 
     Returns
     -------
-    list
-        List of events assigned to the user
+    N/A: list
+        List of events assigned to the user.
+
     """
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -177,6 +178,7 @@ def get_user_events(user, project_folder):
                     names.append(val)
             if user.username in names:
                 event_list.append(row[0])
+
     user_ann = Annotation.objects.filter(user=user, project=project_folder)
     event_list += [a.event for a in user_ann if a not in event_list]
 
@@ -185,19 +187,20 @@ def get_user_events(user, project_folder):
 
 def get_user_records(user):
     """
-    Get the records assigned to a user in the CSV file
+    Get the records assigned to a user in the CSV file.
 
     Parameters
     ----------
     user : User
-        The User whose records will be retrieved
+        The User whose records will be retrieved.
     project_folder : str
-        The project used to retrieve the records
+        The project used to retrieve the records.
 
     Returns
     -------
-    dict
-        Dict of records assigned to the user by project
+    N/A: dict
+        The records assigned to the user by project.
+
     """
     annotations = Annotation.objects.filter(user=user)
 
@@ -218,6 +221,7 @@ def get_user_records(user):
     for ann in annotations:
         if ann.record not in user_records[ann.project]:
             user_records[ann.project].append(ann.record)
+
     return user_records
 
 
