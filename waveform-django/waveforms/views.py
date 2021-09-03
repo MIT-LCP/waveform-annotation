@@ -399,7 +399,7 @@ def render_annotations(request):
             user_records[ann.project].append(ann.record)
 
     # Get the total number of annotations
-    total_anns = len(all_annotations)
+    total_anns = sum([len(user_events[k]) for k in user_events.keys()])
 
     # Display user events
     for project,record_list in user_records.items():
@@ -439,8 +439,8 @@ def render_annotations(request):
                 uncertain_anns[rec] = temp_uncertain_anns
             if temp_incompleted_anns != []:
                 total_incompleted_anns = total_anns - \
-                                        len(completed_annotations) - \
-                                        len(uncertain_annotations)
+                                         len(completed_annotations) - \
+                                         len(uncertain_annotations)
                 progress_stats = f'{len(temp_incompleted_anns)}/{total_incompleted_anns}'
                 temp_incompleted_anns.insert(0, progress_stats)
                 temp_incompleted_anns.insert(1, project)
