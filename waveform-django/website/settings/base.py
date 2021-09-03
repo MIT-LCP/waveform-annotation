@@ -9,14 +9,12 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
-
-import sys
 import os
 
 from decouple import config
 
 # Basic settings based on development environment
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 SESSION_COOKIE_SECURE = False
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
@@ -37,11 +35,11 @@ HEAD_DIR = os.path.dirname(BASE_DIR)
 LOGIN_URL = 'login'
 
 # For password resets
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
 # Check output in another terminal window here:
 #   python -m smtpd -n -c DebuggingServer localhost:1025
-EMAIL_PORT = 1025
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_PORT = config('EMAIL_PORT', default=1025, cast=int)
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
@@ -88,23 +86,24 @@ DATABASES = {
 
 ROOT_URLCONF = 'website.urls'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'filters': None,
-            'class': 'logging.StreamHandler',
+if not DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': os.path.join(HEAD_DIR, 'debug', 'debug.log'),
+            }
         },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+        'loggers': {
+            'django': {
+                'handlers': ['file'],
+                'level': 'DEBUG',
+            },
         },
-    },
-}
+    }
 
 TEMPLATES = [
     {
