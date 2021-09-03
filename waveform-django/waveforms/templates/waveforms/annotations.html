@@ -157,7 +157,7 @@
   <div><h2>Incomplete Annotations</h2></div>
   {% for rec,info in incompleted_anns.items %}
     <button class="accordion">
-      <span style="float: left;">{{ rec }}</span>
+      <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
       <span style="float: right;">{{ info.0 }}</span>
     </button>
     <div class="panel">
@@ -171,7 +171,7 @@
           {% endfor %}
         </tr>
         <!-- Values of each column -->
-        {% for val in info|slice:"1:" %}
+        {% for val in info|slice:"2:" %}
           <tr>
             {% for v in val %}
               <td>
