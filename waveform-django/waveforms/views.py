@@ -67,9 +67,10 @@ def update_assignments(csv_data, project_folder):
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
         for key, val in csv_data.items():
-            row = [key]
-            row.extend(val)
-            csvwriter.writerows([row])
+            if len(val) > 0:
+                row = [key]
+                row.extend(val)
+                csvwriter.writerows([row])
 
 
 def get_all_assignments(project_folder):
