@@ -3,10 +3,13 @@ import datetime
 from django import forms
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
+from django.db import IntegrityError
 from django.template import loader
 from django.utils.translation import gettext_lazy as _
+import pytz
 
 from waveforms.models import InvitedEmails, User, UserSettings
+from website.settings import base
 
 
 class GraphSettings(forms.ModelForm):
@@ -155,15 +158,6 @@ class InviteUserForm(forms.Form):
         if self.errors:
             return
 
-        # Check to make sure the user doesn't already exist
-        all_emails = {u.email for u in User.objects.all()}
-        # NOTE: Allow users to be invited multiple times in case the email
-        # doesn't go through
-        if self.cleaned_data['email'] in all_emails:
-            raise forms.ValidationError("""A user already has that email
-                associated with their account. Double check to make sure that
-                they haven't already created an account.""")
-
     def send_mail(self, subject_template_name, email_template_name, context,
                   from_email, to_email, html_email_template_name=None):
         """
@@ -212,7 +206,12 @@ class InviteUserForm(forms.Form):
             email, html_email_template_name=html_email_template_name
         )
 
-        new_invited_email = InvitedEmails()
-        new_invited_email.email = email
-        new_invited_email.last_invite_date = datetime.datetime.now()
-        new_invited_email.save()
+        try:
+            new_invited_email = InvitedEmails()
+            new_invited_email.email = email
+            new_invited_email.last_invite_date = datetime.datetime.now(tz=pytz.timezone(base.TIME_ZONE))
+            new_invited_email.save()
+        except IntegrityError:
+            updated_email = InvitedEmails.objects.get(email__exact=email)
+            updated_email.last_invite_date = datetime.datetime.now(tz=pytz.timezone(base.TIME_ZONE))
+            updated_email.save()
