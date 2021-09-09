@@ -625,18 +625,19 @@ def get_dropdown(dropdown_value):
     return dropdown_value
 
 
-def order_sigs(ekg_sigs, n_ekg_sigs, sig_name):
+def order_sigs(n_ekg_sigs, sig_name, exclude_sigs=[]):
     """
     Put all EKG signals before BP and RESP, then all others following.
 
     Parameters
     ----------
-    ekg_sigs : list[str]
-        The list of all of the EKG signals.
     n_ekg_sigs : int
         The total number of expected EKG signals.
     sig_name : list[str]
         The list of signal names in the order from the WFDB record.
+    exclude_sigs : list[int], optional
+        The list of signal indices to be excluded since they have already
+        been determined to have all 0s for the specified time range.
 
     Returns
     -------
@@ -645,10 +646,14 @@ def order_sigs(ekg_sigs, n_ekg_sigs, sig_name):
 
     """
     sig_order = []
+    ekg_sigs = ['II', 'V', 'V5', 'V1', 'V2', 'V3', 'V4', 'V6', 'I', 'III',
+                'aVR', 'aVF', 'aVL']
     bp_sigs = ['ABP', 'IBP1', 'IBP2', 'IBP5', 'IBP6', 'CVP', 'ICP', 'LAP',
                'PAP']
     resp_sigs = ['PLETH', 'Resp', 'CO2']
 
+    # Exclude signals which have all 0s
+    itter_sig_name = [j for i,j in enumerate(sig_name) if i not in exclude_sigs]
     # Add a max of `n_ekg_sigs` EKG signals, the any number of BP and Resp.
     # If not possible, try again twice by adding in order.
     # If still not filled, just return the non-full `sig_order`.
@@ -657,16 +662,16 @@ def order_sigs(ekg_sigs, n_ekg_sigs, sig_name):
         for ekgs in ekg_sigs:
             if n_ekgs == n_ekg_sigs:
                 break
-            elif ekgs in sig_name:
+            elif ekgs in itter_sig_name:
                 sig_order.append(sig_name.index(ekgs))
                 n_ekgs += 1
         if len(sig_order) < 4:
             for bps in bp_sigs:
-                if (bps in sig_name) and (sig_name.index(bps) not in sig_order):
+                if (bps in itter_sig_name) and (sig_name.index(bps) not in sig_order):
                     sig_order.append(sig_name.index(bps))
                     break
             for resps in resp_sigs:
-                if (resps in sig_name) and (sig_name.index(resps) not in sig_order):
+                if (resps in itter_sig_name) and (sig_name.index(resps) not in sig_order):
                     sig_order.append(sig_name.index(resps))
                     break
 
@@ -1277,12 +1282,27 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     )
 
     # Collect all of the signals and format their graph attributes
-    ekg_sigs = ['II', 'V', 'V5', 'V1', 'V2', 'V3', 'V4', 'V6', 'I', 'III',
-                'aVR', 'aVF', 'aVL']
-    sig_order = order_sigs(ekg_sigs, n_ekg_sigs, sig_name)
+    sig_order = order_sigs(n_ekg_sigs, sig_name)
     ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs,
                                            record, index_start, index_stop,
                                            down_sample_ekg, down_sample)
+    # Try to account for empty channels
+    exclude_list = []
+    while (len(sig_name) - len(exclude_list)) > 4:
+        count_zero = 0
+        for i,yv in enumerate(all_y_vals):
+            if (yv == 0).all():
+                exclude_list.append(sig_order[i])
+                sig_order = order_sigs(n_ekg_sigs, sig_name,
+                                       exclude_sigs=exclude_list)
+                ekg_y_vals, all_y_vals = format_y_vals(
+                    sig_order, sig_name, n_ekg_sigs, record, index_start,
+                    index_stop, down_sample_ekg, down_sample
+                )
+                count_zero += 1
+        if count_zero == 0:
+            break
+
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
     min_ekg_tick = min(ekg_y_vals)
