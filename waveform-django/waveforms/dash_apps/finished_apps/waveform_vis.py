@@ -1263,7 +1263,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
                                dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
-    n_sig = record[1]['n_sig']
     sig_name = record[1]['sig_name']
     sig_len = record[1]['sig_len']
     units = record[1]['units']
@@ -1272,14 +1271,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     # initial range of x-values
     index_start = int(fs * (event_time - time_range_min))
     index_stop = int(fs * (event_time + time_range_max))
-
-    # Set the initial layout of the figure
-    fig = get_subplot(4)
-    fig.update_layout(
-        get_layout(fig_height, fig_width, margin_left, margin_top,
-                   margin_right, margin_bottom, n_sig, drag_mode,
-                   background_color)
-    )
 
     # Collect all of the signals and format their graph attributes
     sig_order = order_sigs(n_ekg_sigs, sig_name)
@@ -1307,6 +1298,16 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     # Create the ticks based off of the range of y-values
     min_ekg_tick = min(ekg_y_vals)
     max_ekg_tick = max(ekg_y_vals)
+
+    # Sometimes there may not be 4 signals available to display
+    n_sig = len(sig_order)
+    # Set the initial layout of the figure
+    fig = get_subplot(n_sig)
+    fig.update_layout(
+        get_layout(fig_height, fig_width, margin_left, margin_top,
+                   margin_right, margin_bottom, n_sig, drag_mode,
+                   background_color)
+    )
 
     # Name the axes and create the subplots
     for idx,r in enumerate(sig_order):
@@ -1342,9 +1343,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
             get_annotation(min_y_vals, max_y_vals, x_string, y_string,
                            ann_color))
 
-        # TODO: Won't work with <4 sigs displayed (although that should be
-        #       fixed first)
-        if idx != (4 - 1):
+        if idx != (n_sig - 1):
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, False, None, x_zoom_fixed,
                           grid_color, zeroline_state, window_size_min,
