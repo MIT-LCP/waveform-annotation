@@ -1341,7 +1341,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
             row = idx+1, col = 1)
 
         fig.add_shape(
-            get_annotation(min_y_vals, max_y_vals, x_string, y_string,
+            get_annotation(min(y_vals), max(y_vals), x_string, y_string,
                            ann_color))
 
         if idx != (n_sig - 1):
