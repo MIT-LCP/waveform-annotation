@@ -1279,10 +1279,11 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
                                            down_sample_ekg, down_sample)
     # Try to account for empty channels
     exclude_list = []
-    while (len(sig_name) - len(exclude_list)) > 4:
+    while (len(sig_name) - len(exclude_list)) > 0:
         count_zero = 0
         for i,yv in enumerate(all_y_vals):
-            if (yv == 0).all():
+            # Discards a signal if all its values are <0.01
+            if np.isclose(yv, np.zeros(len(yv)), atol=1e-2).all():
                 exclude_list.append(sig_order[i])
                 sig_order = order_sigs(n_ekg_sigs, sig_name,
                                        exclude_sigs=exclude_list)
