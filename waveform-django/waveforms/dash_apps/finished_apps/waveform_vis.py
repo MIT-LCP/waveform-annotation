@@ -1285,15 +1285,16 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
             # Discards a signal if all its values are <0.01
             if np.isclose(yv, np.zeros(len(yv)), atol=1e-2).all():
                 exclude_list.append(sig_order[i])
-                sig_order = order_sigs(n_ekg_sigs, sig_name,
-                                       exclude_sigs=exclude_list)
-                ekg_y_vals, all_y_vals = format_y_vals(
-                    sig_order, sig_name, n_ekg_sigs, record, index_start,
-                    index_stop, down_sample_ekg, down_sample
-                )
                 count_zero += 1
         if count_zero == 0:
             break
+        else:
+            sig_order = order_sigs(n_ekg_sigs, sig_name,
+                                   exclude_sigs=exclude_list)
+            ekg_y_vals, all_y_vals = format_y_vals(
+                sig_order, sig_name, n_ekg_sigs, record, index_start,
+                index_stop, down_sample_ekg, down_sample
+            )
 
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
