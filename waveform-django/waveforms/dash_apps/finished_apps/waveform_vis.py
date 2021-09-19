@@ -1196,9 +1196,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     window_size_min = user_settings.window_size_min
     window_size_max = user_settings.window_size_max
 
-    # Determine the time of the event (seconds)
-    # `300` if standard 10 minute segment, `dropdown_event` otherwise
-    event_time = 300
     # Set the initial dragmode (`zoom`, `pan`, etc.)
     # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
     drag_mode = False
@@ -1255,6 +1252,13 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
         return (fig)
 
+    # Determine the time of the event (seconds)
+    ann_path = os.path.join(PROJECT_PATH, dropdown_project,
+                            dropdown_rec, dropdown_event)
+    ann = wfdb.rdann(ann_path, 'alm')
+    event_time = (ann.sample / ann.fs)[0]
+
+    # Determine the signal information
     record_path = os.path.join(PROJECT_PATH, dropdown_project,
                                dropdown_rec, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
