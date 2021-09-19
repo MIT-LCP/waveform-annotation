@@ -1282,8 +1282,9 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     while (len(sig_name) - len(exclude_list)) > 0:
         count_zero = 0
         for i,yv in enumerate(all_y_vals):
-            # Discards a signal if all its values are <0.01
-            if np.isclose(yv, np.zeros(len(yv)), atol=1e-2).all():
+            # Discards a signal if all its values are <0.01 or the same
+            if ((np.isclose(yv, np.zeros(len(yv)), atol=1e-2).all()) or
+               (len(set(yv)) == 1)):
                 exclude_list.append(sig_order[i])
                 count_zero += 1
         if count_zero == 0:
