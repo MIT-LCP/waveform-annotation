@@ -429,20 +429,17 @@ def render_annotations(request):
 
             # Get the completion stats for each record
             if temp_completed_anns != []:
-                progress_stats = f'{len(temp_completed_anns)}/{len(completed_annotations)}'
+                progress_stats = f'{len(temp_completed_anns)}/{len(temp_events)}'
                 temp_completed_anns.insert(0, progress_stats)
                 temp_completed_anns.insert(1, project)
                 completed_anns[rec] = temp_completed_anns
             if temp_uncertain_anns != []:
-                progress_stats = f'{len(temp_uncertain_anns)}/{len(uncertain_annotations)}'
+                progress_stats = f'{len(temp_uncertain_anns)}/{len(temp_events)}'
                 temp_uncertain_anns.insert(0, progress_stats)
                 temp_uncertain_anns.insert(1, project)
                 uncertain_anns[rec] = temp_uncertain_anns
             if temp_incompleted_anns != []:
-                total_incompleted_anns = total_anns - \
-                                         len(completed_annotations) - \
-                                         len(uncertain_annotations)
-                progress_stats = f'{len(temp_incompleted_anns)}/{total_incompleted_anns}'
+                progress_stats = f'{len(temp_incompleted_anns)}/{len(temp_events)}'
                 temp_incompleted_anns.insert(0, progress_stats)
                 temp_incompleted_anns.insert(1, project)
                 incompleted_anns[rec] = temp_incompleted_anns
