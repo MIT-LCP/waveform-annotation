@@ -42,6 +42,7 @@ plot_config = {
         'hoverClosestCartesian',
         'hoverCompareCartesian',
         'toggleSpikelines',
+        'pan2d',
         'zoom2d',
         'resetScale2d'
     ]
@@ -357,7 +358,7 @@ def get_trace(x_vals, y_vals, x_string, y_string, sig_color, sig_thickness,
     })
 
 
-def get_annotation(min_val, max_val, x_string, y_string, ann_color):
+def get_annotation(x_string, ann_color):
     """
     Plot the annotations for the signal. Should always be at the x=0 line for
     viewing machine annotations. Make the line big enough to appear it's of
@@ -367,14 +368,8 @@ def get_annotation(min_val, max_val, x_string, y_string, ann_color):
 
     Parameters
     ----------
-    min_val : float, int
-        The minimum value of the signal.
-    max_val : float, int
-        The maximum value of the signal.
     x_string : str
         Which x-axis the annotation is bound to.
-    y_string : str
-        Which y-axis the annotation is bound to.
     ann_color : str
         A string of the RGB representation of the desired annotation color.
         Ex: 'rgb(20,40,100)'
@@ -385,18 +380,16 @@ def get_annotation(min_val, max_val, x_string, y_string, ann_color):
         Represents the annotation shape for the plot.
 
     """
-    y_range = max_val - min_val
-    y_start = min_val - (0.5 * y_range)
-    y_stop = max_val + (0.5 * y_range)
-
     return {
         'type': 'line',
         'x0': 0,
-        'y0': y_start,
+        'y0': 0,
         'x1': 0,
-        'y1': y_stop,
+        'y1': 1,
+        'xsizemode': 'pixel',
+        'xanchor': 0,
         'xref': x_string,
-        'yref': y_string,
+        'yref': 'paper',
         'line': {
             'color': ann_color,
             'width': 3
@@ -462,6 +455,11 @@ def get_xaxis(vals, grid_delta_major, show_ticks, title, zoom_fixed, grid_color,
         'zerolinewidth': 1,
         'zerolinecolor': grid_color,
         'range': [-window_size_min, window_size_max],
+        'rangeslider': {
+            'visible': show_ticks,
+            'thickness': 0.025,
+            'bgcolor': 'rgb(0,0,0)'
+        },
         'showspikes': True,
         'spikemode': 'across',
         'spikesnap': 'cursor',
@@ -1203,8 +1201,8 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     event_time = 300
     # Set the initial dragmode (`zoom`, `pan`, etc.)
     # For more info: https://plotly.com/python/reference/layout/#layout-dragmode
-    drag_mode = 'pan'
-    x_zoom_fixed = False
+    drag_mode = False
+    x_zoom_fixed = True
     y_zoom_fixed = False
     # Set the initial y-axis parameters
     grid_state = True
@@ -1232,21 +1230,19 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
                           sig_thickness, 'N/A'),
                 row = idx+1, col = 1)
 
-            fig.add_shape(
-                get_annotation(-1, 1, x_string, y_string, ann_color)
-            )
+            fig.add_shape(get_annotation(x_string, ann_color))
 
             if idx != (4 - 1):
                 fig.update_xaxes(
                     get_xaxis(x_vals, grid_delta_major, False, None,
-                            x_zoom_fixed, grid_color, zeroline_state,
-                            window_size_min, window_size_max),
+                              x_zoom_fixed, grid_color, zeroline_state,
+                              window_size_min, window_size_max),
                     row = idx+1, col = 1)
             else:
                 fig.update_xaxes(
                     get_xaxis(x_vals, grid_delta_major, True, 'Time Since Event (s)',
-                            x_zoom_fixed, grid_color, zeroline_state,
-                            window_size_min, window_size_max),
+                              x_zoom_fixed, grid_color, zeroline_state,
+                              window_size_min, window_size_max),
                     row = idx+1, col = 1)
 
             fig.update_yaxes(
@@ -1341,10 +1337,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
                       sig_thickness, sig_name[r]),
             row = idx+1, col = 1)
 
-        fig.add_shape(
-            get_annotation(min(y_vals), max(y_vals), x_string, y_string,
-                           ann_color))
-
         if idx != (n_sig - 1):
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, False, None, x_zoom_fixed,
@@ -1352,6 +1344,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
                           window_size_max),
                 row = idx+1, col = 1)
         else:
+            fig.add_shape(get_annotation(x_string, ann_color))
             fig.update_xaxes(
                 get_xaxis(x_vals, grid_delta_major, True,
                           'Time Since Event (s)', x_zoom_fixed, grid_color,

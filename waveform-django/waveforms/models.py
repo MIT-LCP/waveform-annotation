@@ -98,7 +98,7 @@ class UserSettings(models.Model):
     margin_left = models.FloatField(blank=False, default=0.0)
     margin_top = models.FloatField(blank=False, default=25.0)
     margin_right = models.FloatField(blank=False, default=0.0)
-    margin_bottom = models.FloatField(blank=False, default=0.0)
+    margin_bottom = models.FloatField(blank=False, default=35.0)
     grid_color = models.TextField(blank=False, default='#ff3c3c')
     background_color = models.TextField(blank=False, default='#ffffff')
     sig_color = models.TextField(blank=False, default='#000000')
