@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from operator import itemgetter
 import csv
+import random
 
 from django import forms
 from django.contrib import messages
@@ -149,6 +150,7 @@ def get_user_events(user, project_folder):
             if user.username in names:
                 event_list.append(row[0])
     return event_list
+
 
 @login_required
 def waveform_published_home(request, set_project='', set_record='', set_event=''):
@@ -403,7 +405,7 @@ def render_annotations(request):
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
 
     # Display user events
-    for project,record_list in user_records.items():
+    for project, record_list in user_records.items():
         for rec in sorted(record_list):
             temp_events = [e for e in user_events[project] if e[:e.find('_')] == rec]
 
@@ -459,7 +461,10 @@ def render_annotations(request):
             num_events = int(request.POST['num_events'])
 
             # Add events to user_assignments if not already present
-            for project in available_projects:
+            # Randomly select which dataset to use
+            random_projects = available_projects
+            random.shuffle(random_projects)
+            for project in random_projects:
                 records_path = os.path.join(PROJECT_PATH, project, base.RECORDS_FILE)
                 with open(records_path, 'r') as f:
                     record_list = f.read().splitlines()
@@ -483,7 +488,12 @@ def render_annotations(request):
                 finished_event = [a.event for a in finished_ann]
                 max_ann = 2
 
-                for event, names_list in csv_data.items():
+                # Scramble events so users get a random assignment
+                keys = list(csv_data.keys())
+                random.shuffle(keys)
+                random_assign = [(key, csv_data[key]) for key in keys]
+
+                for event, names_list in random_assign:
                     if event not in finished_event and \
                             user.username not in names_list and \
                             len(names_list) < max_ann and \
@@ -501,7 +511,7 @@ def render_annotations(request):
                    'uncertain_anns': uncertain_anns,
                    'incompleted_anns': incompleted_anns,
                    'finished_assignment': finished_assignment,
-                   'remaining': total_anns-len(completed_annotations)})
+                   'remaining': total_anns - len(completed_annotations)})
 
 
 @login_required
@@ -525,10 +535,10 @@ def delete_annotation(request, set_project, set_record, set_event):
     user = User.objects.get(username=request.user)
     try:
         annotation = Annotation.objects.get(
-            user = user,
-            project = set_project,
-            record = set_record,
-            event = set_event
+            user=user,
+            project=set_project,
+            record=set_record,
+            event=set_event
         )
         annotation.delete()
     except Annotation.DoesNotExist:
