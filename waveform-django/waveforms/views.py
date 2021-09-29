@@ -369,14 +369,14 @@ def render_annotations(request):
                                                                  'False'])
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
-    # Uncertain / saved annotations
-    uncertain_annotations = all_annotations.filter(decision='Uncertain')
-    uncertain_records = [a.record for a in uncertain_annotations]
-    uncertain_events = [a.event for a in uncertain_annotations]
+    # Saved annotations
+    saved_annotations = all_annotations.filter(decision='Save for Later')
+    saved_records = [a.record for a in saved_annotations]
+    saved_events = [a.event for a in saved_annotations]
 
     # Hold all of the annotation information
     completed_anns = {}
-    uncertain_anns = {}
+    saved_anns = {}
     incompleted_anns = {}
 
     # Get list where each element is a list of records from a project folder
@@ -411,7 +411,7 @@ def render_annotations(request):
 
             # Add annotations by event
             temp_completed_anns = []
-            temp_uncertain_anns = []
+            temp_saved_anns = []
             temp_incompleted_anns = []
             for evt in temp_events:
                 if (rec in completed_records) and (evt in completed_events):
@@ -420,9 +420,9 @@ def render_annotations(request):
                                                 ann.decision,
                                                 ann.comments,
                                                 ann.decision_date])
-                elif (rec in uncertain_records) and (evt in uncertain_events):
-                    ann = uncertain_annotations[uncertain_events.index(evt)]
-                    temp_uncertain_anns.append([ann.event,
+                elif (rec in saved_records) and (evt in saved_events):
+                    ann = saved_annotations[saved_events.index(evt)]
+                    temp_saved_anns.append([ann.event,
                                                 ann.decision,
                                                 ann.comments,
                                                 ann.decision_date])
@@ -435,11 +435,11 @@ def render_annotations(request):
                 temp_completed_anns.insert(0, progress_stats)
                 temp_completed_anns.insert(1, project)
                 completed_anns[rec] = temp_completed_anns
-            if temp_uncertain_anns != []:
-                progress_stats = f'{len(temp_uncertain_anns)}/{len(temp_events)}'
-                temp_uncertain_anns.insert(0, progress_stats)
-                temp_uncertain_anns.insert(1, project)
-                uncertain_anns[rec] = temp_uncertain_anns
+            if temp_saved_anns != []:
+                progress_stats = f'{len(temp_saved_anns)}/{len(temp_events)}'
+                temp_saved_anns.insert(0, progress_stats)
+                temp_saved_anns.insert(1, project)
+                saved_anns[rec] = temp_saved_anns
             if temp_incompleted_anns != []:
                 progress_stats = f'{len(temp_incompleted_anns)}/{len(temp_events)}'
                 temp_incompleted_anns.insert(0, progress_stats)
@@ -508,7 +508,7 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
                    'categories': categories, 'completed_anns': completed_anns,
-                   'uncertain_anns': uncertain_anns,
+                   'saved_anns': saved_anns,
                    'incompleted_anns': incompleted_anns,
                    'finished_assignment': finished_assignment,
                    'remaining': total_anns - len(completed_annotations)})
@@ -561,7 +561,7 @@ def leaderboard(request):
     glob_true = []
     glob_false = []
     for user in all_users:
-        user_anns = Annotation.objects.filter(user=user).exclude(decision='Uncertain')
+        user_anns = Annotation.objects.filter(user=user).exclude(decision='Save for Later')
         num_today = 0
         num_week = 0
         num_month = 0
