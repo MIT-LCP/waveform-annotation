@@ -30,6 +30,12 @@
     </tr>
   </table>
   <h1>Admin Console</h1>
+  <br />
+  <form action="{% url 'admin_console' %}" method="post" class="form-signin no-pd" name="ann_to_csv">
+    {% csrf_token %}
+    <button class="btn btn-primary btn-rsp" name="ann_to_csv" type="submit">Download All Annotations as CSV</button>
+  </form>
+  <br />
   <h2>All Users</h2>
   <div>
     {% if messages %}
