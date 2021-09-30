@@ -88,7 +88,7 @@ app.layout = html.Div([
                 options = [
                     {'label': 'True (alarm is correct)', 'value': 'True'},
                     {'label': 'False (alarm is incorrect)', 'value': 'False'},
-                    {'label': 'Uncertain / Save for later', 'value': 'Uncertain'}
+                    {'label': 'Save for Later', 'value': 'Save for Later'}
                 ],
                 labelStyle = {'display': 'block'},
                 style = {'width': sidebar_width,},
