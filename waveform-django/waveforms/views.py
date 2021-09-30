@@ -7,8 +7,10 @@ import random
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+import pandas as pd
 
 from waveforms.forms import GraphSettings, InviteUserForm
 from waveforms.models import Annotation, InvitedEmails, User, UserSettings
@@ -202,12 +204,27 @@ def admin_console(request):
     if not user.is_admin:
         return redirect('waveform_published_home')
 
+    ann_to_csv_form = forms.Form()
     invite_user_form = InviteUserForm()
     add_admin_form = forms.Form()
     remove_admin_form = forms.Form()
 
     if request.method == 'POST':
-        if 'invite_user' in request.POST:
+        if 'ann_to_csv' in request.POST:
+            all_anns = Annotation.objects.all()
+            csv_df = pd.DataFrame.from_dict({
+                'username': [a.user.username for a in all_anns],
+                'record': [a.record for a in all_anns],
+                'event': [a.event for a in all_anns],
+                'decision': [a.decision for a in all_anns],
+                'comment': [a.comments for a in all_anns],
+                'date': [str(a.decision_date) for a in all_anns]
+            })
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=all_anns.csv'
+            csv_df.to_csv(path_or_buf=response, sep=',', index=False)
+            return response
+        elif 'invite_user' in request.POST:
             invite_user_form = InviteUserForm(request.POST)
             if invite_user_form.is_valid():
                 invite_user_form.save(
@@ -332,7 +349,7 @@ def admin_console(request):
                    'categories': categories, 'all_projects': all_projects,
                    'conflict_anns': conflict_anns,
                    'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
-                   'all_users': all_users,
+                   'all_users': all_users, 'ann_to_csv_form': ann_to_csv_form,
                    'invite_user_form': invite_user_form,
                    'add_admin_form': add_admin_form,
                    'remove_admin_form': remove_admin_form})
