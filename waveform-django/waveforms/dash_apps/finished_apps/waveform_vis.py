@@ -548,58 +548,6 @@ def get_header_info(project, file_path):
     return file_contents
 
 
-def get_current_ann():
-    """
-    Returns either the record or event value of the current annotation.
-
-    Parameters
-    ----------
-    N/A
-
-    Returns
-    -------
-    N/A : str
-        The current record.
-    N/A : str
-        The current event.
-    N/A : str
-        The current project.
-
-    """
-    # Get the current user's annotations
-    current_user = User.objects.get(username=get_current_user())
-    user_annotations = Annotation.objects.filter(user=current_user)
-    completed_events = []
-    for a in user_annotations:
-        completed_events.append([a.project, a.event])
-
-    all_events = []
-    for project in ALL_PROJECTS:
-        proj_events = get_user_events(current_user, project)
-        for event in proj_events:
-            all_events.append([project, event])
-
-    # Get the earliest annotation
-    ann_indices = sorted([all_events.index(a) for a in completed_events])
-
-    if ann_indices:
-        try:
-            current_event = next(a for a, b in enumerate(ann_indices, 0) if a != b)
-        except StopIteration:
-            if (ann_indices[-1]+1) == len(all_events):
-                current_event = 0
-            else:
-                current_event = ann_indices[-1] + 1
-    else:
-        current_event = 0
-
-    if all_events != []:
-        return all_events[current_event][1].split('_')[0], all_events[current_event][1],\
-            all_events[current_event][0]
-    else:
-        return 'N/A', 'N/A', 'N/A'
-
-
 def get_dropdown(dropdown_value):
     """
     Retrieve the dropdown value from its dash context.
@@ -873,140 +821,72 @@ def get_record_event_options(click_submit, click_previous, click_next,
     """
     # Determine what triggered this function
     ctx = dash.callback_context
-    # Prepare to return the record and event value
-    # Get the record file
+    # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
-    all_records = get_user_records(current_user)
+    user_annotations = Annotation.objects.filter(user=current_user)
+    # Display "Save for Later" first
+    user_annotations = sorted(user_annotations,
+                              key=lambda x: 0 if x.decision=='Save for Later' else 1)
+
+    all_events = []
+    # Handle initial load
+    if not project_value:
+        # Completed annotations
+        completed_events = []
+        for a in user_annotations:
+            completed_events.append([a.project, a.event])
+        # Every assigned event / future annotation
+        for project in ALL_PROJECTS:
+            proj_events = get_user_events(current_user, project)
+            for event in proj_events:
+                all_events.append([project, event])
+        if all_events != []:
+            # Get the earliest annotation
+            if completed_events:
+                ann_indices = [all_events.index(a) for a in completed_events]
+                all_indices = sorted(list(set(np.arange(len(all_events))) - set(ann_indices))) + ann_indices
+                current_event = all_indices[0]
+            else:
+                current_event = 0
+            return_record = all_events[current_event][1].split('_')[0]
+            return_event = all_events[current_event][1]
+            return_project = all_events[current_event][0]
+        else:
+            # Display empty graph since no data
+            return_record = 'N/A'
+            return_event = 'N/A'
+            return_project = 'N/A'
+    else:
+        completed_events = [a.event for a in user_annotations]
+        all_events = get_user_events(current_user, project_value)
+        # The indices of completed annotations
+        ann_indices = [all_events.index(a) for a in completed_events]
+        # The indices of incomplete annotations
+        non_ann_indices = sorted(list(set(np.arange(len(all_events))) - set(ann_indices)))
+        # Eventually `len(non_ann_indices) == 0` so "Save for Later" will
+        # be first
+        all_indices = non_ann_indices + ann_indices
+
     if ctx.triggered:
         # Determine what triggered the function
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
+        # We already know the current project
+        return_project = project_value
+        # The location of event in the sorted event list
+        event_idx = all_indices.index(all_events.index(event_value))
+        # Going backward in the list
         if click_id == 'previous_annotation':
-            # Determine the project
-            all_events = get_header_info(project_value, record_value)
-            if all_records[project_value].index(record_value) > 0 or \
-                    all_events.index(event_value) > 0:
-                # Project list not ended, keep project value the same
-                return_project = project_value
-            else:
-                idr = ALL_PROJECTS.index(project_value)
-                if idr == 0:
-                    # Reached beginning of project list, go to end
-                    idr = -1
-                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
-                        idr -= 1
-                    return_project = ALL_PROJECTS[idr]
-                else:
-                    # Decrement the project if not the end of the list
-                    idr -= 1
-                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
-                        idr -= 1
-                        if idr == -1:
-                            idr = len(ALL_PROJECTS) - 1
-                    return_project = ALL_PROJECTS[idr]
-
-            # Update the records/events to use correct project
-            all_records = all_records[return_project]
-
-            # Determine the record
-            if return_project != project_value:
-                return_record = all_records[-1]
-            elif all_events.index(event_value) > 0:
-                # Event list not ended, keep record value the same
-                return_record = record_value
-            else:
-                idr = all_records.index(record_value)
-                if idr == 0:
-                    # Reached the beginning of the list, go to the end
-                    return_record = all_records[-1]
-                else:
-                    # Decrement the record if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr-1]
-
-            # Update the events if the record is updated
-            all_events = get_header_info(return_project, return_record)
-            if return_record != record_value:
-                # Extract all the events
-                all_events = [e for e in all_events if e.find(return_record) != -1]
-
-            # Check to see if overflow has occurred
-            if event_value not in all_events:
-                ide = len(all_events)
-            else:
-                ide = all_events.index(event_value)
-            # Determine the event
-            if ide == 0:
-                # At the beginning of the list, go to the end
-                return_event = all_events[-1]
-            else:
-                # Decrement the record if not the beginning of the list
-                # TODO: Decrement to the next non-annotated waveform instead?
-                return_event = all_events[ide-1]
-
+            return_record = all_events[all_indices[event_idx-1]].split('_')[0]
+            return_event = all_events[all_indices[event_idx-1]]
+        # Going forward in the list
         elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
-            # Determine the project
-            all_events = get_header_info(project_value, record_value)
-            if all_records[project_value].index(record_value) < \
-                    (len(all_records[project_value]) - 1) or \
-                    all_events.index(event_value) < (len(all_events)-1):
-                # Project list not ended, keep project value the same
-                return_project = project_value
-            else:
-                idr = ALL_PROJECTS.index(project_value)
-                if idr == (len(ALL_PROJECTS) - 1):
-                    # Reached end of project list, go to front
-                    idr = 0
-                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
-                        idr += 1
-                    return_project = ALL_PROJECTS[idr]
-                else:
-                    # Increment the project if not the end of the list
-                    idr += 1
-                    while len(all_records[ALL_PROJECTS[idr]]) == 0:
-                        idr += 1
-                        if idr == len(ALL_PROJECTS):
-                            idr = 0
-                    return_project = ALL_PROJECTS[idr]
-
-            # Update the records to use correct project
-            all_records = all_records[return_project]
-
-            # Determine the record
-            if return_project != project_value and len(all_records) > 0:
-                return_record = all_records[0]
-            elif all_events.index(event_value) < (len(all_events) - 1):
-                # Event list not ended, keep record value the same
-                return_record = record_value
-            else:
-                idr = all_records.index(record_value)
-                if idr == (len(all_records) - 1):
-                    # Reached the end of the list, go back to the beginning
-                    return_record = all_records[0]
-                else:
-                    # Increment the record if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
-                    return_record = all_records[idr+1]
-
-            # Update the events if the record is updated
-            all_events = get_header_info(return_project, return_record)
-            if return_record != record_value:
-                # Extract all the events
-                all_events = [e for e in all_events if e.find(return_record) != -1]
-
-            # Check to see if overflow has occurred
-            if event_value not in all_events:
-                ide = -1
-            else:
-                ide = all_events.index(event_value)
-            # Determine the event
-            if ide == (len(all_events) - 1):
-                # Reached the end of the list, go back to the beginning
-                return_event = all_events[0]
-            else:
-                # Increment the event if not the end of the list
-                # TODO: Increment to the next non-annotated waveform instead?
-                return_event = all_events[ide+1]
+            try:
+                return_record = all_events[all_indices[event_idx+1]].split('_')[0]
+                return_event = all_events[all_indices[event_idx+1]]
+            except IndexError:
+                # End of list, go back to the beginning
+                return_record = all_events[all_indices[0]].split('_')[0]
+                return_event = all_events[all_indices[0]]
 
         # Update the annotations: only save the annotations if a decision is
         # made and the submit button was pressed
@@ -1057,8 +937,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_project = set_project
             return_record = set_record
             return_event = set_event
-        else:
-            return_record, return_event, return_project = get_current_ann()
 
     # Update the annotation current project text
     return_project = [
