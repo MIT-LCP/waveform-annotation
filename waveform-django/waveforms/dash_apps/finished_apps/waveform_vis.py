@@ -823,7 +823,9 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
-    user_annotations = Annotation.objects.filter(user=current_user)
+    # One project at a time
+    project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
+    user_annotations = Annotation.objects.filter(user=current_user, project=project)
     # Display "Save for Later" first
     user_annotations = sorted(user_annotations,
                               key=lambda x: 0 if x.decision=='Save for Later' else 1)
@@ -836,10 +838,9 @@ def get_record_event_options(click_submit, click_previous, click_next,
         for a in user_annotations:
             completed_events.append([a.project, a.event])
         # Every assigned event / future annotation
-        for project in ALL_PROJECTS:
-            proj_events = get_user_events(current_user, project)
-            for event in proj_events:
-                all_events.append([project, event])
+        proj_events = get_user_events(current_user, project)
+        for event in proj_events:
+            all_events.append([project, event])
         if all_events != []:
             # Get the earliest annotation
             if completed_events:
