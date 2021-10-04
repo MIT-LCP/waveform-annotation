@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 from operator import itemgetter
 import csv
-import random
+import random as rd
 
 from django import forms
 from django.contrib import messages
@@ -103,7 +103,10 @@ def get_all_assignments(project_folder):
     csv_data = {}
     with open(csv_path, 'r') as csv_file:
         csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
+        try:
+            next(csvreader)
+        except StopIteration:
+            return csv_data
         for row in csvreader:
             names = []
             for val in row[1:]:
@@ -143,7 +146,10 @@ def get_user_events(user, project_folder):
     event_list = []
     with open(csv_path, 'r') as csv_file:
         csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
+        try:
+            next(csvreader)
+        except StopIteration:
+            return event_list
         for row in csvreader:
             names = []
             for val in row[1:]:
@@ -476,50 +482,67 @@ def render_annotations(request):
         if 'new_assignment' in request.POST:
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
+            events_in_progress = {}
+            new_events = {}
+            finished_events = {}
+            total_events = 0
 
-            # Add events to user_assignments if not already present
-            # Randomly select which dataset to use
-            random_projects = available_projects
-            random.shuffle(random_projects)
-            for project in random_projects:
+            for project in available_projects:
+                finished_events[project] = [a.event for a in Annotation.objects.filter(
+                    user=user, project=project)]
+                progress = get_all_assignments(project)
+                events_in_progress[project] = progress
+
                 records_path = os.path.join(PROJECT_PATH, project, base.RECORDS_FILE)
                 with open(records_path, 'r') as f:
                     record_list = f.read().splitlines()
-                all_events = []
+                proj_events = []
                 for record in record_list:
                     event_path = os.path.join(PROJECT_PATH, project, record,
                                               base.RECORDS_FILE)
                     with open(event_path, 'r') as f:
-                        all_events += f.read().splitlines()
-                all_events = [e for e in all_events if '_' in e]
-                csv_data = get_all_assignments(project)
-                for event in all_events:
-                    if event not in csv_data.keys():
-                        csv_data[event] = []
+                        proj_events += f.read().splitlines()
+                proj_events = [e for e in proj_events if '_' in e]
 
-                if num_events == 0:
-                    update_assignments(csv_data, project)
-                    break
-                # Assign user events that have not been previously assigned to them
-                finished_ann = Annotation.objects.filter(user=user, project=project)
-                finished_event = [a.event for a in finished_ann]
-                max_ann = 2
+                for event in proj_events:
+                    total_events += 1
+                    if event not in progress.keys():
+                        try:
+                            new_events[project].append(event)
+                        except KeyError:
+                            new_events[project] = [event]
 
-                # Scramble events so users get a random assignment
-                keys = list(csv_data.keys())
-                random.shuffle(keys)
-                random_assign = [(key, csv_data[key]) for key in keys]
+            if num_events > total_events:
+                num_events = total_events
 
-                for event, names_list in random_assign:
-                    if event not in finished_event and \
-                            user.username not in names_list and \
-                            len(names_list) < max_ann and \
-                            num_events > 0:
-                        names_list.append(user.username)
+            # First assign events that already have one user assigned
+            for project, assignments in events_in_progress.items():
+                for event, assignees in assignments.items():
+                    if len(assignees) == 1 and event not in finished_events[project]:
+                        assignees.append(user.username)
                         num_events -= 1
+                        if num_events == 0:
+                            break
 
-                update_assignments(csv_data, project)
+            # All events have 0 or 2 assignees, randomly assign new event
+            while num_events:
+                rand_project = available_projects[rd.randint(0,
+                                                             len(available_projects)-1)]
+                if len(new_events[rand_project]) > 1:
+                    rand_event = new_events[rand_project] \
+                        [rd.randint(0, len(new_events[rand_project]) - 1)]
+                else:
+                    rand_event = new_events[rand_project] \
+                        [rd.randint(0, len(new_events[rand_project]) - 1)]
+                    available_projects.remove(rand_project)
 
+                if rand_event not in finished_events[rand_project]:
+                    events_in_progress[rand_project][rand_event] = user.username
+                    new_events[rand_project].remove(rand_event)
+                    num_events -= 1
+
+            for proj, data in events_in_progress.items():
+                update_assignments(data, proj)
             return redirect('render_annotations')
 
     return render(request, 'waveforms/annotations.html',
