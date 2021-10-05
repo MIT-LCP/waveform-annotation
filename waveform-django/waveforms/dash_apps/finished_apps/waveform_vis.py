@@ -592,10 +592,12 @@ def order_sigs(n_ekg_sigs, sig_name, exclude_sigs=[]):
 
     """
     sig_order = []
+    # TODO: make case-insensitive
     ekg_sigs = ['II', 'V', 'V5', 'V1', 'V2', 'V3', 'V4', 'V6', 'I', 'III',
-                'aVR', 'aVF', 'aVL']
-    bp_sigs = ['ABP', 'IBP1', 'IBP2', 'IBP5', 'IBP6']
-    resp_sigs = ['PLETH']
+                'aVR', 'AVR', 'aVF', 'AVF', 'aVL', 'AVL', 'MCL']
+    bp_sigs = ['ABP', 'AR1', 'AR2', 'AR3', 'IBP1', 'IBP2', 'IBP3', 'IBP4',
+               'IBP5', 'IBP6', 'IBP7', 'IBP8']
+    resp_sigs = ['PLETH', 'pleth']
 
     # Exclude signals which have all 0s
     itter_sig_name = [j for i,j in enumerate(sig_name) if i not in exclude_sigs]
