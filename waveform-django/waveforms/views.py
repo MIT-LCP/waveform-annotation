@@ -388,8 +388,9 @@ def render_annotations(request):
     # All annotations
     all_annotations = Annotation.objects.filter(user=user)
     # Completed annotations
-    completed_annotations = all_annotations.filter(decision__in=['True',
-                                                                 'False'])
+    completed_annotations = all_annotations.filter(
+        decision__in=['True', 'False', 'Uncertain']
+    )
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
     # Saved annotations
