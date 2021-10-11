@@ -145,6 +145,39 @@ app.layout = html.Div([
 ])
 
 
+def get_all_records_events(project_folder):
+    """
+    Get all possible records and events.
+
+    Parameters
+    ----------
+    project_folder : str
+        The project used to retrieve the records and events.
+
+    Returns
+    -------
+    N/A : list 
+        List of all records.
+    N/A : list 
+        List of all events.
+
+    """
+    # Get records
+    records_path = os.path.join(PROJECT_PATH, project_folder,
+                                base.RECORDS_FILE)
+    with open(records_path, 'r') as f:
+        record_list = f.read().splitlines()
+    # Get events
+    event_list = []
+    for record in record_list:
+        event_path = os.path.join(PROJECT_PATH, project_folder, record,
+                                  base.RECORDS_FILE)
+        with open(event_path, 'r') as f:
+            event_list += f.read().splitlines()
+    event_list = [e for e in event_list if '_' in e]
+    return record_list, event_list
+
+
 def get_user_events(user, project_folder):
     """
     Get the events assigned to a user in the CSV file.
@@ -167,22 +200,26 @@ def get_user_events(user, project_folder):
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
 
-    event_list = []
-    with open(csv_path, 'r') as csv_file:
-        csvreader = csv.reader(csv_file, delimiter=',')
-        next(csvreader)
-        for row in csvreader:
-            names = []
-            for val in row[1:]:
-                if val:
-                    names.append(val)
-            if user.username in names:
-                event_list.append(row[0])
-
-    user_ann = Annotation.objects.filter(user=user, project=project_folder)
-    event_list += [a.event for a in user_ann if a not in event_list]
+    if user.is_admin:
+        record_list, event_list = get_all_records_events(project_folder)
+    else:
+        csv_path = os.path.join(PROJECT_PATH, project_folder,
+                                base.ASSIGNMENT_FILE)
+        event_list = []
+        with open(csv_path, 'r') as csv_file:
+            csvreader = csv.reader(csv_file, delimiter=',')
+            next(csvreader)
+            for row in csvreader:
+                names = []
+                for val in row[1:]:
+                    if val:
+                        names.append(val)
+                if user.username in names:
+                    event_list.append(row[0])
+        user_ann = Annotation.objects.filter(user=user,
+                                             project=project_folder)
+        event_list += [a.event for a in user_ann if a not in event_list]
 
     return event_list
 
@@ -204,25 +241,29 @@ def get_user_records(user):
         The records assigned to the user by project.
 
     """
-    annotations = Annotation.objects.filter(user=user)
-
-    user_events = {}
-    for project in ALL_PROJECTS:
-        user_events[project] = get_user_events(user, project)
-
-    # Get all user records
     user_records = {}
-    for project in ALL_PROJECTS:
-        events = user_events[project]
-        user_records[project] = []
-        for evt in events:
-            rec = evt[:evt.find('_')]
-            if rec not in user_records[project]:
-                user_records[project].append(rec)
-
-    for ann in annotations:
-        if ann.record not in user_records[ann.project]:
-            user_records[ann.project].append(ann.record)
+    if user.is_admin:
+        for project in ALL_PROJECTS:
+            temp_records, _ = get_all_records_events(project)
+            user_records[project] = temp_records
+    else:
+        # Get all user annotations
+        annotations = Annotation.objects.filter(user=user)
+        # Get all user events
+        user_events = {}
+        for project in ALL_PROJECTS:
+            user_events[project] = get_user_events(user, project)
+        # Get all user records
+        for project in ALL_PROJECTS:
+            events = user_events[project]
+            user_records[project] = []
+            for evt in events:
+                rec = evt[:evt.find('_')]
+                if rec not in user_records[project]:
+                    user_records[project].append(rec)
+        for ann in annotations:
+            if ann.record not in user_records[ann.project]:
+                user_records[ann.project].append(ann.record)
 
     return user_records
 
@@ -861,8 +902,11 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_event = 'N/A'
             return_project = 'N/A'
     else:
-        completed_events = [a.event for a in user_annotations]
-        all_events = get_user_events(current_user, project_value)
+        completed_events = [a.event for a in user_annotations if a.project==project_value]
+        if current_user.is_admin:
+            _, all_events = get_all_records_events(project_value)
+        else:
+            all_events = get_user_events(current_user, project_value)
         # The indices of completed annotations
         ann_indices = [all_events.index(a) for a in completed_events]
         # The indices of incomplete annotations
