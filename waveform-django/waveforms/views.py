@@ -89,10 +89,9 @@ def get_all_assignments(project_folder):
     Returns
     -------
     N/A : dict
-        Data within csv file.
+        Data within the CSV file.
 
     """
-
     # Find the files
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -376,7 +375,6 @@ def render_annotations(request):
         HTML webpage responsible for displaying the annotations.
 
     """
-
     # Find the files
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
@@ -405,25 +403,39 @@ def render_annotations(request):
 
     # Get list where each element is a list of records from a project folder
     all_projects = base.ALL_PROJECTS
-    # Get all user events
-    user_events = {}
-    for project in all_projects:
-        user_events[project] = get_user_events(user, project)
-    for ann in all_annotations:
-        if ann.event not in user_events[ann.project]:
-            user_events[ann.project].append(ann.event)
     # Get all user records
     user_records = {}
-    for project in all_projects:
-        events = user_events[project]
-        user_records[project] = []
-        for evt in events:
-            rec = evt[:evt.find('_')]
-            if rec not in user_records[project]:
-                user_records[project].append(rec)
-    for ann in all_annotations:
-        if ann.record not in user_records[ann.project]:
-            user_records[ann.project].append(ann.record)
+    # Get all user events
+    user_events = {}
+    if user.is_admin:
+        for project in all_projects:
+            user_events[project] = []
+            records_path = os.path.join(PROJECT_PATH, project,
+                                        base.RECORDS_FILE)
+            with open(records_path, 'r') as f:
+                user_records[project] = f.read().splitlines()
+            for record in user_records[project]:
+                event_path = os.path.join(PROJECT_PATH, project, record,
+                                        base.RECORDS_FILE)
+                with open(event_path, 'r') as f:
+                    user_events[project] += f.read().splitlines()
+            user_events[project] = [e for e in user_events[project] if '_' in e]
+    else:
+        for project in all_projects:
+            user_events[project] = get_user_events(user, project)
+        for ann in all_annotations:
+            if ann.event not in user_events[ann.project]:
+                user_events[ann.project].append(ann.event)
+        for project in all_projects:
+            events = user_events[project]
+            user_records[project] = []
+            for evt in events:
+                rec = evt[:evt.find('_')]
+                if rec not in user_records[project]:
+                    user_records[project].append(rec)
+        for ann in all_annotations:
+            if ann.record not in user_records[ann.project]:
+                user_records[ann.project].append(ann.record)
 
     # Get the total number of annotations
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
