@@ -1224,8 +1224,8 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
     min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
     # Create the ticks based off of the range of y-values
-    min_ekg_tick = min(ekg_y_vals)
-    max_ekg_tick = max(ekg_y_vals)
+    min_ekg_tick = grid_delta_major * round(min(ekg_y_vals)/grid_delta_major)
+    max_ekg_tick = grid_delta_major * round(max(ekg_y_vals)/grid_delta_major)
 
     # Sometimes there may not be 4 signals available to display
     n_sig = len(sig_order)
@@ -1248,7 +1248,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
             min_y_vals = min_ekg_y_vals
             max_y_vals = max_ekg_y_vals
             # Create the ticks
-            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
+            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()]
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
             y_text_vals = y_tick_vals[::math.ceil(len(y_tick_vals)/max_y_labels)]
             # Create the labels
@@ -1258,7 +1258,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
             # Remove outliers to prevent weird axes scaling if possible
             min_y_vals, max_y_vals = window_signal(y_vals)
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()][1:-1]
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()]
             # Create the labels
             y_tick_text = [str(n) for n in y_tick_vals]
 
