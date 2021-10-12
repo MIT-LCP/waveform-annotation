@@ -500,7 +500,7 @@ def get_xaxis(vals, grid_delta_major, show_ticks, title, zoom_fixed, grid_color,
         'rangeslider': {
             'visible': show_ticks,
             'thickness': 0.025,
-            'bgcolor': 'rgb(0,0,0)'
+            'bgcolor': 'rgb(255,255,255)'
         },
         'showspikes': True,
         'spikemode': 'across',
