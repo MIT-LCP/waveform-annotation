@@ -112,5 +112,5 @@ class UserSettings(models.Model):
     signal_std = models.FloatField(blank=False, default=3.0)
     time_range_min = models.FloatField(blank=False, default=40.0)
     time_range_max = models.FloatField(blank=False, default=10.0)
-    window_size_min = models.FloatField(blank=False, default=15.0)
+    window_size_min = models.FloatField(blank=False, default=10.0)
     window_size_max = models.FloatField(blank=False, default=1.0)
