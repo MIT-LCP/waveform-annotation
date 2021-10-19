@@ -38,6 +38,10 @@ arrow_width = str(float(submit_width.split('px')[0]) / 2 + 3) + 'px'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
+    'modeBarButtonsToAdd': [
+        'drawline',
+        'eraseshape'
+    ],
     'modeBarButtonsToRemove': [
         'hoverClosestCartesian',
         'hoverCompareCartesian',
@@ -345,6 +349,12 @@ def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
         'showlegend': False,
         'hovermode': 'x',
         'dragmode': drag_mode,
+        'newshape': {
+            'line': {
+                'color': 'black',
+                'width': 10
+            }
+        },
         'spikedistance':  -1,
         'plot_bgcolor': background_color,
         'paper_bgcolor': '#ffffff',
