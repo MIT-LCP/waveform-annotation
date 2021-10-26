@@ -24,6 +24,11 @@
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }
+.label-warning {
+  white-space: pre-wrap;
+  margin: 0px;
+  color: red;
+}
 </style>
 
 <div class="container">
@@ -77,10 +82,18 @@
         <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
               value="Must assign at least 100 events" disabled>
         <br />
+        <label class="label-warning">
+          ***
+          Please complete your current assignment to continue.
+          All annotations must either be <u>True</u>, <u>False</u>, or <u>Uncertain</u>.
+          There can be no annotations which are <u>Save for Later</u>.
+          ***
+        </label>
+        <br />
         <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit" disabled>
-        <label>*** All annotations must either be True, False, or Uncertain... no Save for Later ***</label>
       </form>
     {% endif %}
+    <br />
     <h2>Current Assignment</h2>
     <span style="font-size: 20px; float: left;">Remaining Events: </span>
     <span style="font-size: 20px; float: right;">{{ remaining }}</span>
