@@ -641,6 +641,8 @@ def order_sigs(n_ekg_sigs, sig_name, exclude_sigs=[]):
     -------
     sig_order : list[str]
         The ordered list of signal names. Should only be 4 elements long.
+    n_ekgs : int
+        The total number of actual EKG signals.
 
     """
     sig_order = []
@@ -664,7 +666,7 @@ def order_sigs(n_ekg_sigs, sig_name, exclude_sigs=[]):
             elif ekgs in itter_sig_name:
                 sig_order.append(sig_name.index(ekgs))
                 n_ekgs += 1
-        if len(sig_order) < 4:
+        if len(sig_order) < min(len(sig_name), 4):
             for bps in bp_sigs:
                 if (bps in itter_sig_name) and (sig_name.index(bps) not in sig_order):
                     sig_order.append(sig_name.index(bps))
@@ -673,8 +675,9 @@ def order_sigs(n_ekg_sigs, sig_name, exclude_sigs=[]):
                 if (resps in itter_sig_name) and (sig_name.index(resps) not in sig_order):
                     sig_order.append(sig_name.index(resps))
                     break
+            break
 
-    return sig_order
+    return sig_order, n_ekgs
 
 
 def format_y_vals(sig_order, sig_name, n_ekg_sigs, record, index_start,
@@ -1199,7 +1202,6 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
     sig_name = record[1]['sig_name']
-    sig_len = record[1]['sig_len']
     units = record[1]['units']
 
     # Set the initial display range of y-values based on values in
@@ -1208,7 +1210,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     index_stop = int(fs * (event_time + time_range_max))
 
     # Collect all of the signals and format their graph attributes
-    sig_order = order_sigs(n_ekg_sigs, sig_name)
+    sig_order, n_ekg_sigs = order_sigs(n_ekg_sigs, sig_name)
     ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs,
                                            record, index_start, index_stop,
                                            down_sample_ekg, down_sample)
@@ -1225,8 +1227,8 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
         if count_zero == 0:
             break
         else:
-            sig_order = order_sigs(n_ekg_sigs, sig_name,
-                                   exclude_sigs=exclude_list)
+            sig_order, n_ekg_sigs = order_sigs(n_ekg_sigs, sig_name,
+                                               exclude_sigs=exclude_list)
             ekg_y_vals, all_y_vals = format_y_vals(
                 sig_order, sig_name, n_ekg_sigs, record, index_start,
                 index_stop, down_sample_ekg, down_sample
