@@ -9,7 +9,41 @@
     {% block local_css %}{% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
-
+  
+  <div class="container">
+  <!-- The title header of the webpage -->
+  <span>User: {{user.username}}... <a href="{% url 'logout' %}">Logout</a></span>
+  <table class="table table-bordered">
+    <tr>
+      {% if user.is_admin %}
+        {% url 'admin_console' as url %}
+        <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+          <a href="{% url 'admin_console' %}">Admin Console</a>
+        </th>
+      {% endif %}
+      {% url 'waveform_published_home' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
+      </th>
+      {% url 'render_annotations' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'render_annotations' %}">Current Assignment</a>
+      </th>
+      {% url 'leaderboard' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
+      </th>
+      {% url 'viewer_tutorial' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
+      </th>
+      {% url 'viewer_settings' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
+      </th>
+    </tr>
+  </table>
+  </div>
   {% block body %}
   <body class="flexbody">
 
@@ -17,4 +51,5 @@
 
   </body>
   {% endblock %}
+  
 </html>
