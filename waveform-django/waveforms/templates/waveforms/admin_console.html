@@ -83,20 +83,20 @@
         <th></th>
       </tr>
       {% for u in all_users %}
-        <tr>
-          <td>{{ u.username }}</td>
-          <td>{{ u.events_remaining }}</td>
-          <td>{{ u.date_assigned }}</td>
-          <td>
-            {% if u.events_remaining > 0 %}
+        {% if u.events_remaining > 0 %}
+          <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.events_remaining }}</td>
+            <td>{{ u.date_assigned }}</td>
+            <td>
               <form action="" method="post">
                 {% csrf_token %}
                 <input id="user_info" name="user_info" type="hidden" value={{ u.username }}>
                 <input type="submit" name="end_assignment" class="btn btn-warning btn-rsp" value="Revoke Assignments">
               </form>
-            {% endif %}
-          </td>
-        </tr>
+            </td>
+          </tr>
+        {% endif %}
       {% endfor %}
     </table>
     <br />

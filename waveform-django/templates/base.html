@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   
+  {% block navbar %}
   <div class="container">
   <!-- The title header of the webpage -->
   <span>User: {{user.username}}... <a href="{% url 'logout' %}">Logout</a></span>
@@ -44,6 +45,7 @@
     </tr>
   </table>
   </div>
+  {% endblock %}
   {% block body %}
   <body class="flexbody">
 
