@@ -34,6 +34,10 @@
       <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
         <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
       </th>
+      {% url 'practice_test' as url %}
+      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <a href="{% url 'practice_test' %}">Practice Test</a>
+      </th>
       {% url 'viewer_tutorial' as url %}
       <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
         <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>

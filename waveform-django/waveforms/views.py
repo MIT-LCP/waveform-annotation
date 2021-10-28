@@ -669,6 +669,25 @@ def leaderboard(request):
 
 
 @login_required
+def practice_test(request):
+    """
+    Request practice set of events
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for assigning practice events
+
+    """
+    user = User.objects.get(username=request.user)
+    return render(request, 'waveforms/practice.html', {'user': user})
+
+
+@login_required
 def viewer_tutorial(request):
     """
     Render waveform tutorial page.
