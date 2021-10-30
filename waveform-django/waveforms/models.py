@@ -109,7 +109,7 @@ class UserSettings(models.Model):
     n_ekg_sigs = models.IntegerField(blank=False, default=2)
     down_sample_ekg = models.IntegerField(blank=False, default=1)
     down_sample = models.IntegerField(blank=False, default=1)
-    signal_std = models.FloatField(blank=False, default=3.0)
+    signal_std = models.FloatField(blank=False, default=6.0)
     time_range_min = models.FloatField(blank=False, default=40.0)
     time_range_max = models.FloatField(blank=False, default=10.0)
     window_size_min = models.FloatField(blank=False, default=10.0)
