@@ -235,7 +235,7 @@ def admin_console(request):
             invite_user_form = InviteUserForm(request.POST)
             if invite_user_form.is_valid():
                 invite_user_form.save(
-                    from_email='help@waveform-annotation.com',
+                    from_email=base.EMAIL_FROM,
                     request=request
                 )
                 messages.success(request,

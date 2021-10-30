@@ -43,6 +43,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=1025, cast=int)
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
+EMAIL_FROM = 'help@waveform-annotation.com'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
