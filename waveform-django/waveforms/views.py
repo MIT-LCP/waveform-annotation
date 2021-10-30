@@ -344,7 +344,8 @@ def admin_console(request):
         'event',
         'decision',
         'comments',
-        'decision_date'
+        'decision_date',
+        ''
     ]
 
     # Get all the current and invited users
