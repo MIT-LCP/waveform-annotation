@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from .forms import CreateUserForm, ResetPasswordForm, ChangePasswordForm
 from waveforms.models import InvitedEmails, User, UserSettings
+from website.settings import base
 
 
 def register_page(request):
@@ -36,6 +38,23 @@ def register_page(request):
                                 is_admin=False)
                 new_user.save()
                 UserSettings(user=new_user).save()
+                # Send email to all admins notifying about new user
+                admin_users = User.objects.filter(is_admin=True)
+                current_site = get_current_site(request)
+                domain = current_site.domain
+                context = {
+                    'protocol': 'http' if domain.startswith('localhost') else 'https',
+                    'domain': domain,
+                    'site_name': current_site.name,
+                    'email': email
+                }
+                email_form = ResetPasswordForm()
+                for admin_user in admin_users:
+                    email_form.send_mail(
+                        'registration/new_user_subject.txt',
+                        'registration/new_user_email.html', context,
+                        base.EMAIL_FROM, admin_user.email
+                    )
                 return redirect('login')
         return render(request, 'website/register.html', {'form': form})
 
@@ -76,7 +95,7 @@ def reset_password(request):
         form = ResetPasswordForm(request.POST)
         if form.is_valid():
             form.save(
-                from_email = 'help@waveform-annotation.com',
+                from_email = base.EMAIL_FROM,
                 request = request
             )
             return redirect('password_reset_done')

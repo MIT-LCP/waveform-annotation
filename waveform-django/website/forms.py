@@ -82,8 +82,8 @@ class ResetPasswordForm(forms.Form):
     def save(self, domain_override=None,
              subject_template_name='registration/password_reset_subject.txt',
              email_template_name='registration/password_reset_email.html',
-             use_https=False, from_email=None, request=None,
-             html_email_template_name=None, extra_email_context=None):
+             from_email=None, request=None, html_email_template_name=None,
+             extra_email_context=None):
         """
         Generate a one-use only link for resetting password and send it to the
         user.
@@ -106,7 +106,7 @@ class ResetPasswordForm(forms.Form):
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'user': user,
             'token': password_reset_token.make_token(user),
-            'protocol': 'https' if use_https else 'http',
+            'protocol': 'http' if domain.startswith('localhost') else 'https',
             **(extra_email_context or {}),
         }
         self.send_mail(

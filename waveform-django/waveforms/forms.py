@@ -180,8 +180,8 @@ class InviteUserForm(forms.Form):
     def save(self, domain_override=None,
              subject_template_name='registration/invite_user_subject.txt',
              email_template_name='registration/invite_user_email.html',
-             use_https=False, from_email=None, request=None,
-             html_email_template_name=None, extra_email_context=None):
+             from_email=None, request=None, html_email_template_name=None,
+             extra_email_context=None):
         """
         Send the invited user an email so they can sign up for an account.
         """
@@ -198,13 +198,29 @@ class InviteUserForm(forms.Form):
             'email': email,
             'domain': domain,
             'site_name': site_name,
-            'protocol': 'https' if use_https else 'http',
+            'protocol': 'http' if domain.startswith('localhost') else 'https',
             **(extra_email_context or {}),
         }
         self.send_mail(
             subject_template_name, email_template_name, context, from_email,
             email, html_email_template_name=html_email_template_name
         )
+
+        # Send email to all admins notifying about new user
+        admin_users = User.objects.filter(is_admin=True)
+        context = {
+            'protocol': 'http' if domain.startswith('localhost') else 'https',
+            'domain': domain,
+            'email': email,
+            **(extra_email_context or {}),
+        }
+        for admin_user in admin_users:
+            self.send_mail(
+                'registration/new_invite_subject.txt',
+                'registration/new_invite_email.html', context,
+                base.EMAIL_FROM, admin_user.email,
+                html_email_template_name=html_email_template_name
+            )
 
         try:
             new_invited_email = InvitedEmails()

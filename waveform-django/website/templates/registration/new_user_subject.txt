@@ -1,0 +1,3 @@
+{% load i18n %}{% autoescape off %}
+{% blocktrans %}New user joined {{ site_name }}{% endblocktrans %}
+{% endautoescape %}
