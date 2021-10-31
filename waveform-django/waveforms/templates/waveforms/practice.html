@@ -15,5 +15,11 @@
     <li>When you wish to continue working on the main dataset, simply press the "End Practice" button below. You may assign yourself more events afterwards.</li>
     <li>You may take the practice test as many times as you wish, but your score will be reset after you end the practice session.</li>
   </ul></div>
+  <div>
+    <form action="" method="post">
+        {% csrf_token %}
+        <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
+      </form>
+  </div>
 </div>
 {% endblock %}

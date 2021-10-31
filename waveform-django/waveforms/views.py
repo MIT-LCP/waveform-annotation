@@ -684,6 +684,9 @@ def practice_test(request):
 
     """
     user = User.objects.get(username=request.user)
+    if request.method == 'POST':
+        if 'start-practice' in request.POST:
+            return redirect('render_annotations') 
     return render(request, 'waveforms/practice.html', {'user': user})
 
 
