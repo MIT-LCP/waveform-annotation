@@ -745,7 +745,7 @@ def practice_test(request):
             for project in base.ALL_PROJECTS:
                 csv_data = get_all_assignments(project)
                 for event, names in csv_data.items():
-                    if user.username in names:
+                    if user.username in names and event in base.PRACTICE_SET[project].keys():
                         names.remove(user.username)
                         try:
                             Annotation.objects.get(user=user, project=project, event=event).delete()
