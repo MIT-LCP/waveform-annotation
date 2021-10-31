@@ -16,6 +16,20 @@ class User(models.Model):
     is_admin = models.BooleanField(default=False)
     last_login = models.DateTimeField(default=timezone.now)
     date_assigned = models.DateTimeField(default=timezone.now)
+    
+    BEGAN = 'BG'
+    COMPLETED = 'CO'
+    ENDED = 'ED'
+    practice_modes = [
+        (BEGAN, 'Began'),
+        (COMPLETED, 'Completed'),
+        (ENDED, 'Ended')
+    ]
+    practice_status = models.CharField(
+        max_length=2, 
+        choices=practice_modes,
+        default=ENDED,
+    )
 
     def num_annotations(self, project=None):
         if project:
@@ -50,7 +64,7 @@ class User(models.Model):
                     if self.username in row[1:]:
                         event_list.append(row[0])
 
-            complete_ann = Annotation.objects.filter(user=self, project=project)
+            complete_ann = Annotation.objects.filter(user=self, project=project).exclude(decision="Save for Later")
             complete_events = [e.event for e in complete_ann]
             event_list = [e for e in event_list if e not in complete_events]
             count += len(event_list)

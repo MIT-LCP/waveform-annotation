@@ -70,12 +70,13 @@ def update_assignments(csv_data, project_folder):
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
         for event,user in csv_data.items():
-            row = [event]
-            if type(user) is str:
-                row.extend([user])
-            else:
-                row.extend(user)
-            csvwriter.writerows([row])
+            if user: 
+                row = [event]
+                if type(user) is str:
+                    row.extend([user])
+                else:
+                    row.extend(user)
+                csvwriter.writerows([row])
 
 
 def get_all_assignments(project_folder):
@@ -684,10 +685,80 @@ def practice_test(request):
 
     """
     user = User.objects.get(username=request.user)
+    
+    results = {}
+    correct = 0
+    total = 0
+    if user.practice_status == 'CO':
+        for project, events in base.PRACTICE_SET.items():
+            results[project] = {}
+            for event, answer in events.items():
+                user_response = Annotation.objects.get(user=user, project=project, event=event).decision
+                results[project][event] = (str(answer), user_response)
+                total += 1
+                correct = correct + 1 if str(answer) == user_response else correct + 0
+                
+    
     if request.method == 'POST':
         if 'start-practice' in request.POST:
+            if user.practice_status != 'ED':
+                raise PermissionError()
+            
+            # Remove user's current assignment
+            for project in base.ALL_PROJECTS:
+                csv_data = get_all_assignments(project)
+                for event, names in csv_data.items():
+                    if user.username in names:
+                        try:
+                            Annotation.objects.get(user=user, project=project, event=event)
+                        except Annotation.DoesNotExist:
+                            names.remove(user.username)
+                update_assignments(csv_data, project)
+            
+            for project, events in base.PRACTICE_SET.items():
+                csv_data = get_all_assignments(project)
+                for event in events.keys():
+                    if event in csv_data.keys():
+                        csv_data[event].append(user.username)
+                    else:
+                        csv_data[event] = [user.username]
+                update_assignments(csv_data, project)
+
+            user.practice_status = "BG"
+            user.save()
             return redirect('render_annotations') 
-    return render(request, 'waveforms/practice.html', {'user': user})
+        
+        if 'submit-practice' in request.POST:
+            if user.practice_status != 'BG' or user.events_remaining() > 0:
+                raise PermissionError()
+            user.practice_status = 'CO'
+            user.save()
+                
+            return redirect('practice_test')
+
+
+        if 'end-practice' in request.POST:
+            if user.practice_status == 'ED':
+                raise PermissionError()
+            
+            # Remove user's current assignment
+            for project in base.ALL_PROJECTS:
+                csv_data = get_all_assignments(project)
+                for event, names in csv_data.items():
+                    if user.username in names:
+                        names.remove(user.username)
+                        try:
+                            Annotation.objects.get(user=user, project=project, event=event).delete()
+                        except Annotation.DoesNotExist:
+                            pass
+                update_assignments(csv_data, project)
+            
+            user.practice_status = "ED"
+            user.save()
+            return redirect('render_annotations') 
+
+    return render(request, 'waveforms/practice.html', {'user': user, 'results': results, 
+                                                        'total': total, 'correct': correct})
 
 
 @login_required
