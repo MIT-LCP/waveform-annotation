@@ -388,6 +388,17 @@ def render_annotations(request):
     user = User.objects.get(username=request.user)
     # All annotations
     all_annotations = Annotation.objects.filter(user=user)
+
+    if user.practice_status != "ED":
+        events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
+        events = []
+        for i in events_per_proj:
+            events += i
+        all_annotations = all_annotations.filter(
+            project__in=[key for key in base.PRACTICE_SET.keys()],
+            event__in=events
+        )
+    
     # Completed annotations
     completed_annotations = all_annotations.filter(
         decision__in=['True', 'False', 'Uncertain']
@@ -405,7 +416,7 @@ def render_annotations(request):
     incompleted_anns = {}
 
     # Get list where each element is a list of records from a project folder
-    all_projects = base.ALL_PROJECTS
+    all_projects = base.ALL_PROJECTS if user.practice_status == "ED" else list(base.PRACTICE_SET.keys())
     # Get all user records
     user_records = {}
     # Get all user events
@@ -425,10 +436,11 @@ def render_annotations(request):
             user_events[project] = [e for e in user_events[project] if '_' in e]
     else:
         for project in all_projects:
-            user_events[project] = get_user_events(user, project)
-        for ann in all_annotations:
-            if ann.event not in user_events[ann.project]:
-                user_events[ann.project].append(ann.event)
+            user_events[project] = get_user_events(user, project) if user.practice_status == "ED" \
+                else list(base.PRACTICE_SET[project].keys())
+        # for ann in all_annotations:
+        #     if ann.event not in user_events[ann.project]:
+        #         user_events[ann.project].append(ann.event)
         for project in all_projects:
             events = user_events[project]
             user_records[project] = []
@@ -436,10 +448,10 @@ def render_annotations(request):
                 rec = evt[:evt.find('_')]
                 if rec not in user_records[project]:
                     user_records[project].append(rec)
-        for ann in all_annotations:
-            if ann.record not in user_records[ann.project]:
-                user_records[ann.project].append(ann.record)
-
+        # for ann in all_annotations:
+        #     if ann.record not in user_records[ann.project]:
+        #         user_records[ann.project].append(ann.record)
+    
     # Get the total number of annotations
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
 
@@ -693,7 +705,10 @@ def practice_test(request):
         for project, events in base.PRACTICE_SET.items():
             results[project] = {}
             for event, answer in events.items():
-                user_response = Annotation.objects.get(user=user, project=project, event=event).decision
+                try:
+                    user_response = Annotation.objects.get(user=user, project=project, event=event).decision
+                except Annotation.DoesNotExist:
+                    user_response = None
                 results[project][event] = (str(answer), user_response)
                 total += 1
                 correct = correct + 1 if str(answer) == user_response else correct + 0
@@ -729,7 +744,7 @@ def practice_test(request):
             return redirect('render_annotations') 
         
         if 'submit-practice' in request.POST:
-            if user.practice_status != 'BG' or user.events_remaining() > 0:
+            if user.practice_status != 'BG':
                 raise PermissionError()
             user.practice_status = 'CO'
             user.save()

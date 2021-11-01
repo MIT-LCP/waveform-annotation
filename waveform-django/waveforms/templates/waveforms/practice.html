@@ -32,8 +32,7 @@
     <form action="" method="post">
         {% csrf_token %}
         {% if user.practice_status == "BG"%}
-            <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice"
-            {%if user.events_remaining != 0 %} title="Complete all events to submit!" disabled {%endif%}>
+            <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
         {% endif %}
         {% if user.practice_status == "ED" %}
             <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
