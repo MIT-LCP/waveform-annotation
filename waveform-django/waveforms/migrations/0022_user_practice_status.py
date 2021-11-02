@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('waveforms', '0020_auto_20211025_1539'),
+        ('waveforms', '0021_auto_20211030_1812'),
     ]
 
     operations = [
