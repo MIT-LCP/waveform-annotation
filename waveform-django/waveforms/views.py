@@ -70,12 +70,13 @@ def update_assignments(csv_data, project_folder):
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
         for event,user in csv_data.items():
-            row = [event]
-            if type(user) is str:
-                row.extend([user])
-            else:
-                row.extend(user)
-            csvwriter.writerows([row])
+            if user: 
+                row = [event]
+                if type(user) is str:
+                    row.extend([user])
+                else:
+                    row.extend(user)
+                csvwriter.writerows([row])
 
 
 def get_all_assignments(project_folder):
@@ -388,6 +389,17 @@ def render_annotations(request):
     user = User.objects.get(username=request.user)
     # All annotations
     all_annotations = Annotation.objects.filter(user=user)
+
+    if user.practice_status != "ED":
+        events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
+        events = []
+        for i in events_per_proj:
+            events += i
+        all_annotations = all_annotations.filter(
+            project__in=[key for key in base.PRACTICE_SET.keys()],
+            event__in=events
+        )
+    
     # Completed annotations
     completed_annotations = all_annotations.filter(
         decision__in=['True', 'False', 'Uncertain']
@@ -405,7 +417,7 @@ def render_annotations(request):
     incompleted_anns = {}
 
     # Get list where each element is a list of records from a project folder
-    all_projects = base.ALL_PROJECTS
+    all_projects = base.ALL_PROJECTS if user.practice_status == "ED" else list(base.PRACTICE_SET.keys())
     # Get all user records
     user_records = {}
     # Get all user events
@@ -425,10 +437,11 @@ def render_annotations(request):
             user_events[project] = [e for e in user_events[project] if '_' in e]
     else:
         for project in all_projects:
-            user_events[project] = get_user_events(user, project)
-        for ann in all_annotations:
-            if ann.event not in user_events[ann.project]:
-                user_events[ann.project].append(ann.event)
+            user_events[project] = get_user_events(user, project) if user.practice_status == "ED" \
+                else list(base.PRACTICE_SET[project].keys())
+        # for ann in all_annotations:
+        #     if ann.event not in user_events[ann.project]:
+        #         user_events[ann.project].append(ann.event)
         for project in all_projects:
             events = user_events[project]
             user_records[project] = []
@@ -436,10 +449,10 @@ def render_annotations(request):
                 rec = evt[:evt.find('_')]
                 if rec not in user_records[project]:
                     user_records[project].append(rec)
-        for ann in all_annotations:
-            if ann.record not in user_records[ann.project]:
-                user_records[ann.project].append(ann.record)
-
+        # for ann in all_annotations:
+        #     if ann.record not in user_records[ann.project]:
+        #         user_records[ann.project].append(ann.record)
+    
     # Get the total number of annotations
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
 
@@ -667,6 +680,101 @@ def leaderboard(request):
                                                           'user_month': user_month, 'user_all': user_all,
                                                           'user_true': user_true, 'user_false': user_false
                                                           })
+
+
+@login_required
+def practice_test(request):
+    """
+    Request practice set of events
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for assigning practice events
+
+    """
+    user = User.objects.get(username=request.user)
+    
+    results = {}
+    correct = 0
+    total = 0
+    if user.practice_status == 'CO':
+        for project, events in base.PRACTICE_SET.items():
+            results[project] = {}
+            for event, answer in events.items():
+                try:
+                    user_response = Annotation.objects.get(user=user, project=project, event=event).decision
+                except Annotation.DoesNotExist:
+                    user_response = None
+                results[project][event] = (str(answer), user_response)
+                total += 1
+                correct = correct + 1 if str(answer) == user_response else correct + 0
+                
+    
+    if request.method == 'POST':
+        if 'start-practice' in request.POST:
+            if user.practice_status != 'ED':
+                raise PermissionError()
+            
+            # Remove user's current assignment
+            for project in base.ALL_PROJECTS:
+                csv_data = get_all_assignments(project)
+                for event, names in csv_data.items():
+                    if user.username in names:
+                        try:
+                            Annotation.objects.get(user=user, project=project, event=event)
+                        except Annotation.DoesNotExist:
+                            names.remove(user.username)
+                update_assignments(csv_data, project)
+            
+            for project, events in base.PRACTICE_SET.items():
+                csv_data = get_all_assignments(project)
+                for event in events.keys():
+                    if event in csv_data.keys():
+                        csv_data[event].append(user.username)
+                    else:
+                        csv_data[event] = [user.username]
+                update_assignments(csv_data, project)
+
+            user.practice_status = "BG"
+            user.save()
+            return redirect('render_annotations') 
+        
+        if 'submit-practice' in request.POST:
+            if user.practice_status != 'BG':
+                raise PermissionError()
+            user.practice_status = 'CO'
+            user.save()
+                
+            return redirect('practice_test')
+
+
+        if 'end-practice' in request.POST:
+            if user.practice_status == 'ED':
+                raise PermissionError()
+            
+            # Remove user's current assignment
+            for project in base.ALL_PROJECTS:
+                csv_data = get_all_assignments(project)
+                for event, names in csv_data.items():
+                    if user.username in names and event in base.PRACTICE_SET[project].keys():
+                        names.remove(user.username)
+                        try:
+                            Annotation.objects.get(user=user, project=project, event=event).delete()
+                        except Annotation.DoesNotExist:
+                            pass
+                update_assignments(csv_data, project)
+            
+            user.practice_status = "ED"
+            user.save()
+            return redirect('render_annotations') 
+
+    return render(request, 'waveforms/practice.html', {'user': user, 'results': results, 
+                                                        'total': total, 'correct': correct})
 
 
 @login_required

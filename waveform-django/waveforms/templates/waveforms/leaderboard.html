@@ -3,31 +3,6 @@
 
 {% block content %}
 <div class="container">
-  <spam>User: {{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></spam>
-  <table class="table table-bordered">
-    <tr>
-      {% if user.is_admin %}
-      <th class="text-center">
-        <a href="{% url 'admin_console' %}">Admin Console</a>
-      </th>
-      {% endif %}
-      <th class="text-center">
-        <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'render_annotations' %}">Current Assignment</a>
-      </th>
-      <th class="text-center table-dark">
-        <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
-      </th>
-    </tr>
-  </table>
   <style>
       * {
           box-sizing: border-box;

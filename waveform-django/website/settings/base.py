@@ -169,7 +169,12 @@ ASSIGNMENT_FILE = 'user_assignments.csv'
 ALL_PROJECTS = ['2015_data', '2021_data']
 
 # Projects in blacklist cannot be automatically assigned to users
-BLACKLIST = ['2015_data']
+BLACKLIST = ['2021_data']
+
+# Events to be used in the practice data set
+PRACTICE_SET = {
+    '2015_data': {'ge1_1m': True, 'ge9_10m': False},
+}
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

@@ -32,69 +32,45 @@
 </style>
 
 <div class="container">
-  <span>User: {{ user.username }} ... <a href="{% url 'logout' %}">Logout</a></span>
-  <!-- The title header of the webpage -->
-  <table class="table table-bordered">
-    <tr>
-      {% if user.is_admin %}
-        <th class="text-center">
-          <a href="{% url 'admin_console' %}">Admin Console</a>
-        </th>
-      {% endif %}
-      <th class="text-center">
-        <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
-      </th>
-      <th class="text-center table-dark">
-        <a href="{% url 'render_annotations' %}">Current Assignment</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
-      </th>
-      <th class="text-center">
-        <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
-      </th>
-    </tr>
-  </table>
   <h1>All Annotations</h1>
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
   </div><br /><br />
   <div>
-    {% if finished_assignment %}
-      <form action="" method="post">
-        {% csrf_token %}
-        <h2>Annotate More Events</h2>
-        <label for="num_events">Number of events to assign:</label>
-        <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
-              value="Must assign at least 100 events">
-        <br />
-        <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
-      </form>
-    {% else %}
-      <form action="" method="post">
-        {% csrf_token %}
-        <h2>Annotate More Events</h2>
-        <label for="num_events">Number of events to assign:</label>
-        <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
-              value="Must assign at least 100 events" disabled>
-        <br />
-        <label class="label-warning">
-          ***
-          Please complete your current assignment to continue.
-          All annotations must either be <u>True</u>, <u>False</u>, or <u>Uncertain</u>.
-          There can be no annotations which are <u>Save for Later</u>.
-          ***
-        </label>
-        <br />
-        <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit" disabled>
-      </form>
+    {%if user.practice_status == "ED"%}
+      {% if finished_assignment%}
+        <form action="" method="post">
+          {% csrf_token %}
+          <h2>Annotate More Events</h2>
+          <label for="num_events">Number of events to assign:</label>
+          <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
+                value="Must assign at least 100 events">
+          <br />
+          <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
+        </form>
+      {% else %}
+        <form action="" method="post">
+          {% csrf_token %}
+          <h2>Annotate More Events</h2>
+          <label for="num_events">Number of events to assign:</label>
+          <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
+                value="Must assign at least 100 events" disabled>
+          <br />
+          <label class="label-warning">
+            ***
+            Please complete your current assignment to continue.
+            All annotations must either be <u>True</u>, <u>False</u>, or <u>Uncertain</u>.
+            There can be no annotations which are <u>Save for Later</u>.
+            ***
+          </label>
+          <br />
+          <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit" disabled>
+        </form>
+      {% endif %}
     {% endif %}
     <br />
-    <h2>Current Assignment</h2>
+    <h2>{%if user.practice_status == "ED"%}Current Assignment{% else %} <i>Practice Mode</i> {%endif%}</h2>
     <span style="font-size: 20px; float: left;">Remaining Events: </span>
     <span style="font-size: 20px; float: right;">{{ remaining }}</span>
     <br /><br />
