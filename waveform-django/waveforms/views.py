@@ -422,7 +422,7 @@ def render_annotations(request):
     user_records = {}
     # Get all user events
     user_events = {}
-    if user.is_admin:
+    if user.is_admin and user.practice_status == "ED":
         for project in all_projects:
             user_events[project] = []
             records_path = os.path.join(PROJECT_PATH, project,
