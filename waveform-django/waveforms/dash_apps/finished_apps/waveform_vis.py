@@ -347,14 +347,7 @@ def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
             'pattern': 'independent'
         },
         'showlegend': False,
-        'hovermode': 'x',
         'dragmode': drag_mode,
-        'newshape': {
-            'line': {
-                'color': 'black',
-                'width': 10
-            }
-        },
         'spikedistance':  -1,
         'plot_bgcolor': background_color,
         'paper_bgcolor': '#ffffff',
@@ -401,6 +394,7 @@ def get_trace(x_vals, y_vals, x_string, y_string, sig_color, sig_thickness,
         'y': y_vals.astype('float16'),
         'xaxis': x_string,
         'yaxis': y_string,
+        'hoverinfo': 'none',
         'type': 'scatter',
         'line': {
             'color': sig_color,
@@ -515,6 +509,8 @@ def get_xaxis(vals, grid_delta_major, show_ticks, title, zoom_fixed, grid_color,
         'showspikes': True,
         'spikemode': 'across',
         'spikesnap': 'cursor',
+        'spikedash': 'dot',
+        'spikethickness': 1,
         'showline': True,
     }
 
