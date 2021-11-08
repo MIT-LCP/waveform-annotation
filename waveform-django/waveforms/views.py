@@ -755,7 +755,7 @@ def practice_test(request):
 
         if 'end-practice' in request.POST:
             # Remove user's current assignment
-            for project in base.ALL_PROJECTS:
+            for project in base.PRACTICE_SET.keys():
                 csv_data = get_all_assignments(project)
                 for event, names in csv_data.items():
                     if user.username in names and event in base.PRACTICE_SET[project].keys():
@@ -766,7 +766,7 @@ def practice_test(request):
                             pass
                 update_assignments(csv_data, project)
             
-            user.practice_status = "ED"
+            user.practice_status = 'ED'
             user.save()
             return redirect('render_annotations') 
 
