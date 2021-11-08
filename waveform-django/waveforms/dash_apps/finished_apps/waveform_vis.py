@@ -228,9 +228,9 @@ def get_user_events(user, project_folder):
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
     
-    if user.is_admin and user.practice_status == "ED":
+    if user.is_admin and user.practice_status == 'ED':
         record_list, event_list = get_all_records_events(project_folder)
-    elif user.practice_status != "ED":
+    elif user.practice_status != 'ED':
         events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
         events = []
         for i in events_per_proj:
@@ -252,7 +252,7 @@ def get_user_events(user, project_folder):
                     event_list.append(row[0])            
         user_ann = Annotation.objects.filter(user=user,
                                              project=project_folder)
-        if user.practice_status != "ED":
+        if user.practice_status != 'ED':
             user_ann = get_practice_anns(user_ann)
             
         event_list += [a.event for a in user_ann if a not in event_list]
@@ -278,16 +278,16 @@ def get_user_records(user):
 
     """
     user_records = {}
-    if user.is_admin and user.practice_status == "ED":
+    if user.is_admin and user.practice_status == 'ED':
         for project in ALL_PROJECTS:
             temp_records, _ = get_all_records_events(project)
             user_records[project] = temp_records
         return user_records
-    if user.practice_status == "ED":
+    if user.practice_status == 'ED':
         # Get all user annotations
         annotations = Annotation.objects.filter(user=user)
 
-        if user.practice_status != "ED":
+        if user.practice_status != 'ED':
             annotations = get_practice_anns(annotations)
 
         # Get all user events
@@ -921,7 +921,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
     # One project at a time
     project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
     user_annotations = Annotation.objects.filter(user=current_user, project=project)
-    if current_user.practice_status != "ED":
+    if current_user.practice_status != 'ED':
         user_annotations = get_practice_anns(user_annotations)
     # Display "Save for Later" first
     user_annotations = sorted(user_annotations,
@@ -956,7 +956,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
     else:
         # import pdb;pdb.set_trace()
         completed_events = [a.event for a in user_annotations if a.project==project_value]
-        if current_user.is_admin and current_user.practice_status == "ED":
+        if current_user.is_admin and current_user.practice_status == 'ED':
             _, all_events = get_all_records_events(project_value)
         else:
             all_events = get_user_events(current_user, project_value)
