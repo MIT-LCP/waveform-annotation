@@ -914,10 +914,15 @@ def get_record_event_options(click_submit, click_previous, click_next,
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
     # One project at a time
-    project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
-    user_annotations = Annotation.objects.filter(user=current_user, project=project)
-    if current_user.practice_status != 'ED':
+    
+    if current_user.practice_status == 'ED':
+        project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
+        user_annotations = Annotation.objects.filter(user=current_user, project=project)
+    else:
+        project = [i for i in base.PRACTICE_SET.keys()][0]
+        user_annotations = Annotation.objects.filter(user=current_user, project=project)
         user_annotations = get_practice_anns(user_annotations)
+
     # Display "Save for Later" first
     user_annotations = sorted(user_annotations,
                               key=lambda x: 0 if x.decision=='Save for Later' else 1)
@@ -1032,7 +1037,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_project = set_project
             return_record = set_record
             return_event = set_event
-
     # Update the annotation current project text
     return_project = [
         html.Span(['{}'.format(return_project)], style={'fontSize': event_fontsize})
