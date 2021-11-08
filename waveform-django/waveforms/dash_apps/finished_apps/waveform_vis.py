@@ -256,7 +256,6 @@ def get_user_events(user, project_folder):
             user_ann = get_practice_anns(user_ann)
             
         event_list += [a.event for a in user_ann if a not in event_list]
-    # import pdb;pdb.set_trace()
     return event_list
 
 
@@ -954,7 +953,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_event = 'N/A'
             return_project = 'N/A'
     else:
-        # import pdb;pdb.set_trace()
         completed_events = [a.event for a in user_annotations if a.project==project_value]
         if current_user.is_admin and current_user.practice_status == 'ED':
             _, all_events = get_all_records_events(project_value)
