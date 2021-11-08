@@ -754,9 +754,6 @@ def practice_test(request):
 
 
         if 'end-practice' in request.POST:
-            if user.practice_status == 'ED':
-                raise PermissionError()
-            
             # Remove user's current assignment
             for project in base.ALL_PROJECTS:
                 csv_data = get_all_assignments(project)
