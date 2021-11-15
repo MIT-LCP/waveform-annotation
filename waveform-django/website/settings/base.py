@@ -154,9 +154,13 @@ MAX_ATTEMPTS = 5
 #USE_X_FORWARDED_HOST = True
 #FORCE_SCRIPT_NAME = '/waveform-annotation'
 
-STATIC_ROOT = os.path.join(BASE_DIR,'static')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(PROJECT_DIR,'static')]
+if DEBUG:
+    STATIC_ROOT = 'static'
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    STATICFILES_DIRS = [os.path.join(PROJECT_DIR, 'static')]
 STATICFILE_FINDERS = [
     'django.contrib.staticfiles.finder.FileSystemFinder',
     'django.contrib.staticfiles.finder.AppDirectoriesFinder',
