@@ -107,7 +107,7 @@ class Annotation(models.Model):
 class UserSettings(models.Model):
     user = models.ForeignKey('User', related_name='settings',
         on_delete=models.CASCADE)
-    fig_height = models.FloatField(blank=False, default=725.0)
+    fig_height = models.FloatField(blank=False, default=690.0)
     fig_width = models.FloatField(blank=False, default=875.0)
     margin_left = models.FloatField(blank=False, default=0.0)
     margin_top = models.FloatField(blank=False, default=25.0)

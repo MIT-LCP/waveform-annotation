@@ -5,11 +5,157 @@
 <style>
 .embed-responsive {
     width: 1200px;
-    height: 745px;
+    height: 715px;
 }
 </style>
+
 <!-- Plotly-based waveform viewer -->
 <div class="container">
-  {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
+  <input type="button" value="Show/Hide Caliper" style="float: right" onclick="displayCaliper();"/>
+  <!-- The caliper -->
+  <img src="{% static 'caliper.png' %}" alt="Caliper" id="caliper_drag" style="display: none; height: 150px; width: 150px; position: relative; cursor: move; z-index: 10000; padding: 25px; left:100%"/>
+  <!-- The waveform visualizer -->
+  <div style="position: absolute; top: 20%; left: 12%">
+    {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
+  </div>
 </div>
+
+<script>
+function displayCaliper() {
+  var caliper = document.getElementById('caliper_drag');
+  if (caliper.style.display == "none") {
+    caliper.style.display = "inline";
+    caliper.style.height = "150px";
+    caliper.style.width = "150px";
+    caliper.style.left = "100%";
+    caliper.style.top = "0px";
+  } else {
+    caliper.style.display = "none";
+  }
+}
+
+"use strict";
+// Minimum resizable area
+var min_width = 40;
+var clicked = null;
+var on_right_edge, on_left_edge;
+var b, x, y;
+var redraw = false;
+var pane = document.getElementById('caliper_drag');
+const PADDING = 25;
+
+// Set the boundary
+function setBounds(element, x, y, w, h) {
+  element.style.left = x + 'px';
+  element.style.top = y + 'px';
+  element.style.width = w + 'px';
+  element.style.height = h + 'px';
+}
+
+// Mouse events
+pane.addEventListener('mousedown', onMouseDown);
+document.addEventListener('mousemove', onMove);
+document.addEventListener('mouseup', onUp);
+
+// Touch events
+pane.addEventListener('touchstart', onTouchDown);
+document.addEventListener('touchmove', onTouchMove);
+document.addEventListener('touchend', onTouchEnd);
+
+function onTouchDown(e) {
+  onDown(e.touches[0]);
+  e.preventDefault();
+}
+function onTouchMove(e) {
+  onMove(e.touches[0]);
+}
+function onTouchEnd(e) {
+  if (e.touches.length == 0) onUp(e.changedTouches[0]);
+}
+function onMouseDown(e) {
+  onDown(e);
+  e.preventDefault();
+}
+
+function onDown(e) {
+  calc(e);
+  var is_resizing = on_right_edge || on_left_edge;
+  clicked = {
+    x: x,
+    y: y,
+    cx: e.clientX,
+    cy: e.clientY,
+    w: b.width,
+    h: b.height,
+    is_resizing: is_resizing,
+    is_moving: !is_resizing && canMove(),
+    on_left_edge: on_left_edge,
+    on_right_edge: on_right_edge
+  };
+}
+
+function canMove() {
+  return (x > PADDING) && (x < b.width-PADDING) && (y > -b.height) && (y < b.height);
+}
+
+function calc(e) {
+  var MARGINS = pane.width / 8;
+  b = pane.getBoundingClientRect();
+  x = e.clientX - b.left;
+  y = e.clientY - b.top;
+  on_left_edge = (x > PADDING) && (x < PADDING+MARGINS);
+  on_right_edge = (x > b.width-MARGINS-PADDING) && (x < b.width-PADDING);
+}
+
+var e;
+function onMove(ee) {
+  calc(ee);
+  e = ee;
+  redraw = true;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (!redraw) {
+    return;
+  }
+  redraw = false;
+  // TODO: not correct, just an estimate
+  var window_adjustment_x = -0.15 * (window.innerWidth - 1440) - 165;
+  var window_adjustment_y = 0.06 * (window.innerWidth - 1440) - 10;
+  if (clicked && clicked.is_resizing) {
+    if (clicked.on_right_edge) {
+      pane.style.width = Math.max(x+PADDING, min_width) + 'px';
+    }
+    if (clicked.on_left_edge) {
+      var current_width = Math.max(clicked.cx - e.clientX + clicked.w, min_width);
+      if (current_width > min_width) {
+        pane.style.width = current_width + 'px';
+        pane.style.left = e.clientX - clicked.x + window_adjustment_x + 'px';
+      }
+    }
+    return;
+  }
+  // Moving
+  if (clicked && clicked.is_moving) {
+    pane.style.left = e.clientX - clicked.x + window_adjustment_x + 'px';
+    pane.style.top = e.clientY - clicked.y + window_adjustment_y + 'px';
+    return;
+  }
+  // This code executes when mouse moves without clicking style cursor
+  if (on_right_edge || on_left_edge) {
+    pane.style.cursor = 'ew-resize';
+  } else if (canMove()) {
+    pane.style.cursor = 'move';
+  } else {
+    pane.style.cursor = 'default';
+  }
+}
+
+animate();
+function onUp(e) {
+  calc(e);
+  clicked = null;
+}
+</script>
 {% endblock %}
