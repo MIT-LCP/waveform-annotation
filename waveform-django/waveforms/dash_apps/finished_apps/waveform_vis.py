@@ -30,7 +30,7 @@ ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
 sidebar_width = '210px'
 event_fontsize = '24px'
-comment_box_height = '300px'
+comment_box_height = '255px'
 label_fontsize = '20px'
 button_height = '35px'
 submit_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
@@ -39,8 +39,6 @@ arrow_width = str(float(submit_width.split('px')[0]) / 2 + 3) + 'px'
 plot_config = {
     'displayModeBar': True,
     'modeBarButtonsToAdd': [
-        'drawline',
-        'eraseshape'
     ],
     'modeBarButtonsToRemove': [
         'hoverClosestCartesian',
