@@ -4,8 +4,11 @@
 {% block content %}
 <style>
 .embed-responsive {
-    width: 1200px;
-    height: 715px;
+  width: 1200px;
+  height: 715px;
+}
+.ui-resizable-e {
+  width: 50%;
 }
 </style>
 
@@ -43,12 +46,12 @@ function displayCaliper() {
 }
 
 $(document).ready(function() {
-  $('#caliper_drag').resizable({
+  $("#caliper_drag").resizable({
     autoHide: true,
     handles: "e",
     distance: 0
   });
-  $('#caliper_drag_wrapper').draggable({
+  $("#caliper_drag_wrapper").draggable({
     appendTo: "body",
     start: function(event, ui) {
       isDraggingMedia = true;
