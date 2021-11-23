@@ -410,6 +410,7 @@ def render_annotations(request):
     saved_annotations = all_annotations.filter(decision='Save for Later')
     saved_records = [a.record for a in saved_annotations]
     saved_events = [a.event for a in saved_annotations]
+    save_warning = len(saved_annotations) > 0
 
     # Hold all of the annotation information
     completed_anns = {}
@@ -580,7 +581,8 @@ def render_annotations(request):
                    'saved_anns': saved_anns,
                    'incompleted_anns': incompleted_anns,
                    'finished_assignment': finished_assignment,
-                   'remaining': total_anns - len(completed_annotations)})
+                   'remaining': total_anns - len(completed_annotations),
+                   'save_warning': save_warning})
 
 
 @login_required

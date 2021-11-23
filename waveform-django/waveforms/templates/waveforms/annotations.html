@@ -50,23 +50,14 @@
           <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
         </form>
       {% else %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <h2>Annotate More Events</h2>
-          <label for="num_events">Number of events to assign:</label>
-          <input id="num_events" type="number" name="num_events" value="100" min="100" max="800" required
-                value="Must assign at least 100 events" disabled>
-          <br />
-          <label class="label-warning">
-            ***
-            Please complete your current assignment to continue.
-            All annotations must either be <u>True</u>, <u>False</u>, or <u>Uncertain</u>.
-            There can be no annotations which are <u>Save for Later</u>.
-            ***
-          </label>
-          <br />
-          <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit" disabled>
-        </form>
+          {% if save_warning %}
+            <label class="label-warning">
+              ***
+              There can be no annotations which are <u>Save for Later</u>.
+              All annotations must either be <u>True</u>, <u>False</u>, or <u>Uncertain</u>.
+              ***
+            </label>
+          {% endif %}
       {% endif %}
     {% endif %}
     <br />
