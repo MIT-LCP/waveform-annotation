@@ -141,11 +141,12 @@
     <br />
   </div>
   {% for project,k in conflict_anns.items %}
-    <h2>{{ project }}</h2>
-    <h3>Conflicting Annotations</h3>
+    <h2>Project: {{ project }}</h2>
+    <h3><u>Conflicting Annotations</u></h3>
     {% for rec,info in k.items %}
-      <span style="float: left;">{{ rec }}</span>
-      <div>
+      <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
+      {% for evt,nfo in info.items %}
+        <h5 style="float: left;">Event: {{ evt }} (<a href="{% url 'waveform_published_specific' project rec evt %}">View waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
         <table style="width:100%">
           <tr>
             {% for cat in categories %}
@@ -154,28 +155,27 @@
               </th>
             {% endfor %}
           </tr>
-          {% for val in info %}
+          {% for val in nfo %}
             <tr>
               {% for v in val %}
                 <td>
                   {{ v }}
                 </td>
               {% endfor %}
-              <td>
-                <a href="{% url 'waveform_published_specific' project rec val.1 %}">Edit annotation</a>
-              </td>
             </tr>
           {% endfor %}
-        </table>
-      </div><br />
+        </table><br />
+      {% endfor %}
+      <br />
     {% endfor %}
   {% endfor %}
   {% for project,k in unanimous_anns.items %}
-    <h2>{{ project }}</h2>
-    <h3>Unanimous Annotations</h3>
+    <h2>Project: {{ project }}</h2>
+    <h3><u>Unanimous Annotations</u></h3>
     {% for rec,info in k.items %}
-      <span style="float: left;">{{ rec }}</span>
-      <div>
+      <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
+      {% for evt,nfo in info.items %}
+        <h5 style="float: left;">Event: {{ evt }} (<a href="{% url 'waveform_published_specific' project rec evt %}">View waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
         <table style="width:100%">
           <tr>
             {% for cat in categories %}
@@ -184,28 +184,27 @@
               </th>
             {% endfor %}
           </tr>
-          {% for val in info %}
+          {% for val in nfo %}
             <tr>
               {% for v in val %}
                 <td>
                   {{ v }}
                 </td>
               {% endfor %}
-              <td>
-                <a href="{% url 'waveform_published_specific' project rec val.1 %}">Edit annotation</a>
-              </td>
             </tr>
           {% endfor %}
-        </table>
-      </div><br />
+        </table><br />
+      {% endfor %}
+      <br />
     {% endfor %}
   {% endfor %}
   {% for project,k in all_anns.items %}
-    <h2>{{ project }}</h2>
-    <h3>Unfinished Annotations</h3>
+    <h2>Project: {{ project }}</h2>
+    <h3><u>Unfinished Annotations</u></h3>
     {% for rec,info in k.items %}
-      <span style="float: left;">{{ rec }}</span>
-      <div>
+      <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
+      {% for evt,nfo in info.items %}
+        <h5 style="float: left;">Event: {{ evt }} (<a href="{% url 'waveform_published_specific' project rec evt %}">View waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
         <table style="width:100%">
           <tr>
             {% for cat in categories %}
@@ -214,20 +213,18 @@
               </th>
             {% endfor %}
           </tr>
-          {% for val in info %}
+          {% for val in nfo %}
             <tr>
               {% for v in val %}
                 <td>
                   {{ v }}
                 </td>
               {% endfor %}
-              <td>
-                <a href="{% url 'waveform_published_specific' project rec val.1 %}">Edit annotation</a>
-              </td>
             </tr>
           {% endfor %}
-        </table>
-      </div><br />
+        </table><br />
+      {% endfor %}
+      <br />
     {% endfor %}
   {% endfor %}
 </div>

@@ -302,47 +302,47 @@ def admin_console(request):
 
         # Get the events
         for rec in all_records[project]:
+            conflict_anns[project][rec] = {}
+            unanimous_anns[project][rec] = {}
+            all_anns[project][rec] = {}
             records_path = os.path.join(PROJECT_PATH, project, rec,
                                         base.RECORDS_FILE)
             with open(records_path, 'r') as f:
                 all_events = f.read().splitlines()
             all_events = [e for e in all_events if '_' in e]
-            # Add annotations by event
-            temp_conflict_anns = []
-            temp_unanimous_anns = []
-            temp_all_anns = []
             for evt in all_events:
+                # Add annotations by event
+                temp_conflict_anns = []
+                temp_unanimous_anns = []
+                temp_all_anns = []
                 if (rec in records) and (evt in events):
                     same_anns = Annotation.objects.filter(
                         project=project, record=rec, event=evt)
                     if len(set([a.decision for a in same_anns])) > 1:
                         for ann in same_anns:
                             temp_conflict_anns.append([ann.user.username,
-                                                       ann.event,
                                                        ann.decision,
                                                        ann.comments,
                                                        ann.decision_date])
                     else:
                         for ann in same_anns:
                             temp_unanimous_anns.append([ann.user.username,
-                                                        ann.event,
                                                         ann.decision,
                                                         ann.comments,
                                                         ann.decision_date])
                 else:
-                    temp_all_anns.append(['-', evt, '-', '-', '-'])
-            # Get the completion stats for each record
-            if temp_conflict_anns != []:
-                conflict_anns[project][rec] = temp_conflict_anns
-            if temp_unanimous_anns != []:
-                unanimous_anns[project][rec] = temp_unanimous_anns
-            if temp_all_anns != []:
-                all_anns[project][rec] = temp_all_anns
+                    temp_all_anns.append(['-', '-', '-', '-'])
+                # Get the completion stats for each record
+                if temp_conflict_anns != []:
+                    conflict_anns[project][rec][evt] = temp_conflict_anns
+                if temp_unanimous_anns != []:
+                    unanimous_anns[project][rec][evt] = temp_unanimous_anns
+                if temp_all_anns != []:
+                    all_anns[project][rec][evt] = temp_all_anns
 
     # Categories to display for the annotations
     categories = [
         'user',
-        'event',
         'decision',
         'comments',
         'decision_date',
