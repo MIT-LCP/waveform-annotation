@@ -222,6 +222,7 @@ def admin_console(request):
             all_anns = Annotation.objects.all()
             csv_df = pd.DataFrame.from_dict({
                 'username': [a.user.username for a in all_anns],
+                'dataset' : [a.project for a in all_anns],
                 'record': [a.record for a in all_anns],
                 'event': [a.event for a in all_anns],
                 'decision': [a.decision for a in all_anns],
