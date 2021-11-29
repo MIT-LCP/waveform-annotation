@@ -121,6 +121,29 @@ def get_all_assignments(project_folder):
     return csv_data
 
 
+def get_practice_anns(ann):
+    """
+    Filter Annotation object to only include events in practice set
+
+    Parameters
+    ----------
+    ann : Annotation object
+        Object to be filtered
+    
+    Returns
+    -------
+    ann: Annotation object
+    """
+    events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
+    events = []
+    for i in events_per_proj:
+        events += i
+    return ann.filter(
+        project__in=[key for key in base.PRACTICE_SET.keys()],
+        event__in=events
+    )
+
+
 def get_user_events(user, project_folder):
     """
     Get the events assigned to a user in the CSV file.
@@ -134,7 +157,7 @@ def get_user_events(user, project_folder):
 
     Returns
     -------
-    N/A : list
+    N/A: list
         List of events assigned to the user.
 
     """
@@ -143,22 +166,32 @@ def get_user_events(user, project_folder):
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
-
-    event_list = []
-    with open(csv_path, 'r') as csv_file:
-        csvreader = csv.reader(csv_file, delimiter=',')
-        try:
+    
+    if user.practice_status != 'ED':
+        events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
+        events = []
+        for i in events_per_proj:
+            events += i
+        return events
+    else:
+        csv_path = os.path.join(PROJECT_PATH, project_folder,
+                                base.ASSIGNMENT_FILE)
+        event_list = []
+        with open(csv_path, 'r') as csv_file:
+            csvreader = csv.reader(csv_file, delimiter=',')
             next(csvreader)
-        except StopIteration:
-            return event_list
-        for row in csvreader:
-            names = []
-            for val in row[1:]:
-                if val:
-                    names.append(val)
-            if user.username in names:
-                event_list.append(row[0])
+            for row in csvreader:
+                names = []
+                for val in row[1:]:
+                    if val:
+                        names.append(val)
+                if user.username in names:
+                    event_list.append(row[0])            
+        user_ann = Annotation.objects.filter(user=user,
+                                             project=project_folder)
+        if user.practice_status != 'ED':
+            user_ann = get_practice_anns(user_ann)
+        event_list += [a.event for a in user_ann if a.event not in event_list]
     return event_list
 
 
@@ -440,9 +473,6 @@ def render_annotations(request):
         for project in all_projects:
             user_events[project] = get_user_events(user, project) if user.practice_status == "ED" \
                 else list(base.PRACTICE_SET[project].keys())
-        # for ann in all_annotations:
-        #     if ann.event not in user_events[ann.project]:
-        #         user_events[ann.project].append(ann.event)
         for project in all_projects:
             events = user_events[project]
             user_records[project] = []
@@ -450,9 +480,6 @@ def render_annotations(request):
                 rec = evt[:evt.find('_')]
                 if rec not in user_records[project]:
                     user_records[project].append(rec)
-        # for ann in all_annotations:
-        #     if ann.record not in user_records[ann.project]:
-        #         user_records[ann.project].append(ann.record)
     
     # Get the total number of annotations
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
