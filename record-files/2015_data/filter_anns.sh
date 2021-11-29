@@ -31,8 +31,6 @@ for folder in $folders; do
         if [ $lines -eq 1 ]; then
             shuf -n $add -e $events >> $folder/$out_record_name
         else
-            # echo $(tail -n +2 $folder/$out_record_name) $(shuf -n $add -e $events) | tr uniq -c | sort -rn
-            # echo LOL
             present=$(tail -n +2 $folder/$out_record_name)
             rand=$(shuf -n $add -e $events)
             assign_set=$(echo $present $rand)
@@ -49,5 +47,4 @@ for folder in $folders; do
         fi
     fi
     # Add the folder name to the top of the RECORDS file
-    # echo $folder | cat - $folder/$out_record_name > temp && mv temp $folder/$out_record_name
 done
