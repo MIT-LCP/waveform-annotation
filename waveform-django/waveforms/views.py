@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from datetime import timedelta
 from operator import itemgetter
 import csv
@@ -10,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.db import connection
 import pandas as pd
 
 from waveforms.forms import GraphSettings, InviteUserForm
@@ -674,13 +676,25 @@ def leaderboard(request):
     user_true = user_rank(glob_true, username)
     user_false = user_rank(glob_false, username)
 
+    # Get number of events completed and in progress
+    ann_dict = defaultdict(int)
+    all_anns = Annotation.objects.all().exclude(decision='Save for Later')
+    two_anns = 0
+    for ann in all_anns:
+        key = f"{ann.project} {ann.record} {ann.event}"
+        ann_dict[key] += 1
+        two_anns = two_anns + 1 if ann_dict[key] == 2 else two_anns
+    one_ann = f"{(len(ann_dict) - two_anns):,}"
+    two_anns = f"{two_anns:,}"
+
     return render(request, 'waveforms/leaderboard.html', {'user': current_user,
                                                           'glob_today': glob_today, 'glob_week': glob_week,
                                                           'glob_month': glob_month, 'glob_all': glob_all,
                                                           'glob_true': glob_true, 'glob_false': glob_false,
                                                           'user_today': user_today, 'user_week': user_week,
                                                           'user_month': user_month, 'user_all': user_all,
-                                                          'user_true': user_true, 'user_false': user_false
+                                                          'user_true': user_true, 'user_false': user_false,
+                                                          'two_anns' : two_anns, 'one_ann' : one_ann,
                                                           })
 
 
