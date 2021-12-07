@@ -253,7 +253,7 @@ def get_user_events(user, project_folder):
         if user.practice_status != 'ED':
             user_ann = get_practice_anns(user_ann)
             
-        event_list += [a.event for a in user_ann if a not in event_list]
+        event_list += [a.event for a in user_ann if a.event not in event_list]
     return event_list
 
 
