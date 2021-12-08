@@ -652,7 +652,9 @@ def leaderboard(request):
     current_user = User.objects.get(username=request.user.username)
     all_users = User.objects.all()
     now = timezone.now().date()
-    seven_days = now - timedelta(days=7)
+    one_day = now - timedelta(days=1)
+    one_week = now - timedelta(days=7)
+    one_month = now - timedelta(days=30)
 
     # Get global leaderboard info
     glob_today = []
@@ -670,11 +672,11 @@ def leaderboard(request):
         num_true = 0
         num_false = 0
         for ann in user_anns:
-            if ann.decision_date.day == now.day:
+            if ann.decision_date.date() >= one_day:
                 num_today += 1
-            if now >= ann.decision_date.date() >= seven_days:
+            if ann.decision_date.date() >= one_week:
                 num_week += 1
-            if ann.decision_date.month == now.month:
+            if ann.decision_date.date() >= one_month:
                 num_month += 1
             if ann.decision == "True":
                 num_true += 1
