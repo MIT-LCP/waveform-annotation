@@ -749,9 +749,9 @@ def practice_test(request):
     correct = 0
     total = 0
     if user.practice_status == 'CO':
-        for project, events in base.PRACTICE_SET.items():
+        for project,events in base.PRACTICE_SET.items():
             results[project] = {}
-            for event, answer in events.items():
+            for event,answer in events.items():
                 try:
                     user_response = Annotation.objects.get(user=user, project=project, event=event).decision
                 except Annotation.DoesNotExist:
@@ -760,7 +760,6 @@ def practice_test(request):
                 total += 1
                 correct = correct + 1 if str(answer) == user_response else correct + 0
                 
-    
     if request.method == 'POST':
         if 'start-practice' in request.POST:
             if user.practice_status != 'ED':
@@ -785,8 +784,7 @@ def practice_test(request):
                     else:
                         csv_data[event] = [user.username]
                 update_assignments(csv_data, project)
-
-            user.practice_status = "BG"
+            user.practice_status = 'BG'
             user.save()
             return redirect('render_annotations') 
         
@@ -795,9 +793,7 @@ def practice_test(request):
                 raise PermissionError()
             user.practice_status = 'CO'
             user.save()
-                
             return redirect('practice_test')
-
 
         if 'end-practice' in request.POST:
             # Remove user's current assignment
@@ -811,13 +807,12 @@ def practice_test(request):
                         except Annotation.DoesNotExist:
                             pass
                 update_assignments(csv_data, project)
-            
             user.practice_status = 'ED'
             user.save()
             return redirect('render_annotations') 
 
     return render(request, 'waveforms/practice.html', {'user': user, 'results': results, 
-                                                        'total': total, 'correct': correct})
+                                                       'total': total, 'correct': correct})
 
 
 @login_required
