@@ -52,7 +52,7 @@ plot_config = {
 
 
 # Initialize the Dash App
-app = DjangoDash(name='waveform_graph', id='target_id', assets_folder='assets')
+app = DjangoDash(name='waveform_graph', id='target_id')
 # Specify the app layout
 app.layout = html.Div([
     dcc.Loading(id = 'loading-1', children = [
@@ -137,13 +137,13 @@ app.layout = html.Div([
         ], style = {'display': 'inline-block'})
     ], type = 'default'),
     # Hidden div inside the app that stores the desired project, record, and event
-    dcc.Input(id = 'set_project', type = 'hidden', value = ''),
-    dcc.Input(id = 'set_record', type = 'hidden', value = ''),
-    dcc.Input(id = 'set_event', type = 'hidden', value = ''),
+    dcc.Input(id='set_project', type='hidden', persistence=False, value=''),
+    dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
+    dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
     # Hidden div inside the app that stores the current project, record, and event
-    dcc.Input(id = 'temp_project', type = 'hidden', value = ''),
-    dcc.Input(id = 'temp_record', type = 'hidden', value = ''),
-    dcc.Input(id = 'temp_event', type = 'hidden', value = ''),
+    dcc.Input(id='temp_project', type='hidden', value=''),
+    dcc.Input(id='temp_record', type='hidden', value=''),
+    dcc.Input(id='temp_event', type='hidden', value=''),
 ])
 
 
