@@ -52,7 +52,7 @@ plot_config = {
 
 
 # Initialize the Dash App
-app = DjangoDash(name='waveform_graph', id='target_id')
+app = DjangoDash(name='waveform_graph')
 # Specify the app layout
 app.layout = html.Div([
     dcc.Loading(id = 'loading-1', children = [
@@ -912,7 +912,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
     # One project at a time
-    
     if current_user.practice_status == 'ED':
         project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
         user_annotations = Annotation.objects.filter(user=current_user, project=project)
