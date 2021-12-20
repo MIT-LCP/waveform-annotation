@@ -91,11 +91,18 @@ if not DEBUG:
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
+        'formatters': {
+            'timestamp': {
+                'format': '{asctime} {levelname} {message}',
+                'style': '{',
+            },
+        },
         'handlers': {
             'file': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
                 'filename': os.path.join(HEAD_DIR, 'debug', 'debug.log'),
+                'formatter': 'timestamp'
             }
         },
         'loggers': {
