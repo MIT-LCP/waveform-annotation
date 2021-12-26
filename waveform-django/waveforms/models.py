@@ -96,7 +96,7 @@ class Annotation(models.Model):
     is_adjudication = models.BooleanField(default=False, null=True)
 
     def update(self):
-        all_annotations = Annotation.objects.all(is_adjudication=False)
+        all_annotations = Annotation.objects.filter(is_adjudication=False)
         exists_already = False
         for a in all_annotations:
             if ((a.user == self.user) and (a.project == self.project) and
