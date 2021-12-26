@@ -141,9 +141,9 @@ app.layout = html.Div([
     dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
     # Hidden div inside the app that stores the current project, record, and event
-    dcc.Input(id='temp_project', type='hidden', value=''),
-    dcc.Input(id='temp_record', type='hidden', value=''),
-    dcc.Input(id='temp_event', type='hidden', value=''),
+    dcc.Input(id='temp_project', type='hidden', persistence=False, value=''),
+    dcc.Input(id='temp_record', type='hidden', persistence=False, value=''),
+    dcc.Input(id='temp_event', type='hidden', persistence=False, value=''),
 ])
 
 
