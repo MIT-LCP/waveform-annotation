@@ -13,10 +13,11 @@ class User(models.Model):
     email = models.EmailField(max_length=255, unique=True, null=True,
         blank=False, validators=[EmailValidator()])
     join_date = models.DateTimeField(auto_now_add=True)
+    is_adjudicator = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     last_login = models.DateTimeField(default=timezone.now)
     date_assigned = models.DateTimeField(default=timezone.now)
-    
+
     BEGAN = 'BG'
     COMPLETED = 'CO'
     ENDED = 'ED'
@@ -33,9 +34,11 @@ class User(models.Model):
 
     def num_annotations(self, project=None):
         if project:
-            return len(Annotation.objects.filter(user=self, project=project))
+            return len(Annotation.objects.filter(user=self, project=project,
+                                                 is_adjudication=False))
         else:
-            return len(Annotation.objects.filter(user=self))
+            return len(Annotation.objects.filter(user=self,
+                                                 is_adjudication=False))
 
     def new_settings(self):
         diff_settings = {}
@@ -64,11 +67,13 @@ class User(models.Model):
                     if self.username in row[1:]:
                         event_list.append(row[0])
 
-            complete_ann = Annotation.objects.filter(user=self, project=project).exclude(decision="Save for Later")
+            complete_ann = Annotation.objects.filter(user=self, project=project,
+                                                     is_adjudication=False).exclude(decision='Save for Later')
             complete_events = [e.event for e in complete_ann]
             event_list = [e for e in event_list if e not in complete_events]
             count += len(event_list)
         return count
+
 
 class InvitedEmails(models.Model):
     email = models.EmailField(max_length=255, unique=True, null=True,
@@ -77,6 +82,7 @@ class InvitedEmails(models.Model):
     joined = models.BooleanField(default=False)
     joined_username = models.CharField(max_length=150, unique=True,
                                        blank=False, null=True)
+
 
 class Annotation(models.Model):
     user = models.ForeignKey('User', related_name='annotation',
@@ -87,9 +93,10 @@ class Annotation(models.Model):
     decision = models.CharField(max_length=9, blank=False)
     comments = models.TextField(default='')
     decision_date = models.DateTimeField(null=True, blank=False)
+    is_adjudication = models.BooleanField(default=False, null=True)
 
     def update(self):
-        all_annotations = Annotation.objects.all()
+        all_annotations = Annotation.objects.all(is_adjudication=False)
         exists_already = False
         for a in all_annotations:
             if ((a.user == self.user) and (a.project == self.project) and

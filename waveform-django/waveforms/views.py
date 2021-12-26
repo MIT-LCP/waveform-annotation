@@ -188,9 +188,10 @@ def get_user_events(user, project_folder):
                     if val:
                         names.append(val)
                 if user.username in names:
-                    event_list.append(row[0])            
+                    event_list.append(row[0])
         user_ann = Annotation.objects.filter(user=user,
-                                             project=project_folder)
+                                             project=project_folder,
+                                             is_adjudication=False)
         if user.practice_status != 'ED':
             user_ann = get_practice_anns(user_ann)
         event_list += [a.event for a in user_ann if a.event not in event_list]
@@ -219,6 +220,7 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
     """
     user = User.objects.get(username=request.user.username)
     dash_context = {
+        'is_adjudicator': {'value': False},
         'set_project': {'value': set_project},
         'set_record': {'value': set_record},
         'set_event': {'value': set_event}
@@ -254,7 +256,7 @@ def admin_console(request):
 
     if request.method == 'POST':
         if 'ann_to_csv' in request.POST:
-            all_anns = Annotation.objects.all()
+            all_anns = Annotation.objects.all(is_adjudication=False)
             csv_df = pd.DataFrame.from_dict({
                 'username': [a.user.username for a in all_anns],
                 'dataset' : [a.project for a in all_anns],
@@ -288,7 +290,9 @@ def admin_console(request):
                 for event, names in csv_data.items():
                     if user.username in names:
                         try:
-                            Annotation.objects.get(user=user, project=project, event=event)
+                            Annotation.objects.get(user=user, project=project,
+                                                   event=event,
+                                                   is_adjudication=False)
                         except Annotation.DoesNotExist:
                             names.remove(user.username)
                 update_assignments(csv_data, project)
@@ -305,6 +309,18 @@ def admin_console(request):
             )
             new_admin.is_admin = False
             new_admin.save()
+        elif 'add_adjudicator' in request.POST:
+            new_adjudicator = User.objects.get(
+                username__exact=request.POST['add_adjudicator']
+            )
+            new_adjudicator.is_adjudicator = True
+            new_adjudicator.save()
+        elif 'remove_adjudicator' in request.POST:
+            new_adjudicator = User.objects.get(
+                username__exact=request.POST['remove_adjudicator']
+            )
+            new_adjudicator.is_adjudicator = False
+            new_adjudicator.save()
 
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -328,7 +344,8 @@ def admin_console(request):
             all_records[project] = f.read().splitlines()
 
         # Get all the annotations
-        all_annotations = Annotation.objects.filter(project=project)
+        all_annotations = Annotation.objects.filter(project=project,
+                                                    is_adjudication=False)
         records = [a.record for a in all_annotations]
         events = [a.event for a in all_annotations]
 
@@ -353,7 +370,8 @@ def admin_console(request):
                 temp_all_anns = []
                 if (rec in records) and (evt in events):
                     same_anns = Annotation.objects.filter(
-                        project=project, record=rec, event=evt)
+                        project=project, record=rec, event=evt,
+                        is_adjudication=False)
                     if len(set([a.decision for a in same_anns])) > 1:
                         for ann in same_anns:
                             temp_conflict_anns.append([ann.user.username,
@@ -401,6 +419,125 @@ def admin_console(request):
 
 
 @login_required
+def adjudicator_console(request, set_project='', set_record='', set_event=''):
+    """
+    Render all conflicting annotations to allow adjudication.
+
+    Parameters
+    ----------
+    set_project: string, optional
+        Preset project dropdown values used for page load
+    set_record : string, optional
+        Preset record dropdown values used for page load.
+    set_event : string, optional
+        Preset event dropdown values used for page load.
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for displaying the conflicting annotations.
+
+    """
+    user = User.objects.get(username=request.user.username)
+    if not user.is_adjudicator:
+        return redirect('waveform_published_home')
+
+    # Find the files
+    BASE_DIR = base.BASE_DIR
+    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    FILE_LOCAL = os.path.join('record-files')
+    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+
+    # Get the record files
+    project_options = os.listdir(PROJECT_PATH)
+    all_projects = [p for p in project_options if os.path.isdir(os.path.join(PROJECT_PATH, p))]
+
+    # Hold all of the annotation information
+    all_records = {}
+    reviewed_anns = {}
+    for project in all_projects:
+        records_path = os.path.join(PROJECT_PATH, project,
+                                    base.RECORDS_FILE)
+        with open(records_path, 'r') as f:
+            all_records[project] = f.read().splitlines()
+
+        # Get all the annotations
+        all_annotations = Annotation.objects.filter(project=project)
+        records = [a.record for a in all_annotations]
+        events = [a.event for a in all_annotations]
+
+        # Get the events
+        reviewed_anns[project] = {}
+        for rec in all_records[project]:
+            reviewed_anns[project][rec] = {}
+            records_path = os.path.join(PROJECT_PATH, project, rec,
+                                        base.RECORDS_FILE)
+            with open(records_path, 'r') as f:
+                all_events = f.read().splitlines()
+            all_events = [e for e in all_events if '_' in e]
+            for evt in all_events:
+                temp_conflict_anns = []
+                temp_adjudication_anns = []
+                if (rec in records) and (evt in events):
+                    # Add conflicting annotations by event
+                    same_anns = Annotation.objects.filter(
+                        project=project, record=rec, event=evt,
+                        is_adjudication=False)
+                    if len(set([a.decision for a in same_anns])) > 1:
+                        for ann in same_anns:
+                            temp_conflict_anns.append([ann.user.username,
+                                                       ann.decision,
+                                                       ann.comments,
+                                                       ann.decision_date])
+                    # Add adjudication annotations
+                    adjudicated_anns = Annotation.objects.filter(
+                        project=project, record=rec, event=evt,
+                        is_adjudication=True)
+                    for ann in adjudicated_anns:
+                        temp_adjudication_anns.append([ann.user.username,
+                                                       ann.decision,
+                                                       ann.comments,
+                                                       ann.decision_date])
+                # Get the completion stats for each record
+                if temp_conflict_anns != []:
+                    glob_info = (evt, len(temp_conflict_anns),
+                                 len(temp_adjudication_anns)==1)
+                    reviewed_anns[project][rec][glob_info] = (temp_conflict_anns,
+                                                              temp_adjudication_anns)
+
+    # The annotations for the current adjudication
+    top_anns = {}
+    if set_project:
+        top_dict = reviewed_anns[set_project][set_record]
+        top_anns = {
+            set_project: {
+                set_record: {k: top_dict[k] for k in top_dict.keys() if k[0]==set_event}
+            }
+        }
+
+    # Categories to display for the annotations
+    categories = [
+        'user',
+        'decision',
+        'comments',
+        'decision_date',
+        ''
+    ]
+
+    # The initial annotations to be displayed
+    dash_context = {
+        'set_project': {'value': set_project},
+        'set_record': {'value': set_record},
+        'set_event': {'value': set_event}
+    }
+
+    return render(request, 'waveforms/adjudicator_console.html',
+                  {'user': user, 'dash_context': dash_context,
+                   'categories': categories, 'all_projects': all_projects,
+                   'top_anns': top_anns, 'reviewed_anns': reviewed_anns})
+
+
+@login_required
 def render_annotations(request):
     """
     Render all saved annotations to allow edits.
@@ -424,9 +561,9 @@ def render_annotations(request):
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
     # All annotations
-    all_annotations = Annotation.objects.filter(user=user)
+    all_annotations = Annotation.objects.filter(user=user, is_adjudication=False)
 
-    if user.practice_status != "ED":
+    if user.practice_status != 'ED':
         events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
         events = []
         for i in events_per_proj:
@@ -454,12 +591,12 @@ def render_annotations(request):
     incompleted_anns = {}
 
     # Get list where each element is a list of records from a project folder
-    all_projects = base.ALL_PROJECTS if user.practice_status == "ED" else list(base.PRACTICE_SET.keys())
+    all_projects = base.ALL_PROJECTS if user.practice_status == 'ED' else list(base.PRACTICE_SET.keys())
     # Get all user records
     user_records = {}
     # Get all user events
     user_events = {}
-    if user.is_admin and user.practice_status == "ED":
+    if user.is_admin and user.practice_status == 'ED':
         for project in all_projects:
             user_events[project] = []
             records_path = os.path.join(PROJECT_PATH, project,
@@ -474,7 +611,7 @@ def render_annotations(request):
             user_events[project] = [e for e in user_events[project] if '_' in e]
     else:
         for project in all_projects:
-            user_events[project] = get_user_events(user, project) if user.practice_status == "ED" \
+            user_events[project] = get_user_events(user, project) if user.practice_status == 'ED' \
                 else list(base.PRACTICE_SET[project].keys())
         for project in all_projects:
             events = user_events[project]
@@ -549,7 +686,7 @@ def render_annotations(request):
 
             for project in available_projects:
                 finished_events[project] = [a.event for a in Annotation.objects.filter(
-                    user=user, project=project)]
+                    user=user, project=project, is_adjudication=False)]
                 progress = get_all_assignments(project)
                 events_in_progress[project] = progress
 
@@ -639,7 +776,8 @@ def delete_annotation(request, set_project, set_record, set_event):
             user=user,
             project=set_project,
             record=set_record,
-            event=set_event
+            event=set_event,
+            is_adjudication=False
         )
         annotation.delete()
     except Annotation.DoesNotExist:
@@ -664,7 +802,8 @@ def leaderboard(request):
     glob_true = []
     glob_false = []
     for user in all_users:
-        user_anns = Annotation.objects.filter(user=user).exclude(decision='Save for Later')
+        user_anns = Annotation.objects.filter(
+            user=user, is_adjudication=False).exclude(decision='Save for Later')
         num_today = 0
         num_week = 0
         num_month = 0
@@ -708,7 +847,8 @@ def leaderboard(request):
 
     # Get number of events completed and in progress
     ann_dict = defaultdict(int)
-    all_anns = Annotation.objects.all().exclude(decision='Save for Later')
+    all_anns = Annotation.objects.filter(
+        is_adjudication=False).exclude(decision='Save for Later')
     two_anns = 0
     for ann in all_anns:
         key = f"{ann.project} {ann.record} {ann.event}"
@@ -717,15 +857,15 @@ def leaderboard(request):
     one_ann = f"{(len(ann_dict) - two_anns):,}"
     two_anns = f"{two_anns:,}"
 
-    return render(request, 'waveforms/leaderboard.html', {'user': current_user,
-                                                          'glob_today': glob_today, 'glob_week': glob_week,
-                                                          'glob_month': glob_month, 'glob_all': glob_all,
-                                                          'glob_true': glob_true, 'glob_false': glob_false,
-                                                          'user_today': user_today, 'user_week': user_week,
-                                                          'user_month': user_month, 'user_all': user_all,
-                                                          'user_true': user_true, 'user_false': user_false,
-                                                          'two_anns' : two_anns, 'one_ann' : one_ann,
-                                                          })
+    return render(request, 'waveforms/leaderboard.html',
+                  {'user': current_user, 'glob_today': glob_today,
+                   'glob_week': glob_week, 'glob_month': glob_month,
+                   'glob_all': glob_all, 'glob_true': glob_true,
+                   'glob_false': glob_false, 'user_today': user_today,
+                   'user_week': user_week, 'user_month': user_month,
+                   'user_all': user_all, 'user_true': user_true,
+                   'user_false': user_false, 'two_anns': two_anns,
+                   'one_ann' : one_ann})
 
 
 @login_required
@@ -744,7 +884,7 @@ def practice_test(request):
 
     """
     user = User.objects.get(username=request.user)
-    
+
     results = {}
     correct = 0
     total = 0
@@ -753,29 +893,32 @@ def practice_test(request):
             results[project] = {}
             for event,answer in events.items():
                 try:
-                    user_response = Annotation.objects.get(user=user, project=project, event=event).decision
+                    user_response = Annotation.objects.get(
+                        user=user, project=project, event=event,
+                        is_adjudication=False).decision
                 except Annotation.DoesNotExist:
                     user_response = None
                 results[project][event] = (str(answer), user_response)
                 total += 1
                 correct = correct + 1 if str(answer) == user_response else correct + 0
-                
+
     if request.method == 'POST':
         if 'start-practice' in request.POST:
             if user.practice_status != 'ED':
                 raise PermissionError()
-            
+
             # Remove user's current assignment
             for project in base.ALL_PROJECTS:
                 csv_data = get_all_assignments(project)
                 for event, names in csv_data.items():
                     if user.username in names:
                         try:
-                            Annotation.objects.get(user=user, project=project, event=event)
+                            Annotation.objects.get(user=user, project=project,
+                                                   event=event, is_adjudication=False)
                         except Annotation.DoesNotExist:
                             names.remove(user.username)
                 update_assignments(csv_data, project)
-            
+
             for project, events in base.PRACTICE_SET.items():
                 csv_data = get_all_assignments(project)
                 for event in events.keys():
@@ -787,7 +930,7 @@ def practice_test(request):
             user.practice_status = 'BG'
             user.save()
             return redirect('render_annotations') 
-        
+
         if 'submit-practice' in request.POST:
             if user.practice_status != 'BG':
                 raise PermissionError()
@@ -803,7 +946,9 @@ def practice_test(request):
                     if user.username in names and event in base.PRACTICE_SET[project].keys():
                         names.remove(user.username)
                         try:
-                            Annotation.objects.get(user=user, project=project, event=event).delete()
+                            Annotation.objects.get(user=user, project=project,
+                                                   event=event,
+                                                   is_adjudication=False).delete()
                         except Annotation.DoesNotExist:
                             pass
                 update_assignments(csv_data, project)
@@ -811,8 +956,9 @@ def practice_test(request):
             user.save()
             return redirect('render_annotations') 
 
-    return render(request, 'waveforms/practice.html', {'user': user, 'results': results, 
-                                                       'total': total, 'correct': correct})
+    return render(request, 'waveforms/practice.html',
+                  {'user': user, 'results': results, 'total': total,
+                   'correct': correct})
 
 
 @login_required
@@ -872,5 +1018,5 @@ def viewer_settings(request):
     else:
         settings_form = GraphSettings(user=user, instance=user_settings)
 
-    return render(request, 'waveforms/settings.html', {'user': user,
-                                                       'settings_form': settings_form})
+    return render(request, 'waveforms/settings.html',
+                  {'user': user, 'settings_form': settings_form})
