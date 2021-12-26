@@ -23,32 +23,38 @@
     <tr>
       {% if user.is_admin %}
         {% url 'admin_console' as url %}
-        <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+        <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
           <a href="{% url 'admin_console' %}">Admin Console</a>
         </th>
       {% endif %}
+      {% if user.is_adjudicator %}
+        {% url 'adjudicator_console' as url %}
+        <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
+          <a href="{% url 'adjudicator_console' %}">Adjudicator Console</a>
+        </th>
+      {% endif %}
       {% url 'waveform_published_home' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'waveform_published_home' %}">Create More Annotations</a>
       </th>
       {% url 'render_annotations' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'render_annotations' %}">Current Assignment</a>
       </th>
       {% url 'leaderboard' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'leaderboard' %}">Leaderboard and Statistics</a>
       </th>
       {% url 'practice_test' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'practice_test' %}">Practice Test</a>
       </th>
       {% url 'viewer_tutorial' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'viewer_tutorial' %}">Annotator Tutorial</a>
       </th>
       {% url 'viewer_settings' as url %}
-      <th class="text-center {% if request.path == url %}  table-dark {%endif%}">
+      <th class="text-center {% if request.path == url %}  table-dark {% endif %}">
         <a href="{% url 'viewer_settings' %}">Viewer Settings</a>
       </th>
     </tr>

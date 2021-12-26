@@ -109,6 +109,7 @@
         <th>Last Login</th>
         <th style="width:15%">Total Number of Annotations (across all projects)</th>
         <th style="width:25%">New Settings &lt;{field: [default,user set], ...}&gt;</th>
+        <th style="width:17%">Adjudicator Control</th>
         <th>Admin Control</th>
       </tr>
       {% for u in all_users %}
@@ -118,6 +119,23 @@
           <td>{{ u.last_login }}</td>
           <td>{{ u.num_annotations }}</td>
           <td>{{ u.new_settings }}</td>
+          <td>
+            {% if u.is_adjudicator %}
+              <div class="btn-container-rsp mg-left">
+                <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="remove_adjudicator">
+                  {% csrf_token %}
+                  <button class="btn btn-danger btn-rsp" name="remove_adjudicator" value="{{ u.username }}" type="submit">Remove Adjudicator</button>
+                </form>
+              </div>
+            {% else %}
+              <div class="btn-container-rsp mg-left">
+                <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="add_adjudicator">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-rsp" name="add_adjudicator" value="{{ u.username }}" type="submit">Add Adjudicator</button>
+                </form>
+              </div>
+            {% endif %}
+          </td>
           <td>
             {% if u.is_admin %}
               <div class="btn-container-rsp mg-left">
