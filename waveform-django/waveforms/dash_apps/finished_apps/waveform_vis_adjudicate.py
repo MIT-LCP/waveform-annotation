@@ -520,14 +520,11 @@ def format_y_vals(sig_order, sig_name, n_ekg_sigs, record, index_start,
 
     Returns
     -------
-    ekg_y_vals : ndarray
-        Only the EKG signals.
     all_y_vals : ndarray
         All of the signals, including the EKG signals.
 
     """
     all_y_vals = []
-    ekg_y_vals = []
     for i,r in enumerate(sig_order):
         sig_name_index = sig_name.index(sig_name[r])
         if i < n_ekg_sigs:
@@ -536,13 +533,8 @@ def format_y_vals(sig_order, sig_name, n_ekg_sigs, record, index_start,
             current_y_vals = record[0][:,sig_name_index][index_start:index_stop:down_sample]
         current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
         all_y_vals.append(current_y_vals)
-        # Find unified range for all EKG signals
-        if i < n_ekg_sigs:
-            ekg_y_vals.append(current_y_vals)
 
-    # NOTE: Assuming there are always EKG signals
-    ekg_y_vals = np.stack(ekg_y_vals).flatten()
-    return ekg_y_vals, all_y_vals
+    return all_y_vals
 
 
 def window_signal(y_vals):
@@ -902,9 +894,9 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
     # Collect all of the signals and format their graph attributes
     sig_order, n_ekg_sigs = order_sigs(n_ekg_sigs, sig_name)
-    ekg_y_vals, all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs,
-                                           record, index_start, index_stop,
-                                           down_sample_ekg, down_sample)
+    all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs, record,
+                               index_start, index_stop, down_sample_ekg,
+                               down_sample)
     # Try to account for empty channels
     exclude_list = []
     while (len(sig_name) - len(exclude_list)) > 0:
@@ -920,15 +912,10 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
         else:
             sig_order, n_ekg_sigs = order_sigs(n_ekg_sigs, sig_name,
                                                exclude_sigs=exclude_list)
-            ekg_y_vals, all_y_vals = format_y_vals(
-                sig_order, sig_name, n_ekg_sigs, record, index_start,
-                index_stop, down_sample_ekg, down_sample
+            all_y_vals = format_y_vals(sig_order, sig_name, n_ekg_sigs,
+                                       record, index_start, index_stop,
+                                       down_sample_ekg, down_sample
             )
-
-    min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
-    # Create the ticks based off of the range of y-values
-    min_ekg_tick = grid_delta_major * round(min(ekg_y_vals)/grid_delta_major)
-    max_ekg_tick = grid_delta_major * round(max(ekg_y_vals)/grid_delta_major)
 
     # Sometimes there may not be 4 signals available to display
     n_sig = len(sig_order)
@@ -946,20 +933,19 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
         y_string = 'y' + str(idx+1)
         x_vals = [-time_range_min + (i / fs) for i in range(index_stop-index_start)]
         y_vals = all_y_vals[idx]
+        # Remove outliers to prevent weird axes scaling if possible
+        min_y_vals, max_y_vals = window_signal(y_vals)
+        # Process the EKG signals first
         if idx < n_ekg_sigs:
             x_vals = x_vals[::down_sample_ekg]
-            min_y_vals = min_ekg_y_vals
-            max_y_vals = max_ekg_y_vals
             # Create the ticks
-            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()]
+            y_tick_vals = [round(n,1) for n in np.arange(min_y_vals, max_y_vals, grid_delta_major).tolist()]
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
             y_text_vals = y_tick_vals[::math.ceil(len(y_tick_vals)/max_y_labels)]
             # Create the labels
             y_tick_text = [str(n) if n in y_text_vals else ' ' for n in y_tick_vals]
         else:
             x_vals = x_vals[::down_sample]
-            # Remove outliers to prevent weird axes scaling if possible
-            min_y_vals, max_y_vals = window_signal(y_vals)
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
             y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, max_y_labels).tolist()]
             # Create the labels
