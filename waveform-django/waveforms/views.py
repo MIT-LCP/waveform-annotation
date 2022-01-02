@@ -855,11 +855,19 @@ def leaderboard(request):
         is_adjudication=False).exclude(decision='Save for Later')
     two_anns = 0
     for ann in all_anns:
-        key = f"{ann.project} {ann.record} {ann.event}"
+        key = f'{ann.project} {ann.record} {ann.event}'
         ann_dict[key] += 1
         two_anns = two_anns + 1 if ann_dict[key] == 2 else two_anns
-    one_ann = f"{(len(ann_dict) - two_anns):,}"
-    two_anns = f"{two_anns:,}"
+    one_ann = f'{(len(ann_dict) - two_anns):,}'
+    two_anns = f'{two_anns:,}'
+    # Get the number of annotations which conflict
+    conflict_anns = 0
+    all_ann_tuples = set([(a.record,a.event) for a in all_anns])
+    for rec,evt in all_ann_tuples:
+        current_rec_evt = all_anns.filter(record=rec, event=evt)
+        if len(current_rec_evt) > 1:
+            if len(set([a.decision for a in current_rec_evt])) > 1:
+                conflict_anns += 1
 
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
@@ -868,8 +876,8 @@ def leaderboard(request):
                    'glob_false': glob_false, 'user_today': user_today,
                    'user_week': user_week, 'user_month': user_month,
                    'user_all': user_all, 'user_true': user_true,
-                   'user_false': user_false, 'two_anns': two_anns,
-                   'one_ann' : one_ann})
+                   'user_false': user_false, 'one_ann': one_ann,
+                   'two_anns': two_anns, 'conflict_anns': conflict_anns})
 
 
 @login_required
