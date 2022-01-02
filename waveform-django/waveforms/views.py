@@ -740,6 +740,10 @@ def render_annotations(request):
 
             for proj, data in events_in_progress.items():
                 update_assignments(data, proj)
+
+            # Update the user's assignment start date
+            user.date_assigned = timezone.now()
+            user.save()
             return redirect('render_annotations')
 
     return render(request, 'waveforms/annotations.html',
