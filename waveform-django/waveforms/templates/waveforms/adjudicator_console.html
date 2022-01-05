@@ -52,7 +52,7 @@
   <!-- The caliper -->
   <input type="button" value="Show/Hide Caliper" style="float: right" onclick="displayCaliper();"/>
   <div id="caliper_drag_wrapper" style="display: none; position: absolute; z-index: 10000; padding: 25px;">
-    <img src="{% static 'caliper.png' %}" alt="Caliper" id="caliper_drag" style="cursor: pointer; height: 100px; width: 80px;"/>
+    <img src="{% static "caliper.png" %}" alt="Caliper" id="caliper_drag" style="cursor: pointer; height: 100px; width: 80px;"/>
   </div>
   <!-- The graph -->
   {% plotly_app_bootstrap name='waveform_graph_adjudicate' initial_arguments=dash_context %}
