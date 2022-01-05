@@ -67,7 +67,7 @@ app.layout = html.Div([
             # The record display
             html.Label(['Record:']),
             html.Div(
-                id='dropdown_rec',
+                id='dropdown_record',
                 children=html.Span([''], style={'fontSize': event_fontsize})
             ),
             # The event display
@@ -806,59 +806,20 @@ def window_signal(y_vals):
 
 
 @app.callback(
-    [dash.dependencies.Output('reviewer_decision', 'value'),
-     dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('temp_event', 'value'),
-     dash.dependencies.Input('temp_project', 'value')])
-def clear_text(temp_event, temp_project):
-    """
-    Clear the reviewer decision and comments if none has been created or load
-    them otherwise when loading a new record and event.
-
-    Parameters
-    ----------
-    temp_event : str
-        The current event.
-    temp_project : str
-        The current project.
-
-    Returns
-    -------
-    N/A : str
-        The decision of the user.
-    N/A : str
-        The comments of the user.
-
-    """
-    current_user = get_current_user()
-    if (temp_event != '') and (temp_event is not None) and (current_user != ''):
-        # Get the decision
-        user = User.objects.get(username=current_user)
-        try:
-            res = Annotation.objects.get(
-                user=user, project=temp_project, event=temp_event,
-                is_adjudication=False)
-            reviewer_decision = res.decision
-            reviewer_comments = res.comments
-        except Annotation.DoesNotExist:
-            reviewer_decision = None
-            reviewer_comments = ''
-        return reviewer_decision, reviewer_comments
-    else:
-        return None, ''
-
-
-@app.callback(
-    [dash.dependencies.Output('dropdown_rec', 'children'),
+    [dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
-     dash.dependencies.Output('dropdown_project', 'children')],
+     dash.dependencies.Output('dropdown_project', 'children'),
+     dash.dependencies.Output('event_text', 'children'),
+     dash.dependencies.Output('temp_record', 'value'),
+     dash.dependencies.Output('temp_event', 'value'),
+     dash.dependencies.Output('temp_project', 'value')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
-     dash.dependencies.Input('set_record', 'value')],
-    [dash.dependencies.State('set_event', 'value'),
-     dash.dependencies.State('temp_project', 'value'),
+     dash.dependencies.Input('set_record', 'value'),
+     dash.dependencies.Input('set_event', 'value')],
+    [dash.dependencies.State('temp_project', 'value'),
      dash.dependencies.State('temp_record', 'value'),
      dash.dependencies.State('temp_event', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
@@ -868,7 +829,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
                              project_value, record_value, event_value,
                              decision_value, comments_value):
     """
-    Dynamically update the record given the current record and event.
+    Dynamically update the labels and stored variables given the current
+    record and event.
 
     Parameters
     ----------
@@ -901,6 +863,12 @@ def get_record_event_options(click_submit, click_previous, click_next,
         The current record in HTML form so it can be rendered on the page.
     return_event : list[html.Span object]
         The current event in HTML form so it can be rendered on the page.
+    event_text : list[html.Span object]
+        The current event in HTML form so it can be rendered on the page.
+    dropdown_record : str
+        The new selected record.
+    dropdown_event : str
+        The new selected event.
 
     """
     # Determine what triggered this function
@@ -1033,90 +1001,51 @@ def get_record_event_options(click_submit, click_previous, click_next,
             return_record = set_record
             return_event = set_event
 
+    # Update the event text
+    alarm_text = html.Span([''], style={'fontSize': event_fontsize})
+    if ((return_record == 'N/A') or (return_event == 'N/A') or
+        (return_project == 'N/A')):
+        alarm_text = [
+            html.Span(['N/A', html.Br(), html.Br()],
+                      style={'fontSize': event_fontsize})
+        ]
+    else:
+        # Get the annotation information
+        ann_path = os.path.join(PROJECT_PATH, return_project,
+                                return_record, return_event)
+        ann = wfdb.rdann(ann_path, 'alm')
+        ann_event = ann.aux_note[0]
+        # Update the annotation event text
+        alarm_text = [
+            html.Span(['{}'.format(ann_event), html.Br(), html.Br()],
+                      style={'fontSize': event_fontsize})
+        ]
+
     # Update the annotation current project text
-    return_project = [
+    project_text = [
         html.Span(['{}'.format(return_project)], style={'fontSize': event_fontsize})
     ]
     # Update the annotation current record text
-    return_record = [
+    record_text = [
         html.Span(['{}'.format(return_record)], style={'fontSize': event_fontsize})
     ]
     # Update the annotation current event text
-    return_event = [
+    event_text = [
         html.Span(['{}'.format(return_event)], style={'fontSize': event_fontsize})
     ]
-    return return_record, return_event, return_project
+
+    return (record_text, event_text, project_text, alarm_text,
+            return_record, return_event, return_project)
 
 
 @app.callback(
-    [dash.dependencies.Output('event_text', 'children'),
-     dash.dependencies.Output('temp_record', 'value'),
-     dash.dependencies.Output('temp_event', 'value'),
-     dash.dependencies.Output('temp_project', 'value')],
-    [dash.dependencies.Input('dropdown_rec', 'children'),
-     dash.dependencies.Input('dropdown_event', 'children'),
-     dash.dependencies.Input('dropdown_project', 'children')])
-def update_text(dropdown_rec, dropdown_event, dropdown_project):
-    """
-    Update the event text and set_event.
-
-    Parameters
-    ----------
-    dropdown_project : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current project.
-    dropdown_rec : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current record.
-    dropdown_event : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current event.
-
-    Returns
-    -------
-    event_text : list[html.Span object]
-        The current event in HTML form so it can be rendered on the page.
-    dropdown_rec : str
-        The new selected record.
-    dropdown_event : str
-        The new selected event.
-
-    """
-    # Get the header file
-    event_text = html.Span([''], style={'fontSize': event_fontsize})
-    # Determine project
-    dropdown_project = get_dropdown(dropdown_project)
-    # Determine the record
-    dropdown_rec = get_dropdown(dropdown_rec)
-    # Determine the event
-    dropdown_event = get_dropdown(dropdown_event)
-
-    if dropdown_rec and dropdown_event and dropdown_project:
-        if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
-           (dropdown_project == 'N/A')):
-            event_text = [
-                html.Span(['N/A', html.Br(), html.Br()], style={'fontSize': event_fontsize})
-            ]
-        else:
-            # Get the annotation information
-            ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                                    dropdown_rec, dropdown_event)
-            ann = wfdb.rdann(ann_path, 'alm')
-            ann_event = ann.aux_note[0]
-            # Update the annotation event text
-            event_text = [
-                html.Span(['{}'.format(ann_event), html.Br(), html.Br()], style={'fontSize': event_fontsize})
-            ]
-
-    return event_text, dropdown_rec, dropdown_event, dropdown_project
-
-
-@app.callback(
-    dash.dependencies.Output('the_graph', 'figure'),
+    [dash.dependencies.Output('the_graph', 'figure'),
+     dash.dependencies.Output('reviewer_decision', 'value'),
+     dash.dependencies.Output('reviewer_comments', 'value')],
     [dash.dependencies.Input('dropdown_event', 'children')],
-    [dash.dependencies.State('dropdown_rec', 'children'),
+    [dash.dependencies.State('dropdown_record', 'children'),
      dash.dependencies.State('dropdown_project', 'children')])
-def update_graph(dropdown_event, dropdown_rec, dropdown_project):
+def update_graph(dropdown_event, dropdown_record, dropdown_project):
     """
     Run the app and render the waveforms using the chosen initial conditions.
 
@@ -1125,7 +1054,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     dropdown_event : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
         dictionary (if single input trigger) of the current record.
-    dropdown_rec : list[dict], dict
+    dropdown_record : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
         dictionary (if single input trigger) of the current event.
     dropdown_project : list[dict], dict
@@ -1136,6 +1065,10 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     -------
     N/A : plotly.subplots
         The final figure.
+    N/A : str
+        The cleared decision of the user.
+    N/A : str
+        The cleared comments of the user.
 
     """
     # Load in the default variables
@@ -1177,11 +1110,11 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     # Set the initial y-axis parameters
     grid_state = True
     zeroline_state = False
-    dropdown_rec = get_dropdown(dropdown_rec)
+    dropdown_record = get_dropdown(dropdown_record)
     dropdown_event = get_dropdown(dropdown_event)
     dropdown_project = get_dropdown(dropdown_project)
 
-    if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+    if ((dropdown_record == 'N/A') or (dropdown_event == 'N/A') or
        (dropdown_project == 'N/A')):
         fig = get_subplot(4)
         fig.update_layout(
@@ -1227,13 +1160,13 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
     # Determine the time of the event (seconds)
     ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                            dropdown_rec, dropdown_event)
+                            dropdown_record, dropdown_event)
     ann = wfdb.rdann(ann_path, 'alm')
     event_time = (ann.sample / ann.fs)[0]
 
     # Determine the signal information
     record_path = os.path.join(PROJECT_PATH, dropdown_project,
-                               dropdown_rec, dropdown_event)
+                               dropdown_record, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
     sig_name = record[1]['sig_name']
@@ -1330,4 +1263,23 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
         fig.update_traces(xaxis = x_string)
 
-    return (fig)
+    # Clear the reviewer decision and comments if none has been created or load
+    # them otherwise when loading a new record and event.
+    if (dropdown_event != '') and (dropdown_event is not None) and (get_current_user() != ''):
+        # Get the decision
+        user = User.objects.get(username=get_current_user())
+        try:
+            res = Annotation.objects.get(
+                user=user, project=dropdown_project, record=dropdown_record,
+                event=dropdown_event, is_adjudication=False
+            )
+            return_decision = res.decision
+            return_comments = res.comments
+        except Annotation.DoesNotExist:
+            return_decision = None
+            return_comments = ''
+    else:
+        return_decision = None
+        return_comments = ''
+
+    return (fig), return_decision, return_comments
