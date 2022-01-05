@@ -69,6 +69,13 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_plotly_dash.middleware.BaseMiddleware',
+    'django_plotly_dash.middleware.ExternalRedirectionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -135,8 +142,29 @@ PLOTLY_COMPONENTS = [
     'dash_core_components',
     'dash_html_components',
     'dash_renderer',
-    'dpd_components'
+    'dpd_components',
+    'dpd_static_support',
+    'dash_bootstrap_components'
 ]
+
+PLOTLY_DASH = {
+    # Route used for the message pipe websocket connection
+    'ws_route': 'dpd/ws/channel',
+    # Route used for direct http insertion of pipe messages
+    'http_route': 'dpd/views',
+    # Flag controlling existince of http poke endpoint
+    'http_poke_enabled': True,
+    # Insert data for the demo when migrating
+    'insert_demo_migrations': False,
+    # Timeout for caching of initial arguments in seconds
+    'cache_timeout_initial_arguments': 60,
+    # Name of view wrapping function
+    'view_decorator': None,
+    # Flag to control location of initial argument storage
+    'cache_arguments': False,
+    # Flag controlling local serving of assets
+    'serve_locally': False
+}
 
 # Session management
 
@@ -161,19 +189,22 @@ MAX_ATTEMPTS = 5
 #USE_X_FORWARDED_HOST = True
 #FORCE_SCRIPT_NAME = '/waveform-annotation'
 
-STATIC_URL = '/static/'
 if DEBUG:
+    STATIC_URL = '/static/'
     STATIC_ROOT = 'static'
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-    STATICFILES_DIRS = [os.path.join(PROJECT_DIR, 'static')]
+    STATIC_URL = '/waveform-annotation/static/'
+    STATIC_ROOT = os.path.join(HEAD_DIR, 'static')
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILE_FINDERS = [
     'django.contrib.staticfiles.finder.FileSystemFinder',
     'django.contrib.staticfiles.finder.AppDirectoriesFinder',
     'django_plotly_dash.finders.DashAssetFinder',
     'django_plotly_dash.finders.DashComponentFinder',
+    'django_plotly_dash.finders.DashAppDirectoryFinder',
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 RECORDS_FILE = 'RECORDS_VTVF'
 ASSIGNMENT_FILE = 'user_assignments.csv'
