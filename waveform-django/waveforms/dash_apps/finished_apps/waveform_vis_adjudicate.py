@@ -67,7 +67,7 @@ app.layout = html.Div([
             # The record display
             html.Label(['Record:']),
             html.Div(
-                id='dropdown_rec',
+                id='dropdown_record',
                 children=html.Span([''], style={'fontSize': event_fontsize})
             ),
             # The event display
@@ -588,15 +588,16 @@ def window_signal(y_vals):
 
 
 @app.callback(
-    [dash.dependencies.Output('dropdown_rec', 'children'),
+    [dash.dependencies.Output('dropdown_project', 'children'),
+     dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
-     dash.dependencies.Output('dropdown_project', 'children')],
+     dash.dependencies.Output('event_text', 'children')],
     [dash.dependencies.Input('adjudication_true', 'n_clicks_timestamp'),
      dash.dependencies.Input('adjudication_false', 'n_clicks_timestamp'),
      dash.dependencies.Input('adjudication_uncertain', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
-     dash.dependencies.Input('set_record', 'value')],
-    [dash.dependencies.State('set_event', 'value')])
+     dash.dependencies.Input('set_record', 'value'),
+     dash.dependencies.Input('set_event', 'value')])
 def get_record_event_options(submit_true, submit_false, submit_uncertain,
                              set_project, set_record, set_event):
     """
@@ -628,6 +629,8 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
     return_record : list[html.Span object]
         The current record in HTML form so it can be rendered on the page.
     return_event : list[html.Span object]
+        The current event in HTML form so it can be rendered on the page.
+    event_text : list[html.Span object]
         The current event in HTML form so it can be rendered on the page.
 
     """
@@ -687,84 +690,48 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
             return_event = set_event
 
     # Update the annotation current project text
-    return_project = [
+    project_text = [
         html.Span(['{}'.format(return_project)], style={'fontSize': event_fontsize})
     ]
     # Update the annotation current record text
-    return_record = [
+    record_text = [
         html.Span(['{}'.format(return_record)], style={'fontSize': event_fontsize})
     ]
     # Update the annotation current event text
-    return_event = [
+    event_text = [
         html.Span(['{}'.format(return_event)], style={'fontSize': event_fontsize})
     ]
-    return return_record, return_event, return_project
 
-
-@app.callback(
-    [dash.dependencies.Output('event_text', 'children')],
-    [dash.dependencies.Input('dropdown_rec', 'children'),
-     dash.dependencies.Input('dropdown_event', 'children'),
-     dash.dependencies.Input('dropdown_project', 'children')])
-def update_text(dropdown_rec, dropdown_event, dropdown_project):
-    """
-    Update the event text.
-
-    Parameters
-    ----------
-    dropdown_project : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current project.
-    dropdown_rec : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current record.
-    dropdown_event : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current event.
-
-    Returns
-    -------
-    event_text : list[html.Span object]
-        The current event in HTML form so it can be rendered on the page.
-
-    """
-    # Get the header file
-    event_text = html.Span([''], style={'fontSize': event_fontsize})
-    # Determine project
-    dropdown_project = get_dropdown(dropdown_project)
-    # Determine the record
-    dropdown_rec = get_dropdown(dropdown_rec)
-    # Determine the event
-    dropdown_event = get_dropdown(dropdown_event)
     # Update the event text
-    if dropdown_rec and dropdown_event and dropdown_project:
-        if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
-           (dropdown_project == 'N/A')):
-            event_text = [
+    alarm_text = html.Span([''], style={'fontSize': event_fontsize})
+    if return_record and return_event and return_project:
+        if ((return_record == 'N/A') or (return_event == 'N/A') or
+           (return_project == 'N/A')):
+            alarm_text = [
                 html.Span(['N/A', html.Br(), html.Br()],
                           style={'fontSize': event_fontsize})
             ]
         else:
             # Get the annotation information
-            ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                                    dropdown_rec, dropdown_event)
+            ann_path = os.path.join(PROJECT_PATH, return_project,
+                                    return_record, return_event)
             ann = wfdb.rdann(ann_path, 'alm')
             ann_event = ann.aux_note[0]
             # Update the annotation event text
-            event_text = [
+            alarm_text = [
                 html.Span(['{}'.format(ann_event), html.Br(), html.Br()],
                            style={'fontSize': event_fontsize})
             ]
 
-    return event_text
+    return project_text, record_text, event_text, alarm_text
 
 
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
-    [dash.dependencies.Input('dropdown_event', 'children')],
-    [dash.dependencies.State('dropdown_rec', 'children'),
-     dash.dependencies.State('dropdown_project', 'children')])
-def update_graph(dropdown_event, dropdown_rec, dropdown_project):
+    [dash.dependencies.Input('dropdown_project', 'children'),
+     dash.dependencies.Input('dropdown_record', 'children'),
+     dash.dependencies.Input('dropdown_event', 'children')])
+def update_graph(dropdown_project, dropdown_record, dropdown_event):
     """
     Run the app and render the waveforms using the chosen initial conditions.
 
@@ -773,7 +740,7 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     dropdown_event : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
         dictionary (if single input trigger) of the current record.
-    dropdown_rec : list[dict], dict
+    dropdown_record : list[dict], dict
         Either a list (if multiple input triggers) of dictionaries or a single
         dictionary (if single input trigger) of the current event.
     dropdown_project : list[dict], dict
@@ -825,11 +792,11 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
     # Set the initial y-axis parameters
     grid_state = True
     zeroline_state = False
-    dropdown_rec = get_dropdown(dropdown_rec)
+    dropdown_record = get_dropdown(dropdown_record)
     dropdown_event = get_dropdown(dropdown_event)
     dropdown_project = get_dropdown(dropdown_project)
 
-    if ((dropdown_rec == 'N/A') or (dropdown_event == 'N/A') or
+    if ((dropdown_record == 'N/A') or (dropdown_event == 'N/A') or
        (dropdown_project == 'N/A')):
         fig = get_subplot(4)
         fig.update_layout(
@@ -875,13 +842,13 @@ def update_graph(dropdown_event, dropdown_rec, dropdown_project):
 
     # Determine the time of the event (seconds)
     ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                            dropdown_rec, dropdown_event)
+                            dropdown_record, dropdown_event)
     ann = wfdb.rdann(ann_path, 'alm')
     event_time = (ann.sample / ann.fs)[0]
 
     # Determine the signal information
     record_path = os.path.join(PROJECT_PATH, dropdown_project,
-                               dropdown_rec, dropdown_event)
+                               dropdown_record, dropdown_event)
     record = wfdb.rdsamp(record_path, return_res=16)
     fs = record[1]['fs']
     sig_name = record[1]['sig_name']
