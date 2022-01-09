@@ -256,7 +256,7 @@ def admin_console(request):
 
     if request.method == 'POST':
         if 'ann_to_csv' in request.POST:
-            all_anns = Annotation.objects.all(is_adjudication=False)
+            all_anns = Annotation.objects.filter(is_adjudication=False)
             csv_df = pd.DataFrame.from_dict({
                 'username': [a.user.username for a in all_anns],
                 'dataset' : [a.project for a in all_anns],
