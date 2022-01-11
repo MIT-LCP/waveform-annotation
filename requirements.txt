@@ -20,6 +20,8 @@ python-decouple==3.1 \
  --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
 pytz==2018.3 \
  --hash=sha256:07edfc3d4d2705a20a6e99d97f0c4b61c800b8232dc1c04d87e8554f130148dd
+django-crontab==0.7.1 \
+ --hash=sha256:1201810a212460aaaa48eb6a766738740daf42c1a4f6aafecfb1525036929236
 
 #### Requirements for development and testing ####
 
