@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.core.paginator import Paginator
 from django.db import connection
 import pandas as pd
 
@@ -666,6 +667,21 @@ def render_annotations(request):
                 temp_incompleted_anns.insert(1, project)
                 incompleted_anns[rec] = temp_incompleted_anns
 
+    pag_saved = Paginator(tuple(saved_anns.items()), 5)
+    saved_page_num = request.GET.get('saved-page')
+    saved_page = pag_saved.get_page(saved_page_num)
+    saved_anns = dict(saved_page)
+
+    pag_complete = Paginator(tuple(completed_anns.items()), 5)
+    complete_page_num = request.GET.get('complete-page')
+    complete_page = pag_complete.get_page(complete_page_num)
+    completed_anns = dict(complete_page)
+
+    pag_incomplete = Paginator(tuple(incompleted_anns.items()), 5)
+    incomplete_page_num = request.GET.get('incomplete-page')
+    incomplete_page = pag_incomplete.get_page(incomplete_page_num)
+    incompleted_anns = dict(incomplete_page)
+    
     categories = [
         'event',
         'decision',
@@ -749,8 +765,10 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
                    'categories': categories, 'completed_anns': completed_anns,
-                   'saved_anns': saved_anns,
+                   'complete_page':complete_page,
+                   'saved_anns': saved_anns, 'saved_page':saved_page,
                    'incompleted_anns': incompleted_anns,
+                   'incomplete_page': incomplete_page,
                    'finished_assignment': finished_assignment,
                    'remaining': total_anns - len(completed_annotations),
                    'save_warning': save_warning})

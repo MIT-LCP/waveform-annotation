@@ -67,6 +67,14 @@
     <br /><br />
   </div>
   <div><h2>Save for Later Annotations</h2></div>
+  <div class="page-links">
+      {% if saved_page.has_previous %}
+        <a href="{% url 'render_annotations' %}?saved-page={{ saved_page.previous_page_number}}">Previous Page</a>
+      {% endif %}
+      {% if saved_page.has_next %}
+        <a href="{% url 'render_annotations' %}?saved-page={{ saved_page.next_page_number}}">Next Page</a>
+      {% endif %}
+    </div>
   {% for rec,info in saved_anns.items %}
     <button class="accordion">
       <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
@@ -106,6 +114,14 @@
   {% endfor %}
   <br />
   <div><h2>Complete Annotations</h2></div>
+      <div class="page-links">
+      {% if complete_page.has_previous %}
+        <a href="{% url 'render_annotations' %}?complete-page={{ complete_page.previous_page_number}}">Previous Page</a>
+      {% endif %}
+      {% if complete_page.has_next %}
+        <a href="{% url 'render_annotations' %}?complete-page={{ complete_page.next_page_number}}">Next Page</a>
+      {% endif %}
+    </div>
   {% for rec,info in completed_anns.items %}
     <button class="accordion">
       <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
@@ -145,6 +161,14 @@
   {% endfor %}
   <br />
   <div><h2>Incomplete Annotations</h2></div>
+    <div class="page-links">
+      {% if incomplete_page.has_previous %}
+        <a href="{% url 'render_annotations' %}?incomplete-page={{ incomplete_page.previous_page_number}}">Previous Page</a>
+      {% endif %}
+      {% if incomplete_page.has_next %}
+        <a href="{% url 'render_annotations' %}?incomplete-page={{ incomplete_page.next_page_number}}">Next Page</a>
+      {% endif %}
+    </div>
   {% for rec,info in incompleted_anns.items %}
     <button class="accordion">
       <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
