@@ -53,6 +53,7 @@ SECRET_KEY = config('SECRET_KEY')
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
     'debug_toolbar',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -91,6 +92,17 @@ DATABASES = {
         'NAME': os.path.join(HEAD_DIR,'db','db.sqlite3')
     }
 }
+
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name command to be executed
+CRONJOBS = [
+    ('0 0 * * *', 'waveform-django.cron.update_annotations')
+]
 
 ROOT_URLCONF = 'website.urls'
 
@@ -191,7 +203,7 @@ MAX_ATTEMPTS = 5
 
 if DEBUG:
     STATIC_URL = '/static/'
-    STATIC_ROOT = 'static'
+    STATIC_ROOT = 'assets'
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 else:
     STATIC_URL = '/waveform-annotation/static/'
