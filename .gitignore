@@ -1,6 +1,9 @@
 # Django database
 db.sqlite3
 
+# Redis cache
+*.rdb
+
 # WFDB files
 *.hea*
 *.alm*

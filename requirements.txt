@@ -1,5 +1,4 @@
 #### Requirements for running the server ####
-
 chardet==3.0.4 \
  --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
 Django==2.2.13 \
@@ -21,17 +20,16 @@ python-decouple==3.1 \
 pytz==2018.3 \
  --hash=sha256:07edfc3d4d2705a20a6e99d97f0c4b61c800b8232dc1c04d87e8554f130148dd
 django-crontab==0.7.1 \
- --hash=sha256:1201810a212460aaaa48eb6a766738740daf42c1a4f6aafecfb1525036929236
+ --hash=sha256:1201810a212460aaaa48eb6a766738740daf42c1a4f6aafecfb1525036929236 \
+ --hash=sha256:64e9aa766220173aae5e4f027ed83a834886676004083de10501b4868154c49e
 
 #### Requirements for development and testing ####
-
 django-debug-toolbar==1.9.1 \
  --hash=sha256:4af2a4e1e932dadbda197b18585962d4fc20172b4e5a479490bc659fe998864d
 requests==2.26.0 \
  --hash=sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24
 
 #### Indirect requirements ####
-
 six==1.12.0 \
  --hash=sha256:3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c
 
@@ -132,6 +130,19 @@ click==7.1.2 \
 retrying==1.3.3 \
  --hash=sha256:08c039560a6da2fe4f2c426d0766e284d3b736e355f8dd24b37367b0bb41973b
 
+# required for dash cache
+django-redis==5.2.0 \
+ --hash=sha256:1d037dc02b11ad7aa11f655d26dac3fb1af32630f61ef4428860a2e29ff92026
+redis==4.1.1 \
+ --hash=sha256:bc97d18938ca18d66737d0ef88584a2073069589e4026813cfba9ad6df9a9f40
+Deprecated==1.2.13 \
+ --hash=sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d
+packaging==21.3 \
+ --hash=sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522
+wrapt==1.13.3 \
+ --hash=sha256:b73d4b78807bd299b38e4598b8e7bd34ed55d480160d2e7fdaabd9931afa65f9 \
+ --hash=sha256:25b1b1d5df495d82be1c9d2fad408f7ce5ca8a38085e2da41bb63c914baadff7
+
 # required by flask-compress
 brotli==1.0.7 \
  --hash=sha256:71ceee286ea7ec613f1c36f1c6181864a6ca24ebb55e371276f33d6af8742834 \
@@ -140,7 +151,8 @@ brotli==1.0.7 \
 # required by Jinja2
 MarkupSafe==1.1.1 \
  --hash=sha256:6788b695d50a51edb699cb55e35487e430fa21f1ed838122d722e0ff0ac5ba15 \
- --hash=sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6
+ --hash=sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6 \
+ --hash=sha256:6f1e273a344928347c1290119b493a1f0303c52f5a5eae5f16d74f48c15d4a85
 
 # required by GraphQL API
 aniso8601==7.0.0 \

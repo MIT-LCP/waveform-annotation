@@ -227,7 +227,7 @@ def get_user_events(user, project_folder):
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-    
+
     if user.is_admin and user.practice_status == 'ED':
         record_list, event_list = get_all_records_events(project_folder)
     elif user.practice_status != 'ED':
@@ -249,13 +249,13 @@ def get_user_events(user, project_folder):
                     if val:
                         names.append(val)
                 if user.username in names:
-                    event_list.append(row[0])            
+                    event_list.append(row[0])
         user_ann = Annotation.objects.filter(user=user,
                                              project=project_folder,
                                              is_adjudication=False)
         if user.practice_status != 'ED':
             user_ann = get_practice_anns(user_ann)
-            
+
         event_list += [a.event for a in user_ann if a.event not in event_list]
     return event_list
 
