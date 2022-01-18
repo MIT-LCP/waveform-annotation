@@ -15,6 +15,7 @@ from decouple import config
 
 # Basic settings based on development environment
 DEBUG = config('DEBUG', default=False, cast=bool)
+CACHE = config('CACHE', default=False, cast=bool)
 SESSION_COOKIE_SECURE = False
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
@@ -51,7 +52,6 @@ EMAIL_FROM = 'help@waveform-annotation.com'
 SECRET_KEY = config('SECRET_KEY')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django_crontab',
     'debug_toolbar',
@@ -92,6 +92,19 @@ DATABASES = {
         'NAME': os.path.join(HEAD_DIR,'db','db.sqlite3')
     }
 }
+
+# Cache
+if CACHE:
+    # Requires `redis-server` to be running in another terminal tab
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://localhost:6379',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+            }
+        }
+    }
 
 # .---------------- minute (0 - 59)
 # |  .------------- hour (0 - 23)
@@ -173,7 +186,7 @@ PLOTLY_DASH = {
     # Name of view wrapping function
     'view_decorator': None,
     # Flag to control location of initial argument storage
-    'cache_arguments': False,
+    'cache_arguments': CACHE,
     # Flag controlling local serving of assets
     'serve_locally': False
 }
@@ -214,7 +227,7 @@ STATICFILE_FINDERS = [
     'django.contrib.staticfiles.finder.AppDirectoriesFinder',
     'django_plotly_dash.finders.DashAssetFinder',
     'django_plotly_dash.finders.DashComponentFinder',
-    'django_plotly_dash.finders.DashAppDirectoryFinder',
+    'django_plotly_dash.finders.DashAppDirectoryFinder'
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 

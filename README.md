@@ -4,6 +4,14 @@ Platform for annotating physiological waveform data.
 ## Running local instance using Django server
 
 - Install sqlite3: `sudo apt-get install sqlite3`.
+- Install redis for cache (or more recent version):
+```
+$ wget https://download.redis.io/releases/redis-6.2.6.tar.gz
+$ tar xzf redis-6.2.6.tar.gz
+$ cd redis-6.2.6
+$ make
+$ make install
+```
 - Create python environment with python 3.6: `python3 -m venv env`.
 - Activate virtual python environment: `source env/bin/activate`.
 - Install packages: `pip install -r requirements.txt`.
@@ -11,6 +19,8 @@ Platform for annotating physiological waveform data.
 - Within the `waveform-django` directory:
   - Run: `python manage.py runserver` to run the server.
 - You should be able to access the waveform landing page at: <http://localhost:8000/waveform-annotation/waveforms/>
+- To have access to the cache:
+  - Run: `redis-server` in another terminal tab. You should be able to see the content of the website which would have been sent on the live site. If you do not run this command first before testing out the parts of the site which need cache, you will receive a `ConnectionRefusedError: [Errno 61] Connection refused` error.
 - If you would like to test out the email features:
   - Run: `python -m smtpd -n -c DebuggingServer localhost:1025` in another terminal tab. You should be able to see the content of the email which would have been sent on the live site. If you do not run this command first before testing out the email features, you will receive a `ConnectionRefusedError: [Errno 61] Connection refused` error.
 
