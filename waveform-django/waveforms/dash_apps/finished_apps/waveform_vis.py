@@ -1156,7 +1156,7 @@ def update_graph(dropdown_event, dropdown_record, dropdown_project):
 
             fig.update_traces(xaxis = x_string)
 
-        return (fig)
+        return (fig), None, ''
 
     # Determine the time of the event (seconds)
     ann_path = os.path.join(PROJECT_PATH, dropdown_project,
