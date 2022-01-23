@@ -63,6 +63,7 @@ def update_assignments(csv_data, project_folder):
 
     """
     # Find the files
+    
     BASE_DIR = base.BASE_DIR
     FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
     FILE_LOCAL = os.path.join('record-files')
@@ -85,7 +86,7 @@ def update_assignments(csv_data, project_folder):
 def get_all_assignments(project_folder):
     """
     Return a dictionary that holds events as keys and a list assigned to users
-    as values, based on the assignment CSV file.
+    as values, based on the assignment CSV file as well as completed annotations.
 
     Parameters
     ----------
@@ -121,6 +122,14 @@ def get_all_assignments(project_folder):
                 csv_data[row[0]] = names
             except IndexError:
                 break
+    
+    anns = Annotation.objects.filter(project=project_folder)
+    for ann in anns:
+        if not csv_data.get(ann.event):
+            csv_data[ann.event] = [ann.user.username]
+        elif ann.user.username not in csv_data[ann.event]:
+            csv_data[ann.event].append(ann.user.username)
+
     return csv_data
 
 
@@ -295,7 +304,7 @@ def admin_console(request):
                                                    event=event,
                                                    is_adjudication=False)
                         except Annotation.DoesNotExist:
-                            names.remove(user.username)
+                            csv_data[event].remove(user.username)
                 update_assignments(csv_data, project)
             return redirect('admin_console')
         elif 'add_admin' in request.POST:
@@ -731,16 +740,11 @@ def render_annotations(request):
         if 'new_assignment' in request.POST:
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
-            events_in_progress = {}
-            new_events = {}
-            finished_events = {}
-            total_events = 0
+            assigned_events = {}
+            unassigned_events = {}
 
             for project in available_projects:
-                finished_events[project] = [a.event for a in Annotation.objects.filter(
-                    user=user, project=project, is_adjudication=False)]
-                progress = get_all_assignments(project)
-                events_in_progress[project] = progress
+                assigned_events[project] = get_all_assignments(project)
 
                 records_path = os.path.join(PROJECT_PATH, project, base.RECORDS_FILE)
                 with open(records_path, 'r') as f:
@@ -754,43 +758,39 @@ def render_annotations(request):
                 proj_events = [e for e in proj_events if '_' in e]
 
                 for event in proj_events:
-                    total_events += 1
-                    if event not in progress.keys():
+                    if event not in assigned_events[project].keys():
                         try:
-                            new_events[project].append(event)
+                            unassigned_events[project].append(event)
                         except KeyError:
-                            new_events[project] = [event]
-
-            if num_events > total_events:
-                num_events = total_events
+                            unassigned_events[project] = [event]
 
             # First assign events that already have one user assigned
-            for project, assignments in events_in_progress.items():
+            for project, assignments in assigned_events.items():
                 for event, assignees in assignments.items():
-                    if len(assignees) == 1 and event not in finished_events[project]:
+                    if len(assignees) == 1:
                         assignees.append(user.username)
+                        assigned_events[project][event] = assignees
                         num_events -= 1
                         if num_events == 0:
                             break
 
-            # All events have 0 or 2 assignees, randomly assign new event
+            # No event is only assigned to one user, randomly assign new events
             while num_events:
-                rand_project = available_projects[rd.randint(0,
-                                                             len(available_projects)-1)]
-                if len(new_events[rand_project]) > 1:
-                    rand_event = new_events[rand_project] \
-                        [rd.randint(0, len(new_events[rand_project]) - 1)]
+                try:
+                    rand_project = rd.choice(available_projects)
+                except IndexError:
+                    # No project has free events
+                    break
+                
+                if unassigned_events[rand_project]:
+                    rand_event = rd.choice(unassigned_events[rand_project])
+                    assigned_events[rand_project][rand_event] = [user.username]
+                    unassigned_events[rand_project].remove(rand_event)
+                    num_events -= 1
                 else:
-                    rand_event = new_events[rand_project] \
-                        [rd.randint(0, len(new_events[rand_project]) - 1)]
                     available_projects.remove(rand_project)
 
-                if rand_event not in finished_events[rand_project]:
-                    events_in_progress[rand_project][rand_event] = user.username
-                    new_events[rand_project].remove(rand_event)
-                    num_events -= 1
-
-            for proj, data in events_in_progress.items():
+            for proj, data in assigned_events.items():
                 update_assignments(data, proj)
 
             # Update the user's assignment start date
