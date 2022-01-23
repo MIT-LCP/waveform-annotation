@@ -915,7 +915,6 @@ def leaderboard(request):
         ann_dict[key] += 1
         two_anns = two_anns + 1 if ann_dict[key] == 2 else two_anns
     one_ann = f'{(len(ann_dict) - two_anns):,}'
-    two_anns = f'{two_anns:,}'
     # Get the number of annotations which conflict
     conflict_anns = 0
     all_ann_tuples = set([(a.record,a.event) for a in all_anns])
@@ -924,6 +923,7 @@ def leaderboard(request):
         if len(current_rec_evt) > 1:
             if len(set([a.decision for a in current_rec_evt])) > 1:
                 conflict_anns += 1
+    complete = f'{(two_anns-conflict_anns):,}'
 
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
@@ -933,7 +933,7 @@ def leaderboard(request):
                    'user_week': user_week, 'user_month': user_month,
                    'user_all': user_all, 'user_true': user_true,
                    'user_false': user_false, 'one_ann': one_ann,
-                   'two_anns': two_anns, 'conflict_anns': conflict_anns})
+                   'complete': complete, 'conflict_anns': conflict_anns})
 
 
 @login_required
