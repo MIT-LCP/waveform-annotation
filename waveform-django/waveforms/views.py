@@ -972,27 +972,6 @@ def practice_test(request):
         if 'start-practice' in request.POST:
             if user.practice_status != 'ED':
                 raise PermissionError()
-
-            # Remove user's current assignment
-            for project in base.ALL_PROJECTS:
-                csv_data = get_all_assignments(project)
-                for event, names in csv_data.items():
-                    if user.username in names:
-                        try:
-                            Annotation.objects.get(user=user, project=project,
-                                                   event=event, is_adjudication=False)
-                        except Annotation.DoesNotExist:
-                            names.remove(user.username)
-                update_assignments(csv_data, project)
-
-            for project, events in base.PRACTICE_SET.items():
-                csv_data = get_all_assignments(project)
-                for event in events.keys():
-                    if event in csv_data.keys():
-                        csv_data[event].append(user.username)
-                    else:
-                        csv_data[event] = [user.username]
-                update_assignments(csv_data, project)
             user.practice_status = 'BG'
             user.save()
             return redirect('render_annotations') 
@@ -1005,19 +984,15 @@ def practice_test(request):
             return redirect('practice_test')
 
         if 'end-practice' in request.POST:
-            # Remove user's current assignment
-            for project in base.PRACTICE_SET.keys():
-                csv_data = get_all_assignments(project)
-                for event, names in csv_data.items():
-                    if user.username in names and event in base.PRACTICE_SET[project].keys():
-                        names.remove(user.username)
-                        try:
-                            Annotation.objects.get(user=user, project=project,
+            # Delete practice events
+            for proj, events in base.PRACTICE_SET.items():
+                for event in events:
+                    try:
+                        Annotation.objects.get(user=user, project=proj,
                                                    event=event,
                                                    is_adjudication=False).delete()
-                        except Annotation.DoesNotExist:
-                            pass
-                update_assignments(csv_data, project)
+                    except Annotation.DoesNotExist:
+                        pass
             user.practice_status = 'ED'
             user.save()
             return redirect('render_annotations') 
