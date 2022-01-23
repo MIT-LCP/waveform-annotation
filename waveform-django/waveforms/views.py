@@ -773,6 +773,8 @@ def render_annotations(request):
                         num_events -= 1
                         if num_events == 0:
                             break
+                    if num_events == 0:
+                            break
 
             # No event is only assigned to one user, randomly assign new events
             while num_events:
