@@ -134,7 +134,7 @@
         <a href="{% url 'render_annotations' %}?saved_page=1#saved_annotations">Show pages</a>
       {% else %}
         <a href="{% url 'render_annotations' %}?saved_page=all#saved_annotations">Show all</a>
-      {% endif %}  
+      {% endif %}
     </div>
     {% endif %}
   {% for rec,info in saved_anns.items %}
@@ -239,7 +239,7 @@
       {% if incomplete_page.has_next %}
         <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.next_page_number}}#incomplete_annotations">Next Page</a>&emsp;
       {% endif %}
-      
+
       {% if request.GET.incomplete_page == 'all' %}
         <a href="{% url 'render_annotations' %}?incomplete_page=1#incomplete_annotations">Show pages</a>
       {% else %}
