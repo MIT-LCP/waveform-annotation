@@ -5,110 +5,25 @@
 <style>
 .embed-responsive {
     width: 1200px;
-    height: 745px;
+    height: 780px;
 }
 .ui-resizable-e {
   width: 50%;
 }
-.float-left-no-pad {
-  float: left;
-  margin: 0;
-}
-.float-right-no-pad {
-  float: right;
-  margin: 0;
-}
 </style>
 
+<!-- Plotly-based waveform viewer -->
 <div class="container">
-  <!-- All possible adjudication annotations -->
   <h1>Adjudicator Console</h1>
-  <!-- The current annotation being adjudicated -->
-  {% for project,k in top_anns.items %}
-    {% for rec,info in k.items %}
-      {% for glob,nfo in info.items %}
-        <h5 class="float-left-no-pad">Current Adjudication: {{ project }}, {{ rec }}, {{ glob.0 }}</h5>
-        <table style="width:100%">
-          <tr>
-            {% for cat in categories|slice:":3" %}
-              <th>
-                {{ cat }}
-              </th>
-            {% endfor %}
-          </tr>
-          {% for val in nfo.0 %}
-            <tr>
-              {% for v in val|slice:":3" %}
-                <td>
-                  {{ v }}
-                </td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </table>
-      {% endfor %}
-    {% endfor %}
-  {% endfor %}
   <!-- The caliper -->
   <input type="button" value="Show/Hide Caliper" style="float: right" onclick="displayCaliper();"/>
   <div id="caliper_drag_wrapper" style="display: none; position: absolute; z-index: 10000; padding: 25px;">
     <img src="{% static "caliper.png" %}" alt="Caliper" id="caliper_drag" style="cursor: pointer; height: 100px; width: 80px;"/>
   </div>
   <!-- The graph -->
-  {% plotly_app_bootstrap name='waveform_graph_adjudicate' initial_arguments=dash_context %}
-  <!-- The annotations -->
-  <br />
-  {% for project,k in reviewed_anns.items %}
-    <h2>Project: {{ project }}</h2>
-    <h3><u>Conflicting Annotations</u></h3>
-    {% for rec,info in k.items %}
-      {% if info|length > 0 %}
-        <h4 class="float-left-no-pad">Record: {{ rec }}</h4><br /><br />
-        {% for glob,nfo in info.items %}
-          <h5 class="float-left-no-pad">Event: {{ glob.0 }} (<a href="{% url 'waveform_published_specific_adjudicate' project rec glob.0 %}">Adjudicate annotation</a>)</h5>
-          <h5 class="float-right-no-pad">Annotated: {{ glob.1 }}</h5><br />
-          {% if glob.2 == False %}
-            <h5 class="float-right-no-pad" style="color: red;">Not Adjudicated</h5>
-          {% else %}
-            <h5 class="float-right-no-pad" style="color: green">Adjudicated</h5>
-          {% endif %}
-          <table style="width:100%">
-            <tr>
-              {% for cat in categories %}
-                <th>
-                  {{ cat }}
-                </th>
-              {% endfor %}
-            </tr>
-            {% for val in nfo.0 %}
-              <tr>
-                {% for v in val %}
-                  <td>
-                    {{ v }}
-                  </td>
-                {% endfor %}
-              </tr>
-            {% endfor %}
-            {% if nfo.1 %}
-              <tr><td>Adjudication</td></tr>
-              {% for val in nfo.1 %}
-                <tr>
-                  {% for v in val %}
-                    <td>
-                      {{ v }}
-                    </td>
-                  {% endfor %}
-                </tr>
-              {% endfor %}
-            {% endif %}
-          </table><br />
-        {% endfor %}
-        <br />
-      {% endif %}
-    {% endfor %}
-  {% endfor %}
-  <br />
-
+  <div>
+    {% plotly_app_bootstrap name='waveform_graph_adjudicate' initial_arguments=dash_context %}
+  </div>
 </div>
 
 <script type="text/javascript">

@@ -1,24 +1,23 @@
-import os
-import wfdb
-import math
+from collections import Counter
 import csv
-import pytz
 import datetime
-import numpy as np
-import pandas as pd
-import django.core.cache
-from website.middleware import get_current_user
-from website.settings import base
-from waveforms.models import User, Annotation, UserSettings
-# API query
-from schema import schema
-# Data analysis and visualization
+import math
+import os
+
 import dash
-import plotly.graph_objs as go
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
+import numpy as np
+import pandas as pd
+import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+import pytz
+import wfdb
+
+from website.middleware import get_current_user
+from website.settings import base
+from waveforms.models import User, Annotation, UserSettings
 
 
 # Specify the record file locations
@@ -28,6 +27,7 @@ FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
+annotations_width = '1100px'
 sidebar_width = '210px'
 event_fontsize = '24px'
 comment_box_height = '255px'
@@ -56,6 +56,26 @@ app = DjangoDash(name='waveform_graph_adjudicate')
 # Specify the app layout
 app.layout = html.Div([
     dcc.Loading(id='loading-1', children=[
+        # Previously annotated values
+        html.Div(
+            id='annotation_table',
+            children=html.Table(
+                # Header
+                [
+                    html.Tr([
+                        html.Th(col) for col in ['user','decision','comments','decision_date']
+                    ], style={'text-align': 'left'})
+                ] +
+                # Body
+                [
+                    html.Tr([
+                        html.Td('-') for col in ['user','decision','comments','decision_date']
+                    ], style={'text-align': 'left'}) for _ in range(2)
+                ],
+                style={'width': '100%'}
+            ),
+            style={'display': 'block', 'width': annotations_width}
+        ),
         # Area to submit annotations
         html.Div([
             # The project display
@@ -84,23 +104,37 @@ app.layout = html.Div([
             ),
             html.Br(),
             # Submit annotation decision and comments
-            html.Button('True',
-                        id='adjudication_true',
+            # For warning the user of their decision
+            html.Div(id='output-provider'),
+            dcc.ConfirmDialogProvider(
+                children=html.Button(
+                        'True',
                         style={'height': button_height,
                                'width': submit_width,
                                'font-size': 'large'}),
+                id='adjudication_true',
+                message='You selected True... Are you sure you want to continue?'
+            ),
             html.Br(), html.Br(),
-            html.Button('False',
-                        id='adjudication_false',
+            dcc.ConfirmDialogProvider(
+                children=html.Button(
+                        'False',
                         style={'height': button_height,
                                'width': submit_width,
                                'font-size': 'large'}),
+                id='adjudication_false',
+                message='You selected False... Are you sure you want to continue?'
+            ),
             html.Br(), html.Br(),
-            html.Button('Uncertain',
-                        id='adjudication_uncertain',
+            dcc.ConfirmDialogProvider(
+                children=html.Button(
+                        'Uncertain',
                         style={'height': button_height,
                                'width': submit_width,
-                               'font-size': 'large'})
+                               'font-size': 'large'}),
+                id='adjudication_uncertain',
+                message='You selected Uncertain... Are you sure you want to continue?'
+            ),
         ], style={'display': 'inline-block', 'vertical-align': '180px',
                   'padding-right': '50px'}),
         # The plot itself
@@ -115,7 +149,66 @@ app.layout = html.Div([
     dcc.Input(id='set_project', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
+    # Hidden div inside the app that stores the current project, record, and event
+    dcc.Input(id='temp_project', type='hidden', persistence=False, value=''),
+    dcc.Input(id='temp_record', type='hidden', persistence=False, value=''),
+    dcc.Input(id='temp_event', type='hidden', persistence=False, value=''),
 ])
+
+
+def get_current_conflicting_annotation():
+    """
+    Get the current conflicting annotation which is needed to be adjudicated.
+
+    PARAMETERS
+    ----------
+    N/A
+
+    RETURNS
+    -------
+    N/A : tuple
+        A list of the annotations which are conflicting in the form of:
+            (project, record, event)
+
+    """
+    # Get info of all non-adjudicated annotations assuming non-unique event names
+    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False)
+    all_info = [(a.project, a.record, a.event) for a in non_adjudicated_anns]
+    unique_anns = Counter(all_info).keys()
+    ann_counts = Counter(all_info).values()
+    # Get completed annotations (should be two but I guess could be more if
+    # glitch or old data)
+    completed_anns = [c[0] for c in list(zip(unique_anns,ann_counts)) if c[1]>=2]
+    # Find out which ones are conflicting
+    conflicting_anns = []
+    for c in completed_anns:
+        # Get all the annotations for this event
+        all_anns = Annotation.objects.filter(
+            project=c[0], record=c[1], event=c[2]
+        )
+        is_adjudicated = True in [a.is_adjudication for a in all_anns]
+        # Make sure the annotations are complete
+        current_anns = all_anns.filter(is_adjudication=False)
+        is_conflicting = len(set([a.decision for a in current_anns])) >= 2
+        # Make sure there are conflicting decisions and no adjudications already
+        if is_conflicting and not is_adjudicated:
+            conflicting_anns.append(c)
+    # Sort by `decision_date` with older conflicting annotations appearing
+    # first to predictable traverse the remaining annotations.
+    sorted_anns = []
+    for c in conflicting_anns:
+        current_ann = non_adjudicated_anns.filter(
+            project=c[0], record=c[1], event=c[2]
+        )
+        # Get the most recent annotation (i.e. time of completion)
+        current_ann = sorted(current_ann, key=lambda x: x.decision_date)[-1]
+        sorted_anns.append(c + (current_ann.decision_date,))
+    sorted_anns = sorted(sorted_anns, key=lambda x: x[-1].timestamp())
+    # The oldest conflicting annotation (project, record, event)
+    if sorted_anns:
+        return sorted_anns[0][:-1]
+    else:
+        return ('N/A', 'N/A', 'N/A')
 
 
 def get_subplot(rows):
@@ -591,26 +684,33 @@ def window_signal(y_vals):
     [dash.dependencies.Output('dropdown_project', 'children'),
      dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
-     dash.dependencies.Output('event_text', 'children')],
-    [dash.dependencies.Input('adjudication_true', 'n_clicks_timestamp'),
-     dash.dependencies.Input('adjudication_false', 'n_clicks_timestamp'),
-     dash.dependencies.Input('adjudication_uncertain', 'n_clicks_timestamp'),
+     dash.dependencies.Output('event_text', 'children'),
+     dash.dependencies.Output('temp_project', 'value'),
+     dash.dependencies.Output('temp_record', 'value'),
+     dash.dependencies.Output('temp_event', 'value')],
+    [dash.dependencies.Input('adjudication_true', 'submit_n_clicks'),
+     dash.dependencies.Input('adjudication_false', 'submit_n_clicks'),
+     dash.dependencies.Input('adjudication_uncertain', 'submit_n_clicks'),
      dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value'),
-     dash.dependencies.Input('set_event', 'value')])
+     dash.dependencies.Input('set_event', 'value')],
+    [dash.dependencies.State('temp_project', 'value'),
+     dash.dependencies.State('temp_record', 'value'),
+     dash.dependencies.State('temp_event', 'value')])
 def get_record_event_options(submit_true, submit_false, submit_uncertain,
-                             set_project, set_record, set_event):
+                             set_project, set_record, set_event,
+                             project_value, record_value, event_value):
     """
     Dynamically update the record given the current record and event.
 
     Parameters
     ----------
     submit_true : int
-        The timestamp if the submit true button was clicked in ms from epoch.
+        The number of times the submit true button was clicked.
     submit_false : int
-        The timestamp if the submit false button was clicked in ms from epoch.
-    submit_false : int
-        The timestamp if the submit uncertain button was clicked in ms from epoch.
+        The number of times the submit false button was clicked.
+    submit_uncertain : int
+        The number of times the submit uncertain button was clicked.
     set_project : str
         The desired project.
     set_record : str
@@ -640,48 +740,38 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
     current_user = User.objects.get(username=get_current_user())
 
     # Handle initial load
-    if not set_project:
-        # Display empty graph since no data
-        return_record = 'N/A'
-        return_event = 'N/A'
-        return_project = 'N/A'
+    if not project_value:
+        # Display the first conflicting event if none specified
+        return_project, return_record, return_event = get_current_conflicting_annotation()
+
     # If something was triggered (submit, request, etc.)
     if ctx.triggered:
         # Determine what triggered the function
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        # We already know the current project
-        return_project = set_project
-        return_record = set_record
-        return_event = set_event
         # Submit the adjudication and reset
         adjudication_ids = ['adjudication_true', 'adjudication_false',
                             'adjudication_uncertain']
         if click_id in adjudication_ids:
-            # Convert ms from epoch to datetime object (localize to the time
-            # zone in the settings)
-            if click_id == 'adjudication_true':
-                submit_time = submit_true
-            if click_id == 'adjudication_false':
-                submit_time = submit_false
-            if click_id == 'adjudication_uncertain':
-                submit_time = submit_uncertain
-            submit_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
-            set_timezone = pytz.timezone(base.TIME_ZONE)
-            submit_time = set_timezone.localize(submit_time)
+            # Get the current time and localize to the time zone in the
+            # settings
+            submit_time = datetime.datetime.now(
+                pytz.timezone(base.TIME_ZONE))
             # Save the annotation to the database only if changes
             # were made or a new annotation
             # Create new annotation since none already exist
             annotation = Annotation(
                 user = current_user,
-                project = set_project,
-                record = set_record,
-                event = set_event,
+                project = project_value,
+                record = record_value,
+                event = event_value,
                 decision = click_id.split('_')[1].capitalize(),
                 comments = '',
                 decision_date = submit_time,
                 is_adjudication = True
             )
             annotation.save()
+            # We already know the current project
+            return_project, return_record, return_event = get_current_conflicting_annotation()
     else:
         # See if record and event was requested (never event without record)
         if set_record != '':
@@ -723,11 +813,13 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
                            style={'fontSize': event_fontsize})
             ]
 
-    return project_text, record_text, event_text, alarm_text
+    return (project_text, record_text, event_text, alarm_text,
+            return_project, return_record, return_event)
 
 
 @app.callback(
-    dash.dependencies.Output('the_graph', 'figure'),
+    [dash.dependencies.Output('the_graph', 'figure'),
+     dash.dependencies.Output('annotation_table', 'children')],
     [dash.dependencies.Input('dropdown_project', 'children'),
      dash.dependencies.Input('dropdown_record', 'children'),
      dash.dependencies.Input('dropdown_event', 'children')])
@@ -751,6 +843,8 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
     -------
     N/A : plotly.subplots
         The final figure.
+    N/A : html.Table
+        The table of previous annotations for the current adjudication.
 
     """
     # Load in the default variables
@@ -792,9 +886,24 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
     # Set the initial y-axis parameters
     grid_state = True
     zeroline_state = False
-    dropdown_record = get_dropdown(dropdown_record)
-    dropdown_event = get_dropdown(dropdown_event)
-    dropdown_project = get_dropdown(dropdown_project)
+    dropdown_project, dropdown_record, dropdown_event = get_current_conflicting_annotation()
+    # Annotation table
+    return_table = [
+        html.Table(
+            # Header
+            [
+                html.Tr([
+                    html.Th(col) for col in ['user','decision','comments','decision_date']
+                ], style={'text-align': 'left'})
+            ] +
+            # Body
+            [
+                html.Tr([
+                    html.Td('-') for col in ['user','decision','comments','decision_date']
+                ], style={'text-align': 'left'}) for _ in range(2)
+            ],
+            style={'width': '100%'}
+        )]
 
     if ((dropdown_record == 'N/A') or (dropdown_event == 'N/A') or
        (dropdown_project == 'N/A')):
@@ -838,7 +947,7 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
 
             fig.update_traces(xaxis = x_string)
 
-        return (fig)
+        return (fig), return_table
 
     # Determine the time of the event (seconds)
     ann_path = os.path.join(PROJECT_PATH, dropdown_project,
@@ -945,4 +1054,32 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
 
         fig.update_traces(xaxis = x_string)
 
-    return (fig)
+    # Annotation table
+    conflict_anns = Annotation.objects.filter(
+        project=dropdown_project, record=dropdown_record, event=dropdown_event
+    )
+    conflict_ann_dict = [a.__dict__ for a in conflict_anns]
+    for a in conflict_ann_dict:
+        a['user'] = User.objects.get(id=a['user_id']).username
+        a['decision_date'] = a['decision_date'].astimezone(
+            pytz.timezone(base.TIME_ZONE)).strftime('%B %d, %Y %H:%M:%S')
+        if not a['comments']:
+            a['comments'] = '-'
+    return_table = [
+        html.Table(
+            # Header
+            [
+                html.Tr([
+                    html.Th(col) for col in ['user','decision','comments','decision_date']
+                ], style={'text-align': 'left'})
+            ] +
+            # Body
+            [
+                html.Tr([
+                    html.Td(conflict_ann_dict[i][col]) for col in ['user','decision','comments','decision_date']
+                ], style={'text-align': 'left'}) for i in range(len(conflict_ann_dict))
+            ],
+            style={'width': '100%'}
+        )]
+
+    return (fig), return_table
