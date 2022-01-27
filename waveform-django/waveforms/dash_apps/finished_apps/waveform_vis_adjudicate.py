@@ -33,8 +33,7 @@ event_fontsize = '24px'
 comment_box_height = '255px'
 label_fontsize = '20px'
 button_height = '35px'
-submit_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
-arrow_width = str(float(submit_width.split('px')[0]) / 2 + 3) + 'px'
+button_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -110,7 +109,7 @@ app.layout = html.Div([
                 children=html.Button(
                         'True',
                         style={'height': button_height,
-                               'width': submit_width,
+                               'width': button_width,
                                'font-size': 'large'}),
                 id='adjudication_true',
                 message='You selected True... Are you sure you want to continue?'
@@ -120,7 +119,7 @@ app.layout = html.Div([
                 children=html.Button(
                         'False',
                         style={'height': button_height,
-                               'width': submit_width,
+                               'width': button_width,
                                'font-size': 'large'}),
                 id='adjudication_false',
                 message='You selected False... Are you sure you want to continue?'
@@ -130,11 +129,17 @@ app.layout = html.Div([
                 children=html.Button(
                         'Uncertain',
                         style={'height': button_height,
-                               'width': submit_width,
+                               'width': button_width,
                                'font-size': 'large'}),
                 id='adjudication_uncertain',
                 message='You selected Uncertain... Are you sure you want to continue?'
             ),
+            html.Br(), html.Br(),
+            html.Button('\u2192',
+                        id='next_annotation',
+                        style={'height': button_height,
+                               'width': button_width,
+                               'font-size': 'large'}),
         ], style={'display': 'inline-block', 'vertical-align': '180px',
                   'padding-right': '50px'}),
         # The plot itself
@@ -156,7 +161,7 @@ app.layout = html.Div([
 ])
 
 
-def get_current_conflicting_annotation():
+def get_current_conflicting_annotation(project='', record='', event=''):
     """
     Get the current conflicting annotation which is needed to be adjudicated.
 
@@ -206,7 +211,28 @@ def get_current_conflicting_annotation():
     sorted_anns = sorted(sorted_anns, key=lambda x: x[-1].timestamp())
     # The oldest conflicting annotation (project, record, event)
     if sorted_anns:
-        return sorted_anns[0][:-1]
+        if project and record and event:
+            # Get the index of the current annotation
+            try:
+                current_index = [a[:-1] for a in sorted_anns].index((project,record,event)) + 1
+            except ValueError:
+                # Annotation was just adjudicated, return to previous location
+                current_annotations = Annotation.objects.filter(
+                    project=project, record=record, event=event, is_adjudication=False
+                )
+                current_timestamp = sorted(current_annotations, key=lambda x: x.decision_date)[-1].decision_date
+                current_index = np.searchsorted([a[-1] for a in sorted_anns[::-1]], current_timestamp, side='left') - 1
+                if (current_index < 0) or (current_index >= len(sorted_anns)):
+                    return sorted_anns[0][:-1]
+                else:
+                    return sorted_anns[current_index][:-1]
+            # Return the next one unless at the end of the list
+            if current_index >= len(sorted_anns):
+                return sorted_anns[0][:-1]
+            else:
+                return sorted_anns[current_index][:-1]
+        else:
+            return sorted_anns[0][:-1]
     else:
         return ('N/A', 'N/A', 'N/A')
 
@@ -691,6 +717,7 @@ def window_signal(y_vals):
     [dash.dependencies.Input('adjudication_true', 'submit_n_clicks'),
      dash.dependencies.Input('adjudication_false', 'submit_n_clicks'),
      dash.dependencies.Input('adjudication_uncertain', 'submit_n_clicks'),
+     dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value'),
      dash.dependencies.Input('set_event', 'value')],
@@ -698,7 +725,7 @@ def window_signal(y_vals):
      dash.dependencies.State('temp_record', 'value'),
      dash.dependencies.State('temp_event', 'value')])
 def get_record_event_options(submit_true, submit_false, submit_uncertain,
-                             set_project, set_record, set_event,
+                             click_next, set_project, set_record, set_event,
                              project_value, record_value, event_value):
     """
     Dynamically update the record given the current record and event.
@@ -770,8 +797,15 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
                 is_adjudication = True
             )
             annotation.save()
-            # We already know the current project
-            return_project, return_record, return_event = get_current_conflicting_annotation()
+            # We already know the current project, record, and event
+            return_project, return_record, return_event = get_current_conflicting_annotation(project=project_value,
+                                                                                             record=record_value,
+                                                                                             event=event_value)
+        elif click_id == 'next_annotation':
+            # We already know the current project, record, and event
+            return_project, return_record, return_event = get_current_conflicting_annotation(project=project_value,
+                                                                                             record=record_value,
+                                                                                             event=event_value)
     else:
         # See if record and event was requested (never event without record)
         if set_record != '':
