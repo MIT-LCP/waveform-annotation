@@ -1,5 +1,5 @@
 import os
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import timedelta
 from operator import itemgetter
 import csv
@@ -465,6 +465,134 @@ def adjudicator_console(request, set_project='', set_record='', set_event=''):
 
 
 @login_required
+def render_adjudications(request):
+    """
+    Render all saved adjudications to allow edits.
+
+    Parameters
+    ----------
+    N/A : N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for displaying the adjudications.
+
+    """
+    # Make sure the user has access
+    user = User.objects.get(username=request.user.username)
+    if not user.is_adjudicator:
+        return redirect('waveform_published_home')
+
+    # Get info of all non-adjudicated annotations assuming non-unique event names
+    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False)
+    all_info = [(a.project, a.record, a.event) for a in non_adjudicated_anns]
+    unique_anns = Counter(all_info).keys()
+    ann_counts = Counter(all_info).values()
+    # Get completed annotations (should be two but I guess could be more if
+    # glitch or old data)
+    completed_anns = [c[0] for c in list(zip(unique_anns,ann_counts)) if c[1]>=2]
+
+    # Find out which ones are conflicting
+    conflicting_anns = []
+    for c in completed_anns:
+        # Get all the annotations for this event
+        all_anns = Annotation.objects.filter(
+            project=c[0], record=c[1], event=c[2]
+        )
+        is_adjudicated = True in [a.is_adjudication for a in all_anns]
+        # Make sure the annotations are complete
+        current_anns = all_anns.filter(is_adjudication=False)
+        is_conflicting = len(set([a.decision for a in current_anns])) >= 2
+        # Make sure there are conflicting decisions and no adjudications already
+        if is_conflicting and not is_adjudicated:
+            conflicting_anns.append(c)
+
+    # Get info of all adjudicated annotations
+    adjudicated_anns = Annotation.objects.filter(is_adjudication=True)
+    # Collect the unfinished adjudications
+    unfinished_adjudications = []
+    for info in conflicting_anns:
+        all_anns = Annotation.objects.filter(
+            project=info[0], record=info[1], event=info[2]
+        )
+        temp_anns = []
+        for ann in all_anns:
+            temp_anns.append([ann.project,
+                              ann.record,
+                              ann.event,
+                              ann.user.username,
+                              ann.decision,
+                              ann.comments,
+                              ann.decision_date])
+        unfinished_adjudications.append(temp_anns)
+    # Collect the finished adjudications
+    finished_adjudications = []
+    for ann in adjudicated_anns:
+        all_anns = Annotation.objects.filter(
+            project=ann.project, record=ann.record, event=ann.event
+        )
+        temp_anns = []
+        for ann in all_anns:
+            temp_anns.append([ann.project,
+                              ann.record,
+                              ann.event,
+                              ann.user.username,
+                              ann.decision,
+                              ann.comments,
+                              ann.decision_date])
+        finished_adjudications.append(temp_anns)
+
+    categories = [
+        'event',
+        'user',
+        'decision',
+        'comments',
+        'decision_date'
+    ]
+    total_anns = len(adjudicated_anns) + len(conflicting_anns)
+    all_anns_frac = f'{len(adjudicated_anns)}/{total_anns}'
+
+    return render(request, 'waveforms/adjudications.html',
+                  {'user': user, 'all_anns_frac': all_anns_frac,
+                   'categories': categories,
+                   'unfinished_adjudications': unfinished_adjudications,
+                   'finished_adjudications': finished_adjudications})
+
+
+@login_required
+def delete_adjudication(request, set_project, set_record, set_event):
+    """
+    Delete adjudications.
+
+    Parameters
+    ----------
+    set_record : string
+        Desired record used to identify adjudications to delete.
+    set_event : string
+        Desired event used to identify adjudications to delete.
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for rendering the adjudications.
+
+    """
+    try:
+        # Should only be one adjudication per project, record, and event
+        adjudication = Annotation.objects.get(
+            project=set_project,
+            record=set_record,
+            event=set_event,
+            is_adjudication=True
+        )
+        adjudication.delete()
+    except Annotation.DoesNotExist:
+        pass
+    return render_adjudications(request)
+
+
+@login_required
 def render_annotations(request):
     """
     Render all saved annotations to allow edits.
@@ -552,7 +680,7 @@ def render_annotations(request):
     total_anns = sum([len(user_events[k]) for k in user_events.keys()])
 
     # Display user events
-    for project, record_list in user_records.items():
+    for project,record_list in user_records.items():
         for rec in sorted(record_list):
             temp_events = [e for e in user_events[project] if e[:e.find('_')] == rec]
 
@@ -678,8 +806,8 @@ def render_annotations(request):
                             unassigned_events[project] = [event]
 
             # First assign events that already have one user assigned
-            for project, assignments in assigned_events.items():
-                for event, assignees in assignments.items():
+            for project,assignments in assigned_events.items():
+                for event,assignees in assignments.items():
                     if len(assignees) == 1:
                         assignees.append(user.username)
                         assigned_events[project][event] = assignees
@@ -705,7 +833,7 @@ def render_annotations(request):
                 else:
                     available_projects.remove(rand_project)
 
-            for proj, data in assigned_events.items():
+            for proj,data in assigned_events.items():
                 update_assignments(data, proj)
 
             # Update the user's assignment start date
