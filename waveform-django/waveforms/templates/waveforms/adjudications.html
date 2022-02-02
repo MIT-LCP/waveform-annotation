@@ -32,11 +32,20 @@
         <!-- Values of each column -->
         {% for val in batch %}
           <tr>
-            {% for v in val|slice:"2:" %}
-              <td>
-                {{ v }}
-              </td>
-            {% endfor %}
+            <!-- Assume there is only one adjudication and it is last -->
+            {% if forloop.last %}
+              {% for v in val|slice:"2:" %}
+                <td style="color: red">
+                  {{ v }}
+                </td>
+              {% endfor %}
+            {% else %}
+              {% for v in val|slice:"2:" %}
+                <td>
+                  {{ v }}
+                </td>
+              {% endfor %}
+            {% endif %}
           </tr>
         {% endfor %}
       </table>
