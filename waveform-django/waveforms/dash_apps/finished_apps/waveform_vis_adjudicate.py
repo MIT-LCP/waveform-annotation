@@ -30,9 +30,9 @@ ALL_PROJECTS = base.ALL_PROJECTS
 annotations_width = '1100px'
 sidebar_width = '210px'
 event_fontsize = '24px'
-comment_box_height = '255px'
+comment_box_height = '180px'
 label_fontsize = '20px'
-button_height = '35px'
+button_height = '30px'
 button_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
 # Set the default configuration of the plot top buttons
 plot_config = {
@@ -75,6 +75,7 @@ app.layout = html.Div([
             ),
             style={'display': 'block', 'width': annotations_width}
         ),
+        html.Hr(),
         # Area to submit annotations
         html.Div([
             # The project display
@@ -101,7 +102,6 @@ app.layout = html.Div([
                 id='event_text',
                 children=html.Span([''], style={'fontSize': event_fontsize})
             ),
-            html.Br(),
             # Submit annotation decision and comments
             # For warning the user of their decision
             html.Div(id='output-provider'),
@@ -114,7 +114,7 @@ app.layout = html.Div([
                 id='adjudication_true',
                 message='You selected True... Are you sure you want to continue?'
             ),
-            html.Br(), html.Br(),
+            html.Br(),
             dcc.ConfirmDialogProvider(
                 children=html.Button(
                         'False',
@@ -124,7 +124,7 @@ app.layout = html.Div([
                 id='adjudication_false',
                 message='You selected False... Are you sure you want to continue?'
             ),
-            html.Br(), html.Br(),
+            html.Br(),
             dcc.ConfirmDialogProvider(
                 children=html.Button(
                         'Uncertain',
@@ -134,13 +134,25 @@ app.layout = html.Div([
                 id='adjudication_uncertain',
                 message='You selected Uncertain... Are you sure you want to continue?'
             ),
-            html.Br(), html.Br(),
+            html.Br(),
+            # The reviewer comment section
+            html.Label(['Enter comments here:'],
+                       style={'font-size': label_fontsize}),
+            html.Div(
+                dcc.Textarea(id='reviewer_comments',
+                             style={
+                                'width': sidebar_width,
+                                'height': comment_box_height,
+                                'font-size': label_fontsize
+                             })
+            ),
+            html.Br(),
             html.Button('\u2192',
                         id='next_annotation',
                         style={'height': button_height,
                                'width': button_width,
                                'font-size': 'large'}),
-        ], style={'display': 'inline-block', 'vertical-align': '180px',
+        ], style={'display': 'inline-block', 'vertical-align': '50px',
                   'padding-right': '50px'}),
         # The plot itself
         html.Div([
@@ -723,10 +735,12 @@ def window_signal(y_vals):
      dash.dependencies.Input('set_event', 'value')],
     [dash.dependencies.State('temp_project', 'value'),
      dash.dependencies.State('temp_record', 'value'),
-     dash.dependencies.State('temp_event', 'value')])
+     dash.dependencies.State('temp_event', 'value'),
+     dash.dependencies.State('reviewer_comments', 'value')])
 def get_record_event_options(submit_true, submit_false, submit_uncertain,
                              click_next, set_project, set_record, set_event,
-                             project_value, record_value, event_value):
+                             project_value, record_value, event_value,
+                             comments_value):
     """
     Dynamically update the record given the current record and event.
 
@@ -792,7 +806,7 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
                 record = record_value,
                 event = event_value,
                 decision = click_id.split('_')[1].capitalize(),
-                comments = '',
+                comments = comments_value,
                 decision_date = submit_time,
                 is_adjudication = True
             )
@@ -853,7 +867,8 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
 
 @app.callback(
     [dash.dependencies.Output('the_graph', 'figure'),
-     dash.dependencies.Output('annotation_table', 'children')],
+     dash.dependencies.Output('annotation_table', 'children'),
+     dash.dependencies.Output('reviewer_comments', 'value')],
     [dash.dependencies.Input('dropdown_project', 'children'),
      dash.dependencies.Input('dropdown_record', 'children'),
      dash.dependencies.Input('dropdown_event', 'children')])
@@ -981,7 +996,7 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
 
             fig.update_traces(xaxis = x_string)
 
-        return (fig), return_table
+        return (fig), return_table, ''
 
     # Determine the time of the event (seconds)
     ann_path = os.path.join(PROJECT_PATH, dropdown_project,
@@ -1116,4 +1131,4 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
             style={'width': '100%'}
         )]
 
-    return (fig), return_table
+    return (fig), return_table, ''
