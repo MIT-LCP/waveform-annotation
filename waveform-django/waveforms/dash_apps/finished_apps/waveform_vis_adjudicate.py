@@ -935,7 +935,12 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
     # Set the initial y-axis parameters
     grid_state = True
     zeroline_state = False
-    dropdown_project, dropdown_record, dropdown_event = get_current_conflicting_annotation()
+    if not dropdown_project and not dropdown_record and not dropdown_event:
+        dropdown_project, dropdown_record, dropdown_event = get_current_conflicting_annotation()
+    else:
+        dropdown_project = dropdown_project[0]['props']['children'][0]
+        dropdown_record = dropdown_record[0]['props']['children'][0]
+        dropdown_event = dropdown_event[0]['props']['children'][0]
     # Annotation table
     return_table = [
         html.Table(
