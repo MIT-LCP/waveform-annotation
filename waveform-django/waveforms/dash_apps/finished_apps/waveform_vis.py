@@ -810,9 +810,9 @@ def window_signal(y_vals):
      dash.dependencies.Output('dropdown_event', 'children'),
      dash.dependencies.Output('dropdown_project', 'children'),
      dash.dependencies.Output('event_text', 'children'),
+     dash.dependencies.Output('temp_project', 'value'),
      dash.dependencies.Output('temp_record', 'value'),
-     dash.dependencies.Output('temp_event', 'value'),
-     dash.dependencies.Output('temp_project', 'value')],
+     dash.dependencies.Output('temp_event', 'value')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
@@ -908,14 +908,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 current_event = all_indices[0]
             else:
                 current_event = 0
+            return_project = all_events[current_event][0]
             return_record = all_events[current_event][1].split('_')[0]
             return_event = all_events[current_event][1]
-            return_project = all_events[current_event][0]
         else:
             # Display empty graph since no data
+            return_project = 'N/A'
             return_record = 'N/A'
             return_event = 'N/A'
-            return_project = 'N/A'
     else:
         completed_events = [a.event for a in user_annotations if a.project==project_value]
         if current_user.is_admin and current_user.practice_status == 'ED':
@@ -1035,7 +1035,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ]
 
     return (record_text, event_text, project_text, alarm_text,
-            return_record, return_event, return_project)
+            return_project, return_record, return_event)
 
 
 @app.callback(
