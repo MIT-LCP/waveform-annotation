@@ -824,8 +824,8 @@ def render_annotations(request):
                 except IndexError:
                     # No project has free events
                     break
-
-                if unassigned_events[rand_project]:
+                
+                if unassigned_events.get(rand_project):
                     rand_event = rd.choice(unassigned_events[rand_project])
                     assigned_events[rand_project][rand_event] = [user.username]
                     unassigned_events[rand_project].remove(rand_event)
