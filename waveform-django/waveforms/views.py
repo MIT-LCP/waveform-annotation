@@ -966,6 +966,10 @@ def leaderboard(request):
                 conflict_anns += 1
     complete = f'{(two_anns-conflict_anns):,}'
 
+    # Get all events that have been adjudicated 
+    adj = Annotation.objects.filter(is_adjudication=True)
+    num_adj = len([a for a in adj])
+
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
                    'glob_week': glob_week, 'glob_month': glob_month,
@@ -974,7 +978,8 @@ def leaderboard(request):
                    'user_week': user_week, 'user_month': user_month,
                    'user_all': user_all, 'user_true': user_true,
                    'user_false': user_false, 'one_ann': one_ann,
-                   'complete': complete, 'conflict_anns': conflict_anns})
+                   'complete': complete, 'conflict_anns': conflict_anns,
+                   'num_adj': num_adj})
 
 
 @login_required
