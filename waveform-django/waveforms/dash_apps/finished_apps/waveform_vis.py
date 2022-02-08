@@ -963,15 +963,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
             # were made or a new annotation
             try:
                 res = Annotation.objects.get(user=current_user,
-                                             project=return_project,
+                                             project=project_value,
+                                             record=record_value,
                                              event=event_value,
                                              is_adjudication=False)
-                current_annotation = [res.project, res.record, res.event,
-                                      res.decision, res.comments]
-                proposed_annotation = [project_value, event_value,
-                                       decision_value, comments_value]
+                current_annotation = [res.decision, res.comments]
+                proposed_annotation = [decision_value, comments_value]
                 # Only save annotation if something has changed
-                if current_annotation[:4] != proposed_annotation:
+                if current_annotation != proposed_annotation:
                     annotation = Annotation(
                         user = current_user,
                         project = project_value,
@@ -979,7 +978,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
                         event = event_value,
                         decision = decision_value,
                         comments = comments_value,
-                        decision_date = submit_time
+                        decision_date = submit_time,
+                        is_adjudication=False
                     )
                     annotation.update()
             except Annotation.DoesNotExist:
@@ -991,7 +991,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     event = event_value,
                     decision = decision_value,
                     comments = comments_value,
-                    decision_date = submit_time
+                    decision_date = submit_time,
+                    is_adjudication=False
                 )
                 annotation.update()
     else:

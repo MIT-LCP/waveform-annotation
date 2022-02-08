@@ -26,6 +26,9 @@
           {% endfor %}
           <!-- Assuming only one adjudication per project, record, and event -->
           <th>
+            <a href="{% url 'waveform_published_specific_adjudicate' batch.0.0 batch.0.1 batch.0.2 %}">Edit adjudication</a>
+          </th>
+          <th>
             <a href="{% url 'delete_adjudication' batch.0.0 batch.0.1 batch.0.2 %}">Delete adjudication</a>
           </th>
         </tr>
