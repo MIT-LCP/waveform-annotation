@@ -485,8 +485,8 @@ def render_adjudications(request):
         return redirect('waveform_published_home')
 
     # Get info of all non-adjudicated annotations assuming non-unique event names
-    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False)
-    all_info = [(a.project, a.record, a.event) for a in non_adjudicated_anns]
+    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False).values('project','record','event')
+    all_info = [tuple(ann.values()) for ann in non_adjudicated_anns]
     unique_anns = Counter(all_info).keys()
     ann_counts = Counter(all_info).values()
     # Get completed annotations (should be two but I guess could be more if
@@ -495,53 +495,38 @@ def render_adjudications(request):
 
     # Find out which ones are conflicting
     conflicting_anns = []
+    # Collect the unfinished adjudications
+    unfinished_adjudications = []
     for c in completed_anns:
         # Get all the annotations for this event
         all_anns = Annotation.objects.filter(
             project=c[0], record=c[1], event=c[2]
         )
         is_adjudicated = True in [a.is_adjudication for a in all_anns]
-        # Make sure the annotations are complete
-        current_anns = all_anns.filter(is_adjudication=False)
-        is_conflicting = len(set([a.decision for a in current_anns])) >= 2
-        # Make sure there are conflicting decisions and no adjudications already
-        if is_conflicting and not is_adjudicated:
-            conflicting_anns.append(c)
+        if not is_adjudicated:
+            # Make sure the annotations are complete
+            current_anns = all_anns.filter(is_adjudication=False).values_list('decision', flat=True)
+            is_conflicting = len(set(current_anns)) >= 2
+            # Make sure there are conflicting decisions and no adjudications already
+            if is_conflicting:
+                conflicting_anns.append(c)
+                # Add the unfinished adjudications
+                temp_anns = all_anns.values('project', 'record', 'event',
+                                            'user__username', 'decision',
+                                            'comments', 'decision_date')
+                unfinished_adjudications.append([list(ann.values()) for ann in temp_anns])
 
     # Get info of all adjudicated annotations
     adjudicated_anns = Annotation.objects.filter(is_adjudication=True)
-    # Collect the unfinished adjudications
-    unfinished_adjudications = []
-    for info in conflicting_anns:
-        all_anns = Annotation.objects.filter(
-            project=info[0], record=info[1], event=info[2]
-        )
-        temp_anns = []
-        for ann in all_anns:
-            temp_anns.append([ann.project,
-                              ann.record,
-                              ann.event,
-                              ann.user.username,
-                              ann.decision,
-                              ann.comments,
-                              ann.decision_date])
-        unfinished_adjudications.append(temp_anns)
     # Collect the finished adjudications
     finished_adjudications = []
-    for ann in adjudicated_anns:
+    for current_ann in adjudicated_anns:
         all_anns = Annotation.objects.filter(
-            project=ann.project, record=ann.record, event=ann.event
+            project=current_ann.project, record=current_ann.record, event=current_ann.event
+        ).values(
+            'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
         )
-        temp_anns = []
-        for ann in all_anns:
-            temp_anns.append([ann.project,
-                              ann.record,
-                              ann.event,
-                              ann.user.username,
-                              ann.decision,
-                              ann.comments,
-                              ann.decision_date])
-        finished_adjudications.append(temp_anns)
+        finished_adjudications.append([list(ann.values()) for ann in all_anns])
 
     categories = [
         'event',
@@ -824,7 +809,7 @@ def render_annotations(request):
                 except IndexError:
                     # No project has free events
                     break
-                
+
                 if unassigned_events.get(rand_project):
                     rand_event = rd.choice(unassigned_events[rand_project])
                     assigned_events[rand_project][rand_event] = [user.username]
