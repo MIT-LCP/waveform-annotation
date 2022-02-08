@@ -194,15 +194,15 @@
     </div>
   </div>
   <br><br>
-  <h1>Global Leaderboard</h1>
+  <h1>Dataset Progress</h1>
   <br>
-    <div class="row">
+  <div class="row">
     <div class="column">
       <table class="stats">
         <tr>
           <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2>
-              <span style="float: left;">Completed Events:</span>
+            <h2 style="font-size: 26px;">
+              <span style="float: left;">Events Unanimously Agreed On:</span>
               <span style="float: right;">{{ complete }}</span>
             </h2>
           </th>
@@ -213,8 +213,8 @@
       <table class="stats">
         <tr>
           <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2>
-              <span style="float: left;">Events in Progress:</span>
+            <h2 style="font-size: 26px;">
+              <span style="float: left;">Events With One Decision:</span>
               <span style="float: right;">{{ one_ann }}</span>
             </h2>
           </th>
@@ -225,15 +225,32 @@
       <table class="stats">
         <tr>
           <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2>
-              <span style="float: left;">Conflicting Events:</span>
+            <h2 style="font-size: 26px;">
+              <span style="float: left;">Events With Conflicting Decisions:</span>
               <span style="float: right;">{{ conflict_anns }}</span>
             </h2>
           </th>
         </tr>
+        
+      </table>
+    </div>
+    <div class="column">
+      <table class="stats">
+        <tr>
+          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
+            <h2 style="font-size: 26px;">
+              <span style="float: left;">Conflicting Decisions Resolved:</span>
+              <span style="float: right;">{{ num_adj }}</span>
+            </h2>
+          </th>
+        </tr>
+        
       </table>
     </div>
   </div>
+  <br>
+  <br><br>
+  <h1>Global Leaderboard</h1>
   <br>
   <div class="row">
     <div class="column">
