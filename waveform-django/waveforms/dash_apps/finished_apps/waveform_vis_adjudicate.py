@@ -190,37 +190,36 @@ def get_current_conflicting_annotation(project='', record='', event=''):
     """
     # Get info of all non-adjudicated annotations assuming non-unique event names
     non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False)
-    all_info = [(a.project, a.record, a.event) for a in non_adjudicated_anns]
+    all_info = [tuple(ann.values()) for ann in non_adjudicated_anns.values('project','record','event')]
     unique_anns = Counter(all_info).keys()
     ann_counts = Counter(all_info).values()
     # Get completed annotations (should be two but I guess could be more if
     # glitch or old data)
     completed_anns = [c[0] for c in list(zip(unique_anns,ann_counts)) if c[1]>=2]
-    # Find out which ones are conflicting
-    conflicting_anns = []
+
+    # Sort by `decision_date` with older conflicting annotations appearing
+    # first to predictable traverse the remaining annotations.
+    sorted_anns = []
     for c in completed_anns:
         # Get all the annotations for this event
         all_anns = Annotation.objects.filter(
             project=c[0], record=c[1], event=c[2]
         )
         is_adjudicated = True in [a.is_adjudication for a in all_anns]
-        # Make sure the annotations are complete
-        current_anns = all_anns.filter(is_adjudication=False)
-        is_conflicting = len(set([a.decision for a in current_anns])) >= 2
-        # Make sure there are conflicting decisions and no adjudications already
-        if is_conflicting and not is_adjudicated:
-            conflicting_anns.append(c)
-    # Sort by `decision_date` with older conflicting annotations appearing
-    # first to predictable traverse the remaining annotations.
-    sorted_anns = []
-    for c in conflicting_anns:
-        current_ann = non_adjudicated_anns.filter(
-            project=c[0], record=c[1], event=c[2]
-        )
-        # Get the most recent annotation (i.e. time of completion)
-        current_ann = sorted(current_ann, key=lambda x: x.decision_date)[-1]
-        sorted_anns.append(c + (current_ann.decision_date,))
+        if not is_adjudicated:
+            # Make sure the annotations are complete
+            current_anns = all_anns.filter(is_adjudication=False).values_list('decision', flat=True)
+            is_conflicting = len(set(current_anns)) >= 2
+            # Make sure there are conflicting decisions and no adjudications already
+            if is_conflicting:
+                current_ann = non_adjudicated_anns.filter(
+                    project=c[0], record=c[1], event=c[2]
+                )
+                # Get the most recent annotation (i.e. time of completion)
+                current_ann = sorted(current_ann, key=lambda x: x.decision_date)[-1]
+                sorted_anns.append(c + (current_ann.decision_date,))
     sorted_anns = sorted(sorted_anns, key=lambda x: x[-1].timestamp())
+
     # The oldest conflicting annotation (project, record, event)
     if sorted_anns:
         if project and record and event:
