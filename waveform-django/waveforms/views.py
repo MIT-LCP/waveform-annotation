@@ -485,7 +485,7 @@ def render_adjudications(request):
         return redirect('waveform_published_home')
 
     # Get info of all non-adjudicated annotations assuming non-unique event names
-    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False).values('project','record','event')
+    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False).order_by('-decision_date').values('project','record','event')
     all_info = [tuple(ann.values()) for ann in non_adjudicated_anns]
     unique_anns = Counter(all_info).keys()
     ann_counts = Counter(all_info).values()
@@ -511,13 +511,13 @@ def render_adjudications(request):
             if is_conflicting:
                 conflicting_anns.append(c)
                 # Add the unfinished adjudications
-                temp_anns = all_anns.values('project', 'record', 'event',
-                                            'user__username', 'decision',
-                                            'comments', 'decision_date')
+                temp_anns = all_anns.values(
+                    'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
+                )
                 unfinished_adjudications.append([list(ann.values()) for ann in temp_anns])
 
     # Get info of all adjudicated annotations
-    adjudicated_anns = Annotation.objects.filter(is_adjudication=True)
+    adjudicated_anns = Annotation.objects.filter(is_adjudication=True).order_by('-decision_date')
     # Collect the finished adjudications
     finished_adjudications = []
     for current_ann in adjudicated_anns:

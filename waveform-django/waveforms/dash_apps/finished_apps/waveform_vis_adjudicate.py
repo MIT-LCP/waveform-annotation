@@ -796,20 +796,47 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
             # settings
             submit_time = datetime.datetime.now(
                 pytz.timezone(base.TIME_ZONE))
+            # Convert the decision value to a recognized format
+            decision_value = click_id.split('_')[1].capitalize()
             # Save the annotation to the database only if changes
             # were made or a new annotation
-            # Create new annotation since none already exist
-            annotation = Annotation(
-                user = current_user,
-                project = project_value,
-                record = record_value,
-                event = event_value,
-                decision = click_id.split('_')[1].capitalize(),
-                comments = comments_value,
-                decision_date = submit_time,
-                is_adjudication = True
-            )
-            annotation.save()
+            try:
+                res = Annotation.objects.get(user=current_user,
+                                             project=project_value,
+                                             record=record_value,
+                                             event=event_value,
+                                             is_adjudication=True)
+                current_annotation = [res.decision, res.comments]
+                proposed_annotation = [decision_value, comments_value]
+                # Only save annotation if something has changed
+                if current_annotation != proposed_annotation:
+                    # Delete the old one
+                    res.delete()
+                    # Save the new one
+                    annotation = Annotation(
+                        user = current_user,
+                        project = project_value,
+                        record = record_value,
+                        event = event_value,
+                        decision = decision_value,
+                        comments = comments_value,
+                        decision_date = submit_time,
+                        is_adjudication = True
+                    )
+                    annotation.save()
+            except Annotation.DoesNotExist:
+                # Create new annotation since none already exist
+                annotation = Annotation(
+                    user = current_user,
+                    project = project_value,
+                    record = record_value,
+                    event = event_value,
+                    decision = decision_value,
+                    comments = comments_value,
+                    decision_date = submit_time,
+                    is_adjudication = True
+                )
+                annotation.save()
             # We already know the current project, record, and event
             return_project, return_record, return_event = get_current_conflicting_annotation(project=project_value,
                                                                                              record=record_value,
