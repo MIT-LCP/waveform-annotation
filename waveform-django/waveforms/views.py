@@ -820,7 +820,6 @@ def render_annotations(request):
                 update_assignments(data, proj)
 
             # Update the user's assignment start date
-            print(num_events)
             if num_events:
                 num_events = int(request.POST['num_events']) - num_events
                 messages.error(
