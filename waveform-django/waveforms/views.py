@@ -759,7 +759,6 @@ def render_annotations(request):
     ]
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
     finished_assignment = len(completed_annotations) == total_anns
-
     if request.method == 'POST':
         if 'new_assignment' in request.POST:
             record_dir = Path('./record-files/')
@@ -821,6 +820,13 @@ def render_annotations(request):
                 update_assignments(data, proj)
 
             # Update the user's assignment start date
+            print(num_events)
+            if num_events:
+                num_events = int(request.POST['num_events']) - num_events
+                messages.error(
+                    request, f'Not enough events remaining. You have been given {num_events} events'
+                )
+
             user.date_assigned = timezone.now()
             user.save()
             return redirect('render_annotations')

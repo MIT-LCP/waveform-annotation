@@ -208,18 +208,18 @@
         var unanimous = Number(document.getElementById('progress').getAttribute('unanimous'))
         var num_events = Number(document.getElementById('progress').getAttribute('num_events'))
         conflicts -= num_adj
-        num_events -= unanimous - one_ann - conflicts - num_adj
+        var no_decision = num_events - unanimous - one_ann - conflicts - num_adj
         var data = google.visualization.arrayToDataTable([
           ['Category', 'Number of Events'],
           ['Unanimous Decision',      unanimous],
           ['Only One Decision', one_ann],
           ['Conflicts Resolved',     num_adj],
           ['Unresolved Conflicts',  conflicts],
-          ['No Decisions Made', num_events],
+          ['No Decisions Made', no_decision],
         ]);
 
         var options = {
-          title: "Event Classification Progress",
+          title: "Event Classification Progress Over " + num_events + " Events",
           pieHole: 0.4,
           chartArea: {left: 50, right: 5, bottom: 5, top: 100}
         };

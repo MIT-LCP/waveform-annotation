@@ -37,6 +37,13 @@
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
   </div><br /><br />
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
+      {% endfor %}
+    </ul>
+    {% endif %}
   <div>
     {%if user.practice_status == "ED"%}
       {% if finished_assignment%}
@@ -68,13 +75,6 @@
   </div>
   <div>
     <h3>Search for record</h3>
-    {% if messages %}
-    <ul class="messages">
-      {% for message in messages %}
-      <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
-      {% endfor %}
-    </ul>
-    {% endif %}
     <form action="{% url 'render_annotations' %}">
       <input type="text" id="record" name="record" placeholder="e.g. 003c13" required>
       <input type="submit" class="btn btn-secondary" value="Search"><br><br>
@@ -303,4 +303,7 @@
   }
 </script>
 
+<script>
+
+</script>
 {% endblock %}
