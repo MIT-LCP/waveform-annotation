@@ -195,74 +195,49 @@
   </div>
   <br><br>
   <h1>Dataset Progress</h1>
-  <br>
   <div class="row">
-    <div class="column">
-      <table class="stats">
-        <tr>
-          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2 style="font-size: 26px;">
-              <span style="float: left;">Events Unanimously Agreed On:</span>
-              <span style="float: right;">{{ complete }}</span>
-            </h2>
-          </th>
-        </tr>
-      </table>
-    </div>
-    <div class="column">
-      <table class="stats">
-        <tr>
-          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2 style="font-size: 26px;">
-              <span style="float: left;">Events With One Decision:</span>
-              <span style="float: right;">{{ one_ann }}</span>
-            </h2>
-          </th>
-        </tr>
-      </table>
-    </div>
-    <div class="column">
-      <table class="stats">
-        <tr>
-          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2 style="font-size: 26px;">
-              <span style="float: left;">Events With Conflicting Decisions:</span>
-              <span style="float: right;">{{ conflict_anns }}</span>
-            </h2>
-          </th>
-        </tr>
-        
-      </table>
-    </div>
-    <div class="column">
-      <table class="stats">
-        <tr>
-          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2 style="font-size: 26px;">
-              <span style="float: left;">Conflicting Decisions Resolved:</span>
-              <span style="float: right;">{{ num_adj }}</span>
-            </h2>
-          </th>
-        </tr>
-        
-      </table>
-    </div>
-    <div class="column">
-      <table class="stats">
-        <tr>
-          <th colspan="3" style="background-color: rgba(122,20,255,0.23)">
-            <h2 style="font-size: 26px;">
-              <span style="float: left;">Dataset size:</span>
-              <span style="float: right;">{{ num_events }}</span>
-            </h2>
-          </th>
-        </tr>
-        
-      </table>
-    </div>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+      google.charts.load("current", {packages:["corechart"]});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var num_adj = Number(document.getElementById('progress').getAttribute('num-adj'))
+        var conflicts = Number(document.getElementById('progress').getAttribute('conflicts'))
+        var one_ann = Number(document.getElementById('progress').getAttribute('one_ann'))
+        var unanimous = Number(document.getElementById('progress').getAttribute('unanimous'))
+        var num_events = Number(document.getElementById('progress').getAttribute('num_events'))
+        conflicts -= num_adj
+        num_events -= unanimous - one_ann - conflicts - num_adj
+        var data = google.visualization.arrayToDataTable([
+          ['Category', 'Number of Events'],
+          ['Unanimous Decision',      unanimous],
+          ['Only One Decision', one_ann],
+          ['Conflicts Resolved',     num_adj],
+          ['Unresolved Conflicts',  conflicts],
+          ['No Decisions Made', num_events],
+        ]);
+
+        var options = {
+          title: "Event Classification Progress",
+          pieHole: 0.4,
+          chartArea: {left: 50, right: 5, bottom: 5, top: 100}
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('progress'));
+        chart.draw(data, options);
+      }
+    </script>
+  </div>
+  <div id="progress" style="width: 1000px; height: 600px;" 
+    num-adj="{{num_adj}}"
+    unanimous="{{complete}}"
+    num_events="{{num_events}}"
+    one_ann="{{one_ann}}"
+    conflicts="{{conflict_anns}}"
+  >
   </div>
   <br>
-  <br><br>
   <h1>Global Leaderboard</h1>
   <br>
   <div class="row">
