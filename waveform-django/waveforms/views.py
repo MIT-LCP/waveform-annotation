@@ -5,6 +5,7 @@ from operator import itemgetter
 import csv
 import random as rd
 
+from pathlib import Path 
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -62,14 +63,7 @@ def update_assignments(csv_data, project_folder):
     N/A
 
     """
-    # Find the files
-
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-    csv_path = os.path.join(PROJECT_PATH, project_folder, base.ASSIGNMENT_FILE)
-
+    csv_path = Path(f'../record-files/{project_folder}/{base.ASSIGNMENT_FILE}')
     with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
@@ -81,7 +75,7 @@ def update_assignments(csv_data, project_folder):
                 else:
                     row.extend(user)
                 csvwriter.writerows([row])
-
+    
 
 def get_all_assignments(project_folder):
     """
@@ -191,14 +185,18 @@ def get_user_events(user, project_folder):
         event_list = []
         with open(csv_path, 'r') as csv_file:
             csvreader = csv.reader(csv_file, delimiter=',')
-            next(csvreader)
-            for row in csvreader:
-                names = []
-                for val in row[1:]:
-                    if val:
-                        names.append(val)
-                if user.username in names:
-                    event_list.append(row[0])
+            try:
+                next(csvreader)
+                for row in csvreader:
+                    names = []
+                    for val in row[1:]:
+                        if val:
+                            names.append(val)
+                    if user.username in names:
+                        event_list.append(row[0])
+            except StopIteration:
+                pass
+            
         user_ann = Annotation.objects.filter(user=user,
                                              project=project_folder,
                                              is_adjudication=False)
@@ -761,9 +759,9 @@ def render_annotations(request):
     ]
     all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
     finished_assignment = len(completed_annotations) == total_anns
-
     if request.method == 'POST':
         if 'new_assignment' in request.POST:
+            record_dir = Path('../record-files/')
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
             assigned_events = {}
@@ -771,18 +769,18 @@ def render_annotations(request):
 
             for project in available_projects:
                 assigned_events[project] = get_all_assignments(project)
+                project_dir = record_dir / project
 
-                records_path = os.path.join(PROJECT_PATH, project, base.RECORDS_FILE)
+                records_path = project_dir / base.RECORDS_FILE
                 with open(records_path, 'r') as f:
                     record_list = f.read().splitlines()
                 proj_events = []
+
                 for record in record_list:
-                    event_path = os.path.join(PROJECT_PATH, project, record,
-                                              base.RECORDS_FILE)
+                    event_path = project_dir / record / base.RECORDS_FILE
                     with open(event_path, 'r') as f:
                         proj_events += f.read().splitlines()
                 proj_events = [e for e in proj_events if '_' in e]
-
                 for event in proj_events:
                     if event not in assigned_events[project].keys():
                         try:
@@ -822,6 +820,12 @@ def render_annotations(request):
                 update_assignments(data, proj)
 
             # Update the user's assignment start date
+            if num_events:
+                num_events = int(request.POST['num_events']) - num_events
+                messages.error(
+                    request, f'Not enough events remaining. You have been given {num_events} events'
+                )
+
             user.date_assigned = timezone.now()
             user.save()
             return redirect('render_annotations')
@@ -955,6 +959,25 @@ def leaderboard(request):
     adj = Annotation.objects.filter(is_adjudication=True)
     num_adj = len([a for a in adj])
 
+    # Get number of all events
+    record_dir = Path('../record-files/')
+    project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+    num_events = 0
+    for project in project_list:
+        project_dir = record_dir / project
+        record_dirs = project_dir / base.RECORDS_FILE
+        with open(record_dirs, 'r') as f:
+            record_list = f.read().splitlines()
+        record_list = [project_dir / r for r in record_list]
+        for record in record_list:
+            record_file = record / base.RECORDS_FILE
+            try:
+                with open(record_file, 'r') as f:
+                    events = f.read().splitlines()
+                num_events += len([e for e in events if '_' in e])
+            except FileNotFoundError:
+                continue
+    
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
                    'glob_week': glob_week, 'glob_month': glob_month,
@@ -964,7 +987,7 @@ def leaderboard(request):
                    'user_all': user_all, 'user_true': user_true,
                    'user_false': user_false, 'one_ann': one_ann,
                    'complete': complete, 'conflict_anns': conflict_anns,
-                   'num_adj': num_adj})
+                   'num_adj': num_adj, 'num_events':num_events})
 
 
 @login_required
