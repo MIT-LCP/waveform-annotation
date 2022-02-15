@@ -185,5 +185,3 @@ tenacity==6.2.0 \
  --hash=sha256:5a5d3dcd46381abe8b4f82b5736b8726fd3160c6c7161f53f8af7f1eb9b82173
 whitenoise==5.3.0 \
  --hash=sha256:d963ef25639d1417e8a247be36e6aedd8c7c6f0a08adcb5a89146980a96b577c
-pathlib==1.0.1 \
- --hash=sha256:f4c7dba104c472eb1c826ed900b04c4c3a4bc03fb63c24d2532865036b5cbeac

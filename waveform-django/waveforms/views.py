@@ -63,7 +63,7 @@ def update_assignments(csv_data, project_folder):
     N/A
 
     """
-    csv_path = Path(f'./record-files/{project_folder}/{base.ASSIGNMENT_FILE}')
+    csv_path = Path(f'../record-files/{project_folder}/{base.ASSIGNMENT_FILE}')
     with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
@@ -761,7 +761,7 @@ def render_annotations(request):
     finished_assignment = len(completed_annotations) == total_anns
     if request.method == 'POST':
         if 'new_assignment' in request.POST:
-            record_dir = Path('./record-files/')
+            record_dir = Path('../record-files/')
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
             assigned_events = {}
@@ -960,7 +960,7 @@ def leaderboard(request):
     num_adj = len([a for a in adj])
 
     # Get number of all events
-    record_dir = Path('./record-files/')
+    record_dir = Path('../record-files/')
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
     num_events = 0
     for project in project_list:
