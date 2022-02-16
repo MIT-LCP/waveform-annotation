@@ -797,7 +797,7 @@ def render_annotations(request):
     finished_assignment = len(completed_annotations) == total_anns
     if request.method == 'POST':
         if 'new_assignment' in request.POST:
-            record_dir = Path(base.HEAD_DIR) / 'record-files'
+            record_dir = Path(base.HEAD_DIR)/'record-files'
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
             assigned_events = {}
@@ -805,15 +805,15 @@ def render_annotations(request):
 
             for project in available_projects:
                 assigned_events[project] = get_all_assignments(project)
-                project_dir = record_dir / project
+                project_dir = record_dir/project
 
-                records_path = project_dir / base.RECORDS_FILE
+                records_path = project_dir/base.RECORDS_FILE
                 with open(records_path, 'r') as f:
                     record_list = f.read().splitlines()
                 proj_events = []
 
                 for record in record_list:
-                    event_path = project_dir / record / base.RECORDS_FILE
+                    event_path = project_dir/record/base.RECORDS_FILE
                     with open(event_path, 'r') as f:
                         proj_events += f.read().splitlines()
                 proj_events = [e for e in proj_events if '_' in e]
@@ -996,17 +996,17 @@ def leaderboard(request):
     num_adj = len([a for a in adj])
 
     # Get number of all events
-    record_dir = Path(base.HEAD_DIR) / 'record-files'
+    record_dir = Path(base.HEAD_DIR)/'record-files'
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
     num_events = 0
     for project in project_list:
-        project_dir = record_dir / project
-        record_dirs = project_dir / base.RECORDS_FILE
+        project_dir = record_dir/project
+        record_dirs = project_dir/base.RECORDS_FILE
         with open(record_dirs, 'r') as f:
             record_list = f.read().splitlines()
-        record_list = [project_dir / r for r in record_list]
+        record_list = [project_dir/r for r in record_list]
         for record in record_list:
-            record_file = record / base.RECORDS_FILE
+            record_file = record/base.RECORDS_FILE
             try:
                 with open(record_file, 'r') as f:
                     events = f.read().splitlines()
