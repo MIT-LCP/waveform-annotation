@@ -63,7 +63,7 @@ def update_assignments(csv_data, project_folder):
     N/A
 
     """
-    csv_path = Path(f'../record-files/{project_folder}/{base.ASSIGNMENT_FILE}')
+    csv_path = Path(base.HEAD_DIR)/'record-files'/project_folder/base.ASSIGNMENT_FILE
     with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
         csvwriter = csv.writer(csv_file)
         csvwriter.writerow(['Events', 'Users Assigned'])
@@ -761,7 +761,7 @@ def render_annotations(request):
     finished_assignment = len(completed_annotations) == total_anns
     if request.method == 'POST':
         if 'new_assignment' in request.POST:
-            record_dir = Path('../record-files/')
+            record_dir = Path(base.HEAD_DIR) / 'record-files'
             available_projects = [p for p in all_projects if p not in base.BLACKLIST]
             num_events = int(request.POST['num_events'])
             assigned_events = {}
@@ -944,7 +944,7 @@ def leaderboard(request):
         key = f'{ann.project} {ann.record} {ann.event}'
         ann_dict[key] += 1
         two_anns = two_anns + 1 if ann_dict[key] == 2 else two_anns
-    one_ann = f'{(len(ann_dict) - two_anns):,}'
+    one_ann = len(ann_dict) - two_anns
     # Get the number of annotations which conflict
     conflict_anns = 0
     all_ann_tuples = set([(a.record,a.event) for a in all_anns])
@@ -953,14 +953,14 @@ def leaderboard(request):
         if len(current_rec_evt) > 1:
             if len(set([a.decision for a in current_rec_evt])) > 1:
                 conflict_anns += 1
-    complete = f'{(two_anns-conflict_anns):,}'
+    complete = two_anns-conflict_anns
 
     # Get all events that have been adjudicated 
     adj = Annotation.objects.filter(is_adjudication=True)
     num_adj = len([a for a in adj])
 
     # Get number of all events
-    record_dir = Path('../record-files/')
+    record_dir = Path(base.HEAD_DIR) / 'record-files'
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
     num_events = 0
     for project in project_list:
