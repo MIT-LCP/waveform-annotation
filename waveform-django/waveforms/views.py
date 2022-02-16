@@ -494,7 +494,7 @@ def render_adjudications(request):
     # Find out which ones are conflicting
     conflicting_anns = []
     # Collect the unfinished adjudications
-    unfinished_adjudications = []
+    incomplete_adjudications = []
     for c in completed_anns:
         # Get all the annotations for this event
         all_anns = Annotation.objects.filter(
@@ -512,19 +512,52 @@ def render_adjudications(request):
                 temp_anns = all_anns.values(
                     'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
                 )
-                unfinished_adjudications.append([list(ann.values()) for ann in temp_anns])
+                incomplete_adjudications.append([list(ann.values()) for ann in temp_anns])
 
     # Get info of all adjudicated annotations
     adjudicated_anns = Annotation.objects.filter(is_adjudication=True).order_by('-decision_date')
     # Collect the finished adjudications
-    finished_adjudications = []
+    complete_adjudications = []
     for current_ann in adjudicated_anns:
         all_anns = Annotation.objects.filter(
             project=current_ann.project, record=current_ann.record, event=current_ann.event
         ).values(
             'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
         )
-        finished_adjudications.append([list(ann.values()) for ann in all_anns])
+        complete_adjudications.append([list(ann.values()) for ann in all_anns])
+
+    search = {}
+    if request.GET.get('record'):
+        # TODO: only works if > 0 of each adjudication
+        all_inc_recs = [v[0][1] for v in incomplete_adjudications]
+        all_com_recs = [v[0][1] for v in complete_adjudications]
+        results = {
+            'com' : [complete_adjudications[i] for i,x in enumerate(all_com_recs) if x==request.GET['record']],
+            'inc' : [incomplete_adjudications[i] for i,x in enumerate(all_inc_recs) if x==request.GET['record']]
+        }
+        if list(results.values()) == [None, None]:
+            messages.error(request, 'Record not found')
+        else:
+            search = {k:v for k,v in results.items() if v}
+
+    # TODO: let the user decide the max annotations per page?
+    n_complete = len(complete_adjudications)
+    complete_page_num = request.GET.get('complete_page')
+    if complete_page_num == 'all':
+        pag_complete = Paginator(tuple(complete_adjudications), len(complete_adjudications))
+    else:
+        pag_complete = Paginator(tuple(complete_adjudications), 5)
+    complete_page = pag_complete.get_page(complete_page_num)
+    complete_adjudications = complete_page
+
+    n_incomplete = len(incomplete_adjudications)
+    incomplete_page_num = request.GET.get('incomplete_page')
+    if incomplete_page_num == 'all':
+        pag_incomplete = Paginator(tuple(incomplete_adjudications), len(incomplete_adjudications))
+    else:
+        pag_incomplete = Paginator(tuple(incomplete_adjudications), 5)
+    incomplete_page = pag_incomplete.get_page(incomplete_page_num)
+    incomplete_adjudications = incomplete_page
 
     categories = [
         'event',
@@ -538,9 +571,12 @@ def render_adjudications(request):
 
     return render(request, 'waveforms/adjudications.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
-                   'categories': categories,
-                   'unfinished_adjudications': unfinished_adjudications,
-                   'finished_adjudications': finished_adjudications})
+                   'categories': categories, 'search': search,
+                   'n_complete': n_complete, 'n_incomplete': n_incomplete,
+                   'complete_page': complete_page,
+                   'incomplete_page': incomplete_page,
+                   'incomplete_adjudications': incomplete_adjudications,
+                   'complete_adjudications': complete_adjudications})
 
 
 @login_required
@@ -709,7 +745,7 @@ def render_annotations(request):
         results = {
             'save': saved_anns.get(request.GET['record']),
             'inc' : incompleted_anns.get(request.GET['record']),
-            'com' :completed_anns.get(request.GET['record'])
+            'com' : completed_anns.get(request.GET['record'])
         }
 
         if list(results.values()) == [None, None, None]:
@@ -833,8 +869,8 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
                    'categories': categories, 'completed_anns': completed_anns,
-                   'complete_page':complete_page, 'search': search,
-                   'saved_anns': saved_anns, 'saved_page':saved_page,
+                   'complete_page': complete_page, 'search': search,
+                   'saved_anns': saved_anns, 'saved_page': saved_page,
                    'incompleted_anns': incompleted_anns,
                    'incomplete_page': incomplete_page,
                    'finished_assignment': finished_assignment,
