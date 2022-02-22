@@ -5,7 +5,7 @@ from operator import itemgetter
 import csv
 import random as rd
 
-from pathlib import Path 
+from pathlib import Path
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -971,34 +971,19 @@ def leaderboard(request):
     user_true = user_rank(glob_true, username)
     user_false = user_rank(glob_false, username)
 
-    # Get number of events completed and in progress
-    ann_dict = defaultdict(int)
-    all_anns = Annotation.objects.filter(
-        is_adjudication=False).exclude(decision='Save for Later')
-    two_anns = 0
-    for ann in all_anns:
-        key = f'{ann.project} {ann.record} {ann.event}'
-        ann_dict[key] += 1
-        two_anns = two_anns + 1 if ann_dict[key] == 2 else two_anns
-    one_ann = len(ann_dict) - two_anns
-    # Get the number of annotations which conflict
-    conflict_anns = 0
-    all_ann_tuples = set([(a.record,a.event) for a in all_anns])
-    for rec,evt in all_ann_tuples:
-        current_rec_evt = all_anns.filter(record=rec, event=evt)
-        if len(current_rec_evt) > 1:
-            if len(set([a.decision for a in current_rec_evt])) > 1:
-                conflict_anns += 1
-    complete = two_anns-conflict_anns
-
-    # Get all events that have been adjudicated 
-    adj = Annotation.objects.filter(is_adjudication=True)
-    num_adj = len([a for a in adj])
-
     # Get number of all events
     record_dir = Path(base.HEAD_DIR)/'record-files'
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
     num_events = 0
+    no_anns = 0
+    one_ann = 0
+    unan_true = 0
+    unan_false = 0
+    unan_uncertain = 0
+    conflict = 0
+    true_adj = 0
+    false_adj = 0
+    uncertain_adj = 0
     for project in project_list:
         project_dir = record_dir/project
         record_dirs = project_dir/base.RECORDS_FILE
@@ -1009,10 +994,37 @@ def leaderboard(request):
             record_file = record/base.RECORDS_FILE
             try:
                 with open(record_file, 'r') as f:
-                    events = f.read().splitlines()
-                num_events += len([e for e in events if '_' in e])
+                    events = f.read().splitlines()[1:]
             except FileNotFoundError:
                 continue
+            
+            for event in events:
+                num_events += 1
+                anns = Annotation.objects.filter(project=project, record=record.stem, event=event)
+                adj = [a for a in anns if a.is_adjudication]
+
+                if not adj:
+                    if len(anns) == 0:
+                        no_anns += 1
+                    elif len(anns) == 1:
+                        one_ann += 1
+                    elif len(anns) == 2:
+                        if anns[0].decision == "True" and anns[1].decision == "True":
+                            unan_true += 1
+                        elif anns[0].decision == "False" and anns[1].decision == "False":
+                            unan_false += 1
+                        elif anns[0].decision == "Uncertain" and anns[1].decision == "Uncertain":
+                            unan_uncertain += 1
+                        else:
+                            conflict += 1
+                else:
+                    decision = adj[0].decision
+                    if decision == "True":
+                        true_adj += 1
+                    elif decision == "False":
+                        false_adj += 1
+                    else:
+                        uncertain_adj += 1
     
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
@@ -1022,8 +1034,11 @@ def leaderboard(request):
                    'user_week': user_week, 'user_month': user_month,
                    'user_all': user_all, 'user_true': user_true,
                    'user_false': user_false, 'one_ann': one_ann,
-                   'complete': complete, 'conflict_anns': conflict_anns,
-                   'num_adj': num_adj, 'num_events':num_events})
+                   'unan_true': unan_true, 'unan_false': unan_false,
+                   'unan_uncertain': unan_uncertain, 'true_adj': true_adj,
+                   'false_adj': false_adj, 'uncertain_adj':uncertain_adj,
+                   'conflict': conflict, 'no_anns': no_anns, 
+                   'num_events': num_events})
 
 
 @login_required

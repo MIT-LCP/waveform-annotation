@@ -195,47 +195,31 @@
   </div>
   <br><br>
   <h1>Dataset Progress</h1>
-  <div class="row">
-    <script>
-      google.charts.load("current", {packages:["corechart"]});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        var num_adj = Number(document.getElementById('progress').getAttribute('num-adj'))
-        var conflicts = Number(document.getElementById('progress').getAttribute('conflicts'))
-        var one_ann = Number(document.getElementById('progress').getAttribute('one_ann'))
-        var unanimous = Number(document.getElementById('progress').getAttribute('unanimous'))
-        var num_events = Number(document.getElementById('progress').getAttribute('num_events'))
-        conflicts -= num_adj
-        var no_decision = num_events - unanimous - one_ann - conflicts - num_adj
-        var data = google.visualization.arrayToDataTable([
-          ['Category', 'Number of Events'],
-          ['Unanimous Decision',      unanimous],
-          ['Only One Decision', one_ann],
-          ['Conflicts Resolved',     num_adj],
-          ['Unresolved Conflicts',  conflicts],
-          ['No Decisions Made', no_decision],
-        ]);
-
-        var options = {
-          title: "Event Classification Progress Over " + num_events + " Events",
-          pieHole: 0.4,
-          chartArea: {left: 50, right: 5, bottom: 5, top: 100}
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('progress'));
-        chart.draw(data, options);
-      }
-    </script>
-  </div>
-  <div id="progress" style="width: 1000px; height: 600px;" 
-    num-adj="{{num_adj}}"
-    unanimous="{{complete}}"
-    num_events="{{num_events}}"
+  <div id="data" 
     one_ann="{{one_ann}}"
-    conflicts="{{conflict_anns}}"
-  >
+    unan_true="{{unan_true}}"
+    unan_false="{{unan_false}}"
+    unan_uncertain="{{unan_uncertain}}"
+    true_adj="{{true_adj}}"
+    false_adj="{{false_adj}}"
+    uncertain_adj="{{uncertain_adj}}"
+    conflict="{{conflict}}"
+    no_anns="{{no_anns}}"
+    num_events="{{num_events}}"
+    >
   </div>
+  <div class="row">
+    <div id="progress" class="row" style="width: 700px; height: 400px; margin:auto"></div>
+    <div class="row">
+      <div class="column">
+        <div id="unanimous" class="row" style="width: 700px; height: 400px; margin:left"></div>
+      </div>
+      <div class="column">
+        <div id="reviewed" class="row" style="width: 700px; height: 400px;"></div>
+      </div>
+    </div>
+  </div>
+
   <br>
   <h1>Global Leaderboard</h1>
   <br>
@@ -394,4 +378,68 @@
   <br>
   <br>
 </div>
+
+<script>
+  google.charts.load("current", {packages:["corechart"]});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    var one_ann = Number(document.getElementById('data').getAttribute('one_ann'))
+    var unan_true = Number(document.getElementById('data').getAttribute('unan_true'))
+    var unan_false = Number(document.getElementById('data').getAttribute('unan_false'))
+    var unan_uncertain = Number(document.getElementById('data').getAttribute('unan_uncertain'))
+    var true_adj = Number(document.getElementById('data').getAttribute('true_adj'))
+    var false_adj = Number(document.getElementById('data').getAttribute('false_adj'))
+    var uncertain_adj = Number(document.getElementById('data').getAttribute('uncertain_adj'))
+    var conflict = Number(document.getElementById('data').getAttribute('conflict'))
+    var no_anns = Number(document.getElementById('data').getAttribute('no_anns'))
+    var num_events = Number(document.getElementById('data').getAttribute('num_events'))
+    
+    var progress_breakdown = google.visualization.arrayToDataTable([
+      ['Category', 'Number of Events'],
+      ['Unanimous Decisions',      unan_true + unan_false + unan_uncertain],
+      ['Conflicts Resolved',      true_adj + false_adj + uncertain_adj],
+      ['Only One Decision', one_ann],
+      ['Unresolved Conflicts',  conflict],
+      ['No Decisions Made', no_anns],
+    ]);
+    
+    var unanimous = google.visualization.arrayToDataTable([
+      ['Category', 'Number of Events'],
+      ['True',      unan_true],
+      ['False',      unan_false],
+      ['Uncertain',      unan_uncertain],
+    ]);
+    
+    var reviewed = google.visualization.arrayToDataTable([
+      ['Category', 'Number of Events'],
+      ['True',      true_adj],
+      ['False',      false_adj],
+      ['Uncertain',      uncertain_adj],
+    ]);
+
+    var options_p = {
+      title: "Event Classification Progress Over " + num_events + " Events",
+      pieHole: 0.4,
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+    };
+    var options_u = {
+      title: "Classification of " + (unan_true + unan_false + unan_uncertain) + " Unanimous Events",
+      pieHole: 0.4,
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+    };
+    var options_r = {
+      title: "Classification of " + (true_adj + false_adj + uncertain_adj) + " Adjudicated Events",
+      pieHole: 0.4,
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('progress'));
+    chart.draw(progress_breakdown, options_p);
+    var chart = new google.visualization.PieChart(document.getElementById('unanimous'));
+    chart.draw(unanimous, options_u);
+    var chart = new google.visualization.PieChart(document.getElementById('reviewed'));
+    chart.draw(reviewed, options_r);
+  }
+</script>
 {% endblock %}
