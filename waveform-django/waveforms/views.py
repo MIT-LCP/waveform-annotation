@@ -264,16 +264,16 @@ def admin_console(request):
 
     if request.method == 'POST':
         if 'ann_to_csv' in request.POST:
-            all_anns = Annotation.objects.filter(is_adjudication=False)
-            csv_df = pd.DataFrame.from_dict({
-                'username': [a.user.username for a in all_anns],
-                'dataset' : [a.project for a in all_anns],
-                'record': [a.record for a in all_anns],
-                'event': [a.event for a in all_anns],
-                'decision': [a.decision for a in all_anns],
-                'comment': [a.comments for a in all_anns],
-                'date': [str(a.decision_date) for a in all_anns]
-            })
+            all_anns_keys = [
+                'user__username', 'project', 'record', 'event', 'decision',
+                'comments', 'decision_date', 'is_adjudication'
+            ]
+            all_anns = list(Annotation.objects.values(*all_anns_keys))
+            csv_columns = ['username', 'project', 'record', 'event',
+                           'decision', 'comments', 'date', 'is_adjudication']
+            all_anns = {csv_columns[i]: [d.get(k) for d in all_anns] for i,k in enumerate(all_anns_keys)}
+            all_anns['decision'] = [str(d) for d in all_anns['decision']]
+            csv_df = pd.DataFrame.from_dict(all_anns)
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename=all_anns.csv'
             csv_df.to_csv(path_or_buf=response, sep=',', index=False)
