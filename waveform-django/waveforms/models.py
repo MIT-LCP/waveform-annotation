@@ -66,10 +66,9 @@ class User(models.Model):
                 for row in csvreader:
                     if self.username in row[1:]:
                         event_list.append(row[0])
-
-            complete_ann = Annotation.objects.filter(user=self, project=project,
-                                                     is_adjudication=False).exclude(decision='Save for Later')
-            complete_events = [e.event for e in complete_ann]
+            complete_events = Annotation.objects.filter(
+                user=self, project=project, is_adjudication=False).exclude(
+                decision='Save for Later').values_list('event', flat=True)
             event_list = [e for e in event_list if e not in complete_events]
             count += len(event_list)
         return count
@@ -100,7 +99,7 @@ class Annotation(models.Model):
         exists_already = False
         for a in all_annotations:
             if ((a.user == self.user) and (a.project == self.project) and
-                 (a.record == self.record) and (a.event == self.event)):
+               (a.record == self.record) and (a.event == self.event)):
                 exists_already = True
                 a.decision = self.decision
                 a.comments = self.comments

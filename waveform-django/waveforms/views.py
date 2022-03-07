@@ -117,12 +117,13 @@ def get_all_assignments(project_folder):
             except IndexError:
                 break
 
-    anns = Annotation.objects.filter(project=project_folder)
+    anns = Annotation.objects.filter(
+        project=project_folder).values_list(*['event','user__username'])
     for ann in anns:
-        if not csv_data.get(ann.event):
-            csv_data[ann.event] = [ann.user.username]
-        elif ann.user.username not in csv_data[ann.event]:
-            csv_data[ann.event].append(ann.user.username)
+        if not csv_data.get(ann[0]):
+            csv_data[ann[0]] = [ann[1]]
+        elif ann[1] not in csv_data[ann[0]]:
+            csv_data[ann[0]].append(ann[1])
 
     return csv_data
 
@@ -196,7 +197,7 @@ def get_user_events(user, project_folder):
                         event_list.append(row[0])
             except StopIteration:
                 pass
-            
+
         user_ann = Annotation.objects.filter(user=user,
                                              project=project_folder,
                                              is_adjudication=False)
@@ -352,9 +353,10 @@ def admin_console(request):
             all_records[project] = f.read().splitlines()
 
         # Get all the annotations
-        all_annotations = Annotation.objects.filter(project=project)
-        records = [a.record for a in all_annotations]
-        events = [a.event for a in all_annotations]
+        all_annotations = Annotation.objects.filter(
+            project=project).values_list(*['record','event'])
+        records = [a[0] for a in all_annotations]
+        events = [a[1] for a in all_annotations]
 
         conflict_anns[project] = {}
         unanimous_anns[project] = {}
@@ -377,21 +379,19 @@ def admin_console(request):
                 temp_all_anns = []
                 if (rec in records) and (evt in events):
                     same_anns = Annotation.objects.filter(
-                        project=project, record=rec, event=evt)
-                    if len(set([a.decision for a in same_anns])) > 1:
+                        project=project, record=rec, event=evt
+                    ).values_list(
+                        *['decision', 'user__username', 'comments',
+                          'decision_date', 'is_adjudication']
+                    )
+                    if len(set([a[0] for a in same_anns])) > 1:
                         for ann in same_anns:
-                            temp_conflict_anns.append([ann.user.username,
-                                                       ann.decision,
-                                                       ann.comments,
-                                                       ann.decision_date,
-                                                       ann.is_adjudication])
+                            temp_conflict_anns.append([ann[1], ann[0], ann[2],
+                                                       ann[3], ann[4]])
                     else:
                         for ann in same_anns:
-                            temp_unanimous_anns.append([ann.user.username,
-                                                        ann.decision,
-                                                        ann.comments,
-                                                        ann.decision_date,
-                                                        ann.is_adjudication])
+                            temp_unanimous_anns.append([ann[1], ann[0], ann[2],
+                                                        ann[3], ann[4]])
                 else:
                     temp_all_anns.append(['-', '-', '-', '-', '-'])
                 # Get the completion stats for each record
@@ -483,7 +483,13 @@ def render_adjudications(request):
         return redirect('waveform_published_home')
 
     # Get info of all non-adjudicated annotations assuming non-unique event names
-    non_adjudicated_anns = Annotation.objects.filter(is_adjudication=False).order_by('-decision_date').values('project','record','event')
+    non_adjudicated_anns = Annotation.objects.filter(
+        is_adjudication=False
+    ).order_by(
+        '-decision_date'
+    ).values(
+        'project', 'record', 'event'
+    )
     all_info = [tuple(ann.values()) for ann in non_adjudicated_anns]
     unique_anns = Counter(all_info).keys()
     ann_counts = Counter(all_info).values()
@@ -509,22 +515,30 @@ def render_adjudications(request):
             if is_conflicting:
                 conflicting_anns.append(c)
                 # Add the unfinished adjudications
-                temp_anns = all_anns.values(
-                    'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
+                temp_anns = all_anns.values_list(
+                    'project', 'record', 'event', 'user__username',
+                    'decision', 'comments', 'decision_date'
                 )
-                incomplete_adjudications.append([list(ann.values()) for ann in temp_anns])
+                incomplete_adjudications.append([list(ann) for ann in temp_anns])
 
     # Get info of all adjudicated annotations
-    adjudicated_anns = Annotation.objects.filter(is_adjudication=True).order_by('-decision_date')
+    adjudicated_anns = Annotation.objects.filter(
+        is_adjudication=True
+    ).order_by(
+        '-decision_date'
+    ).values_list(
+        'project', 'record', 'event'
+    )
     # Collect the finished adjudications
     complete_adjudications = []
     for current_ann in adjudicated_anns:
         all_anns = Annotation.objects.filter(
-            project=current_ann.project, record=current_ann.record, event=current_ann.event
-        ).values(
-            'project', 'record', 'event', 'user__username', 'decision', 'comments', 'decision_date'
+            project=current_ann[0], record=current_ann[1], event=current_ann[2]
+        ).values_list(
+            'project', 'record', 'event', 'user__username', 'decision',
+            'comments', 'decision_date'
         )
-        complete_adjudications.append([list(ann.values()) for ann in all_anns])
+        complete_adjudications.append([list(ann) for ann in all_anns])
 
     search = {}
     if request.GET.get('record'):
@@ -929,7 +943,12 @@ def leaderboard(request):
     glob_false = []
     for user in all_users:
         user_anns = Annotation.objects.filter(
-            user=user, is_adjudication=False).exclude(decision='Save for Later')
+            user=user, is_adjudication=False
+        ).exclude(
+            decision='Save for Later'
+        ).values_list(
+            'decision_date__date', 'decision'
+        )
         num_today = 0
         num_week = 0
         num_month = 0
@@ -937,13 +956,13 @@ def leaderboard(request):
         num_true = 0
         num_false = 0
         for ann in user_anns:
-            if ann.decision_date.date() >= one_day:
+            if ann[0] >= one_day:
                 num_today += 1
-            if ann.decision_date.date() >= one_week:
+            if ann[0] >= one_week:
                 num_week += 1
-            if ann.decision_date.date() >= one_month:
+            if ann[0] >= one_month:
                 num_month += 1
-            if ann.decision == "True":
+            if ann[1] == 'True':
                 num_true += 1
             else:
                 num_false += 1
@@ -1009,19 +1028,19 @@ def leaderboard(request):
                     elif len(anns) == 1:
                         one_ann += 1
                     elif len(anns) == 2:
-                        if anns[0].decision == "True" and anns[1].decision == "True":
+                        if anns[0].decision == 'True' and anns[1].decision == 'True':
                             unan_true += 1
-                        elif anns[0].decision == "False" and anns[1].decision == "False":
+                        elif anns[0].decision == 'False' and anns[1].decision == 'False':
                             unan_false += 1
-                        elif anns[0].decision == "Uncertain" and anns[1].decision == "Uncertain":
+                        elif anns[0].decision == 'Uncertain' and anns[1].decision == 'Uncertain':
                             unan_uncertain += 1
                         else:
                             conflict += 1
                 else:
                     decision = adj[0].decision
-                    if decision == "True":
+                    if decision == 'True':
                         true_adj += 1
-                    elif decision == "False":
+                    elif decision == 'False':
                         false_adj += 1
                     else:
                         uncertain_adj += 1
@@ -1096,8 +1115,8 @@ def practice_test(request):
                 for event in events:
                     try:
                         Annotation.objects.get(user=user, project=proj,
-                                                   event=event,
-                                                   is_adjudication=False).delete()
+                                               event=event,
+                                               is_adjudication=False).delete()
                     except Annotation.DoesNotExist:
                         pass
             user.practice_status = 'ED'
