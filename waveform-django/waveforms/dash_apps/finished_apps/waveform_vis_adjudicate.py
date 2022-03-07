@@ -979,7 +979,7 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
             # Body
             [
                 html.Tr([
-                    html.Td('-') for col in ['user','decision','comments','decision_date']
+                    html.Td('-') for _ in ['user','decision','comments','decision_date']
                 ], style={'text-align': 'left'}) for _ in range(2)
             ],
             style={'width': '100%'}
@@ -1135,12 +1135,12 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
         fig.update_traces(xaxis = x_string)
 
     # Annotation table
-    conflict_anns = Annotation.objects.filter(
+    conflict_ann_dict = Annotation.objects.filter(
         project=dropdown_project, record=dropdown_record, event=dropdown_event
+    ).values(
+        *['user__username', 'decision', 'comments', 'decision_date']
     )
-    conflict_ann_dict = [a.__dict__ for a in conflict_anns]
     for a in conflict_ann_dict:
-        a['user'] = User.objects.get(id=a['user_id']).username
         a['decision_date'] = a['decision_date'].astimezone(
             pytz.timezone(base.TIME_ZONE)).strftime('%B %d, %Y %H:%M:%S')
         if not a['comments']:
@@ -1150,14 +1150,14 @@ def update_graph(dropdown_project, dropdown_record, dropdown_event):
             # Header
             [
                 html.Tr([
-                    html.Th(col) for col in ['user','decision','comments','decision_date']
+                    html.Th(col) for col in ['user__username', 'decision', 'comments', 'decision_date']
                 ], style={'text-align': 'left'})
             ] +
             # Body
             [
                 html.Tr([
-                    html.Td(conflict_ann_dict[i][col]) for col in ['user','decision','comments','decision_date']
-                ], style={'text-align': 'left'}) for i in range(len(conflict_ann_dict))
+                    html.Td(cad[col]) for col in ['user__username', 'decision', 'comments', 'decision_date']
+                ], style={'text-align': 'left'}) for cad in conflict_ann_dict
             ],
             style={'width': '100%'}
         )]
