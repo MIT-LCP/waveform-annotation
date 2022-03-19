@@ -337,16 +337,12 @@ def admin_console(request):
     FILE_LOCAL = os.path.join('record-files')
     PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
-    # Get the record files
-    project_options = os.listdir(PROJECT_PATH)
-    all_projects = [p for p in project_options if os.path.isdir(os.path.join(PROJECT_PATH, p))]
-
     # Hold all of the annotation information
     all_records = {}
     conflict_anns = {}
     unanimous_anns = {}
     all_anns = {}
-    for project in all_projects:
+    for project in base.ALL_PROJECTS:
         records_path = os.path.join(PROJECT_PATH, project,
                                     base.RECORDS_FILE)
         with open(records_path, 'r') as f:
@@ -418,7 +414,7 @@ def admin_console(request):
 
     return render(request, 'waveforms/admin_console.html',
                   {'user': user, 'invited_users': invited_users,
-                   'categories': categories, 'all_projects': all_projects,
+                   'categories': categories, 'all_projects': base.ALL_PROJECTS,
                    'conflict_anns': conflict_anns,
                    'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
                    'all_users': all_users, 'ann_to_csv_form': ann_to_csv_form,
