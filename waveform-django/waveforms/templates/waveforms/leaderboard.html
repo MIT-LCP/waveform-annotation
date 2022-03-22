@@ -7,30 +7,25 @@
       * {
           box-sizing: border-box;
       }
-
       .row {
           margin-left: -5px;
           margin-right: -5px;
       }
-
       .column {
           float: left;
           width: 50%;
           padding: 10px;
       }
-
       .row::after {
           content: "";
           clear: both;
           display: table;
       }
-
       .stats table {
           table-layout: fixed;
           width: 100%;
           border: 2px solid black;
       }
-
       .stats th {
           background-color: white;
           padding: 10px;
@@ -38,14 +33,12 @@
           border-collapse: collapse;
           width: 33%;
       }
-
       .stats td {
           padding: 10px;
           border: 1px solid black;
           border-collapse: collapse;
           width: 300px;
       }
-
       .stats tr:nth-child(odd) {
           border: 1px solid black;
           background-color: #f2f2f2;
@@ -195,7 +188,7 @@
   </div>
   <br><br>
   <h1>Dataset Progress</h1>
-  <div id="data" 
+  <div id="data"
     one_ann="{{one_ann}}"
     unan_true="{{unan_true}}"
     unan_false="{{unan_false}}"
@@ -219,7 +212,6 @@
       </div>
     </div>
   </div>
-
   <br>
   <h1>Global Leaderboard</h1>
   <br>
@@ -394,44 +386,47 @@
     var conflict = Number(document.getElementById('data').getAttribute('conflict'))
     var no_anns = Number(document.getElementById('data').getAttribute('no_anns'))
     var num_events = Number(document.getElementById('data').getAttribute('num_events'))
-    
+
     var progress_breakdown = google.visualization.arrayToDataTable([
       ['Category', 'Number of Events'],
-      ['Unanimous Decisions',      unan_true + unan_false + unan_uncertain],
-      ['Conflicts Resolved',      true_adj + false_adj + uncertain_adj],
+      ['Unanimous Decisions', unan_true + unan_false + unan_uncertain],
+      ['Conflicts Resolved', true_adj + false_adj + uncertain_adj],
       ['Only One Decision', one_ann],
-      ['Unresolved Conflicts',  conflict],
+      ['Unresolved Conflicts', conflict],
       ['No Decisions Made', no_anns],
     ]);
-    
+
     var unanimous = google.visualization.arrayToDataTable([
       ['Category', 'Number of Events'],
-      ['True',      unan_true],
-      ['False',      unan_false],
-      ['Uncertain',      unan_uncertain],
+      ['True', unan_true],
+      ['False', unan_false],
+      ['Uncertain', unan_uncertain],
     ]);
-    
+
     var reviewed = google.visualization.arrayToDataTable([
       ['Category', 'Number of Events'],
-      ['True',      true_adj],
-      ['False',      false_adj],
-      ['Uncertain',      uncertain_adj],
+      ['True', true_adj],
+      ['False', false_adj],
+      ['Uncertain', uncertain_adj],
     ]);
 
     var options_p = {
       title: "Event Classification Progress Over " + num_events + " Events",
       pieHole: 0.4,
-      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"},
+      pieSliceText: "value"
     };
     var options_u = {
       title: "Classification of " + (unan_true + unan_false + unan_uncertain) + " Unanimous Events",
       pieHole: 0.4,
-      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"},
+      pieSliceText: "value"
     };
     var options_r = {
       title: "Classification of " + (true_adj + false_adj + uncertain_adj) + " Adjudicated Events",
       pieHole: 0.4,
-      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"}
+      chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"},
+      pieSliceText: "value"
     };
 
     var chart = new google.visualization.PieChart(document.getElementById('progress'));
