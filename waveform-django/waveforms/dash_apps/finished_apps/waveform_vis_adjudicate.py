@@ -135,6 +135,16 @@ app.layout = html.Div([
                 message='You selected Uncertain... Are you sure you want to continue?'
             ),
             html.Br(),
+            dcc.ConfirmDialogProvider(
+                children=html.Button(
+                        'Reject',
+                        style={'height': button_height,
+                               'width': button_width,
+                               'font-size': 'large'}),
+                id='adjudication_reject',
+                message='You selected Reject... Are you sure you want to continue?'
+            ),
+            html.Br(),
             # The reviewer comment section
             html.Label(['Enter comments here:'],
                        style={'font-size': label_fontsize}),
@@ -728,6 +738,7 @@ def window_signal(y_vals):
     [dash.dependencies.Input('adjudication_true', 'submit_n_clicks'),
      dash.dependencies.Input('adjudication_false', 'submit_n_clicks'),
      dash.dependencies.Input('adjudication_uncertain', 'submit_n_clicks'),
+     dash.dependencies.Input('adjudication_reject', 'submit_n_clicks'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value'),
@@ -737,9 +748,9 @@ def window_signal(y_vals):
      dash.dependencies.State('temp_event', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
 def get_record_event_options(submit_true, submit_false, submit_uncertain,
-                             click_next, set_project, set_record, set_event,
-                             project_value, record_value, event_value,
-                             comments_value):
+                             submit_reject, click_next, set_project,
+                             set_record, set_event, project_value,
+                             record_value, event_value, comments_value):
     """
     Dynamically update the record given the current record and event.
 
@@ -751,6 +762,8 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
         The number of times the submit false button was clicked.
     submit_uncertain : int
         The number of times the submit uncertain button was clicked.
+    submit_reject : int
+        The number of times the submit reject button was clicked.
     set_project : str
         The desired project.
     set_record : str
@@ -790,7 +803,7 @@ def get_record_event_options(submit_true, submit_false, submit_uncertain,
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
         # Submit the adjudication and reset
         adjudication_ids = ['adjudication_true', 'adjudication_false',
-                            'adjudication_uncertain']
+                            'adjudication_uncertain', 'adjudication_reject']
         if click_id in adjudication_ids:
             # Get the current time and localize to the time zone in the
             # settings

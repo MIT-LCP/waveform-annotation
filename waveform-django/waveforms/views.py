@@ -479,8 +479,9 @@ def render_adjudications(request):
         return redirect('waveform_published_home')
 
     # Get info of all non-adjudicated annotations assuming non-unique event names
+    # Do not include rejected annotations
     non_adjudicated_anns = Annotation.objects.filter(
-        is_adjudication=False
+        is_adjudication=False, decision__in=['True', 'False', 'Uncertain']
     ).order_by(
         '-decision_date'
     ).values(
@@ -659,7 +660,7 @@ def render_annotations(request):
 
     # Completed annotations
     completed_annotations = all_annotations.filter(
-        decision__in=['True', 'False', 'Uncertain']
+        decision__in=['True', 'False', 'Uncertain', 'Reject']
     )
     completed_records = [a.record for a in completed_annotations]
     completed_events = [a.event for a in completed_annotations]
@@ -995,10 +996,12 @@ def leaderboard(request):
     unan_true = 0
     unan_false = 0
     unan_uncertain = 0
+    unan_reject = 0
     conflict = 0
     true_adj = 0
     false_adj = 0
     uncertain_adj = 0
+    reject_adj = 0
     for project in project_list:
         project_dir = record_dir/project
         record_dirs = project_dir/base.RECORDS_FILE
@@ -1012,7 +1015,7 @@ def leaderboard(request):
                     events = f.read().splitlines()[1:]
             except FileNotFoundError:
                 continue
-            
+
             for event in events:
                 num_events += 1
                 anns = Annotation.objects.filter(project=project, record=record.stem, event=event)
@@ -1024,12 +1027,16 @@ def leaderboard(request):
                     elif len(anns) == 1:
                         one_ann += 1
                     elif len(anns) == 2:
-                        if anns[0].decision == 'True' and anns[1].decision == 'True':
+                        if (anns[0].decision == 'True') and (anns[1].decision == 'True'):
                             unan_true += 1
-                        elif anns[0].decision == 'False' and anns[1].decision == 'False':
+                        elif (anns[0].decision == 'False') and (anns[1].decision == 'False'):
                             unan_false += 1
-                        elif anns[0].decision == 'Uncertain' and anns[1].decision == 'Uncertain':
+                        elif (anns[0].decision == 'Uncertain') and (anns[1].decision == 'Uncertain'):
                             unan_uncertain += 1
+                        elif 'Reject' in [anns[0].decision, anns[1].decision]:
+                            # Annotation is rejected if only one person thinks
+                            # it should be
+                            unan_reject += 1
                         else:
                             conflict += 1
                 else:
@@ -1038,9 +1045,11 @@ def leaderboard(request):
                         true_adj += 1
                     elif decision == 'False':
                         false_adj += 1
-                    else:
+                    elif decision == 'Uncertain':
                         uncertain_adj += 1
-    
+                    elif decision == 'Reject':
+                        reject_adj += 1
+
     return render(request, 'waveforms/leaderboard.html',
                   {'user': current_user, 'glob_today': glob_today,
                    'glob_week': glob_week, 'glob_month': glob_month,
@@ -1050,9 +1059,10 @@ def leaderboard(request):
                    'user_all': user_all, 'user_true': user_true,
                    'user_false': user_false, 'one_ann': one_ann,
                    'unan_true': unan_true, 'unan_false': unan_false,
-                   'unan_uncertain': unan_uncertain, 'true_adj': true_adj,
-                   'false_adj': false_adj, 'uncertain_adj':uncertain_adj,
-                   'conflict': conflict, 'no_anns': no_anns, 
+                   'unan_uncertain': unan_uncertain, 'unan_reject': unan_reject,
+                   'true_adj': true_adj, 'false_adj': false_adj,
+                   'uncertain_adj': uncertain_adj, 'reject_adj': reject_adj,
+                   'conflict': conflict, 'no_anns': no_anns,
                    'num_events': num_events})
 
 
