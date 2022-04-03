@@ -27,13 +27,14 @@ FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
-annotations_width = '1100px'
-sidebar_width = '210px'
-event_fontsize = '24px'
-comment_box_height = '180px'
-label_fontsize = '20px'
-button_height = '30px'
-button_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
+annotations_width = '100%'
+sidebar_width = '14.58%'
+event_fontsize = '100%'
+comment_box_width = '90%'
+comment_box_height = '15vh'
+label_fontsize = '100%'
+button_height = '10%'
+button_width = '50%'
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -103,6 +104,18 @@ app.layout = html.Div([
                 children=html.Span([''], style={'fontSize': event_fontsize})
             ),
             # Submit annotation decision and comments
+            # The reviewer comment section
+            html.Label(['Enter comments here:'],
+                       style={'font-size': label_fontsize}),
+            html.Div(
+                dcc.Textarea(id='reviewer_comments',
+                             style={
+                                'width': comment_box_width,
+                                'height': comment_box_height,
+                                'font-size': label_fontsize
+                             })
+            ),
+            html.Br(),
             # For warning the user of their decision
             html.Div(id='output-provider'),
             dcc.ConfirmDialogProvider(
@@ -145,30 +158,19 @@ app.layout = html.Div([
                 message='You selected Reject... Are you sure you want to continue?'
             ),
             html.Br(),
-            # The reviewer comment section
-            html.Label(['Enter comments here:'],
-                       style={'font-size': label_fontsize}),
-            html.Div(
-                dcc.Textarea(id='reviewer_comments',
-                             style={
-                                'width': sidebar_width,
-                                'height': comment_box_height,
-                                'font-size': label_fontsize
-                             })
-            ),
-            html.Br(),
             html.Button('\u2192',
                         id='next_annotation',
                         style={'height': button_height,
                                'width': button_width,
                                'font-size': 'large'}),
-        ], style={'display': 'inline-block', 'vertical-align': '50px',
-                  'padding-right': '50px'}),
+        ], style={'display': 'inline-block', 'vertical-align': 'top',
+                  'padding-top': '3%'}),
         # The plot itself
         html.Div([
             dcc.Graph(
                 id='the_graph',
-                config=plot_config
+                config=plot_config,
+                style={'height': '70vh', 'width': '80vw'}
             ),
         ], style={'display': 'inline-block'})
     ], type='default'),
@@ -321,8 +323,8 @@ def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
 
     """
     return {
-        'height': fig_height,
-        'width': fig_width,
+        # 'height': fig_height,
+        # 'width': fig_width,
         'margin': {'l': margin_left,
                    't': margin_top,
                    'r': margin_right,

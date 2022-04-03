@@ -28,15 +28,17 @@ FILE_LOCAL = os.path.join('record-files')
 PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 ALL_PROJECTS = base.ALL_PROJECTS
 # Formatting settings
-sidebar_width = '210px'
-event_fontsize = '24px'
-comment_box_height = '255px'
-label_fontsize = '20px'
-button_height = '35px'
-submit_width = str(float(sidebar_width.split('px')[0]) / 2) + 'px'
-arrow_width = str(float(submit_width.split('px')[0]) / 2 + 3) + 'px'
+sidebar_width = '100%'
+event_fontsize = '100%'
+comment_box_width = '90%'
+comment_box_height = '30vh'
+label_fontsize = '100%'
+button_height = '10%'
+submit_width = '49%'
+arrow_width = '23%'
 # Set the default configuration of the plot top buttons
 plot_config = {
+    'responsive': True,
     'displayModeBar': True,
     'modeBarButtonsToAdd': [
     ],
@@ -105,7 +107,7 @@ app.layout = html.Div([
             html.Div(
                 dcc.Textarea(id='reviewer_comments',
                              style={
-                                'width': sidebar_width,
+                                'width': comment_box_width,
                                 'height': comment_box_height,
                                 'font-size': label_fontsize
                              })
@@ -127,13 +129,14 @@ app.layout = html.Div([
                         style={'height': button_height,
                                'width': arrow_width,
                                'font-size': 'large'}),
-        ], style={'display': 'inline-block', 'vertical-align': '35px',
-                    'padding-right': '10px'}),
+        ], style={'display': 'inline-block', 'vertical-align': 'top',
+                    'padding-top': '2%'}),
         # The plot itself
         html.Div([
             dcc.Graph(
                 id='the_graph',
-                config=plot_config
+                config=plot_config,
+                style={'height': '75vh', 'width': '80vw'}
             ),
         ], style={'display': 'inline-block'})
     ], type='default'),
@@ -372,8 +375,8 @@ def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
 
     """
     return {
-        'height': fig_height,
-        'width': fig_width,
+        # 'height': fig_height,
+        # 'width': fig_width,
         'margin': {'l': margin_left,
                    't': margin_top,
                    'r': margin_right,
