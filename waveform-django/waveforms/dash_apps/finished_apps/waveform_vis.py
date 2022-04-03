@@ -91,6 +91,7 @@ app.layout = html.Div([
                     {'label': 'True (alarm is correct)', 'value': 'True'},
                     {'label': 'False (alarm is incorrect)', 'value': 'False'},
                     {'label': 'Uncertain', 'value': 'Uncertain'},
+                    {'label': 'Reject (alarm is un-readable)', 'value': 'Reject'},
                     {'label': 'Save for Later', 'value': 'Save for Later'}
                 ],
                 labelStyle={'display': 'block'},

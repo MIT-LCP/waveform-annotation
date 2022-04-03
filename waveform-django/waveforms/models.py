@@ -27,7 +27,7 @@ class User(models.Model):
         (ENDED, 'Ended')
     ]
     practice_status = models.CharField(
-        max_length=2, 
+        max_length=2,
         choices=practice_modes,
         default=ENDED,
     )

@@ -193,9 +193,11 @@
     unan_true="{{unan_true}}"
     unan_false="{{unan_false}}"
     unan_uncertain="{{unan_uncertain}}"
+    unan_reject="{{unan_reject}}"
     true_adj="{{true_adj}}"
     false_adj="{{false_adj}}"
     uncertain_adj="{{uncertain_adj}}"
+    reject_adj="{{reject_adj}}"
     conflict="{{conflict}}"
     no_anns="{{no_anns}}"
     num_events="{{num_events}}"
@@ -380,17 +382,19 @@
     var unan_true = Number(document.getElementById('data').getAttribute('unan_true'))
     var unan_false = Number(document.getElementById('data').getAttribute('unan_false'))
     var unan_uncertain = Number(document.getElementById('data').getAttribute('unan_uncertain'))
+    var unan_reject = Number(document.getElementById('data').getAttribute('unan_reject'))
     var true_adj = Number(document.getElementById('data').getAttribute('true_adj'))
     var false_adj = Number(document.getElementById('data').getAttribute('false_adj'))
     var uncertain_adj = Number(document.getElementById('data').getAttribute('uncertain_adj'))
+    var reject_adj = Number(document.getElementById('data').getAttribute('reject_adj'))
     var conflict = Number(document.getElementById('data').getAttribute('conflict'))
     var no_anns = Number(document.getElementById('data').getAttribute('no_anns'))
     var num_events = Number(document.getElementById('data').getAttribute('num_events'))
 
     var progress_breakdown = google.visualization.arrayToDataTable([
       ['Category', 'Number of Events'],
-      ['Unanimous Decisions', unan_true + unan_false + unan_uncertain],
-      ['Conflicts Resolved', true_adj + false_adj + uncertain_adj],
+      ['Unanimous Decisions', unan_true + unan_false + unan_uncertain + unan_reject],
+      ['Conflicts Resolved', true_adj + false_adj + uncertain_adj + reject_adj],
       ['Only One Decision', one_ann],
       ['Unresolved Conflicts', conflict],
       ['No Decisions Made', no_anns],
@@ -401,6 +405,7 @@
       ['True', unan_true],
       ['False', unan_false],
       ['Uncertain', unan_uncertain],
+      ['Reject', unan_reject]
     ]);
 
     var reviewed = google.visualization.arrayToDataTable([
@@ -408,6 +413,7 @@
       ['True', true_adj],
       ['False', false_adj],
       ['Uncertain', uncertain_adj],
+      ['Reject', unan_reject]
     ]);
 
     var options_p = {
@@ -417,13 +423,13 @@
       pieSliceText: "value"
     };
     var options_u = {
-      title: "Classification of " + (unan_true + unan_false + unan_uncertain) + " Unanimous Events",
+      title: "Classification of " + (unan_true + unan_false + unan_uncertain + unan_reject) + " Unanimous Events",
       pieHole: 0.4,
       chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"},
       pieSliceText: "value"
     };
     var options_r = {
-      title: "Classification of " + (true_adj + false_adj + uncertain_adj) + " Adjudicated Events",
+      title: "Classification of " + (true_adj + false_adj + uncertain_adj + reject_adj) + " Adjudicated Events",
       pieHole: 0.4,
       chartArea: {top: "10%", bottom: "10%", left: "0%", right: "0%"},
       pieSliceText: "value"
