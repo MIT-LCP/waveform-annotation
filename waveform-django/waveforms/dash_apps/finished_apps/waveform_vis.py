@@ -1225,7 +1225,17 @@ def update_graph(dropdown_event, dropdown_record, dropdown_project):
         if idx < n_ekg_sigs:
             x_vals = x_vals[::down_sample_ekg]
             # Create the ticks
-            y_tick_vals = [round(n,1) for n in np.arange(min_y_vals, max_y_vals, grid_delta_major).tolist()]
+            min_val = round(grid_delta_major * round(min_y_vals/grid_delta_major), 1)
+            max_val = round(grid_delta_major * round(max_y_vals/grid_delta_major), 1)
+            y_tick_vals = [round(n,1) for n in np.arange(min_val, max_val, grid_delta_major).tolist()]
+            # Prevent too many from rendering
+            n_repeats = 2
+            while len(y_tick_vals) > 20:
+                new_grid_delta = n_repeats * grid_delta_major
+                min_val = round(new_grid_delta * round(min_y_vals/new_grid_delta), 1)
+                max_val = round(new_grid_delta * round(max_y_vals/new_grid_delta), 1)
+                y_tick_vals = [round(n,1) for n in np.arange(min_val, max_val, new_grid_delta).tolist()]
+                n_repeats += 1
             # Max text length to fit should be `max_y_labels`, also prevent over-crowding
             y_text_vals = y_tick_vals[::math.ceil(len(y_tick_vals)/max_y_labels)]
             # Create the labels
