@@ -4,8 +4,8 @@
 {% block content %}
 <style>
 .embed-responsive {
-  width: 1200px;
-  height: 715px;
+  width: 100%;
+  height: 90%;
 }
 .ui-resizable-e {
   width: 50%;
@@ -33,13 +33,13 @@ function displayCaliper() {
   if (caliper_wrapper.style.display == "none") {
     caliper_wrapper.style.display = "inline-block";
     caliper_wrapper.style.position = "absolute";
-    caliper_wrapper.style.left = "89%";
-    caliper_wrapper.style.top = "20%";
-    caliper_wrapper.style.padding = "25px";
-    caliper_resize.style.height = "100px";
-    caliper_resize.style.width = "80px";
-    caliper.style.height = "100px";
-    caliper.style.width = "80px";
+    caliper_wrapper.style.left = "92vw";
+    caliper_wrapper.style.top = "25vh";
+    caliper_wrapper.style.padding = "2hw";
+    caliper_resize.style.height = "11.11vh";
+    caliper_resize.style.width = "5.56vw";
+    caliper.style.height = "11.11vh";
+    caliper.style.width = "5.56vw";
   } else {
     caliper_wrapper.style.display = "none";
   }
