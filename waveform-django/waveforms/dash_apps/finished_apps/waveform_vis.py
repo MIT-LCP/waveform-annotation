@@ -97,7 +97,7 @@ app.layout = html.Div([
                     {'label': 'Save for Later', 'value': 'Save for Later'}
                 ],
                 labelStyle={'display': 'block'},
-                style={'width': sidebar_width,},
+                style={'width': sidebar_width},
                 persistence=False
             ),
             html.Br(),
@@ -130,13 +130,14 @@ app.layout = html.Div([
                                'width': arrow_width,
                                'font-size': 'large'}),
         ], style={'display': 'inline-block', 'vertical-align': 'top',
-                    'padding-top': '2%'}),
+                  'width': '20vw', 'margin-left': '10vw',
+                  'padding-top': '2%'}),
         # The plot itself
         html.Div([
             dcc.Graph(
                 id='the_graph',
                 config=plot_config,
-                style={'height': '75vh', 'width': '80vw'}
+                style={'height': '70vh', 'width': '60vw'}
             ),
         ], style={'display': 'inline-block'})
     ], type='default'),
