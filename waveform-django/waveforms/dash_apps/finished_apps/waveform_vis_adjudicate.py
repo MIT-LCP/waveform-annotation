@@ -164,13 +164,14 @@ app.layout = html.Div([
                                'width': button_width,
                                'font-size': 'large'}),
         ], style={'display': 'inline-block', 'vertical-align': 'top',
+                  'width': '20hw', 'margin-left': '10vw',
                   'padding-top': '3%'}),
         # The plot itself
         html.Div([
             dcc.Graph(
                 id='the_graph',
                 config=plot_config,
-                style={'height': '70vh', 'width': '80vw'}
+                style={'height': '70vh', 'width': '60vw'}
             ),
         ], style={'display': 'inline-block'})
     ], type='default'),
