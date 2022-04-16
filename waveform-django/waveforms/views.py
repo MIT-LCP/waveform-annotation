@@ -991,6 +991,18 @@ def leaderboard(request):
     # Get number of all events
     record_dir = Path(base.HEAD_DIR)/'record-files'
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+
+    all_annotations = Annotation.objects.all()
+    ann_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    
+    for ann in all_annotations:
+        proj = ann.project
+        rec = ann.record
+        evt = ann.event
+        is_adj = ann.is_adjudication
+        decision = ann.decision
+        ann_counts[proj][rec][evt].append((decision, is_adj))
+            
     num_events = 0
     no_anns = 0
     one_ann = 0
@@ -1019,8 +1031,8 @@ def leaderboard(request):
 
             for event in events:
                 num_events += 1
-                anns = Annotation.objects.filter(project=project, record=record.stem, event=event)
-                adj = [a for a in anns if a.is_adjudication]
+                anns = ann_counts[project][record.stem][event]
+                adj = [a for a in anns if a[1]]
 
                 if not adj:
                     if len(anns) == 0:
@@ -1028,20 +1040,20 @@ def leaderboard(request):
                     elif len(anns) == 1:
                         one_ann += 1
                     elif len(anns) == 2:
-                        if (anns[0].decision == 'True') and (anns[1].decision == 'True'):
+                        if (anns[0][0] == 'True') and (anns[1][0] == 'True'):
                             unan_true += 1
-                        elif (anns[0].decision == 'False') and (anns[1].decision == 'False'):
+                        elif (anns[0][0] == 'False') and (anns[1][0] == 'False'):
                             unan_false += 1
-                        elif (anns[0].decision == 'Uncertain') and (anns[1].decision == 'Uncertain'):
+                        elif (anns[0][0] == 'Uncertain') and (anns[1][0] == 'Uncertain'):
                             unan_uncertain += 1
-                        elif 'Reject' in [anns[0].decision, anns[1].decision]:
+                        elif 'Reject' in [anns[0][0], anns[1][0]]:
                             # Annotation is rejected if only one person thinks
                             # it should be
                             unan_reject += 1
                         else:
                             conflict += 1
                 else:
-                    decision = adj[0].decision
+                    decision = adj[0][0]
                     if decision == 'True':
                         true_adj += 1
                     elif decision == 'False':
