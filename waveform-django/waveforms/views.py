@@ -270,6 +270,7 @@ def admin_console(request):
                 'comments', 'decision_date', 'is_adjudication'
             ]
             all_anns = list(Annotation.objects.values(*all_anns_keys))
+            all_anns = [a for a in all_anns if not base.PRACTICE_SET[a['project']].get(a['event']) ]
             csv_columns = ['username', 'project', 'record', 'event',
                            'decision', 'comments', 'date', 'is_adjudication']
             all_anns = {csv_columns[i]: [d.get(k) for d in all_anns] for i,k in enumerate(all_anns_keys)}
@@ -1086,19 +1087,19 @@ def practice_test(request):
     results = {}
     correct = 0
     total = 0
-    if user.practice_status == 'CO':
-        for project,events in base.PRACTICE_SET.items():
-            results[project] = {}
-            for event,answer in events.items():
-                try:
-                    user_response = Annotation.objects.get(
-                        user=user, project=project, event=event,
-                        is_adjudication=False).decision
-                except Annotation.DoesNotExist:
-                    user_response = None
-                results[project][event] = (str(answer), user_response)
-                total += 1
-                correct = correct + 1 if str(answer) == user_response else correct + 0
+
+    for project,events in base.PRACTICE_SET.items():
+        results[project] = {}
+        for event,answer in events.items():
+            try:
+                user_response = Annotation.objects.get(
+                    user=user, project=project, event=event,
+                    is_adjudication=False).decision
+            except Annotation.DoesNotExist:
+                user_response = None
+            results[project][event] = (str(answer), user_response)
+            total += 1
+            correct = correct + 1 if str(answer) == user_response else correct + 0
 
     if request.method == 'POST':
         if 'start-practice' in request.POST:
