@@ -270,6 +270,7 @@ def admin_console(request):
                 'comments', 'decision_date', 'is_adjudication'
             ]
             all_anns = list(Annotation.objects.values(*all_anns_keys))
+            all_anns = [a for a in all_anns if not base.PRACTICE_SET[a['project']].get(a['event']) ]
             csv_columns = ['username', 'project', 'record', 'event',
                            'decision', 'comments', 'date', 'is_adjudication']
             all_anns = {csv_columns[i]: [d.get(k) for d in all_anns] for i,k in enumerate(all_anns_keys)}
@@ -990,6 +991,18 @@ def leaderboard(request):
     # Get number of all events
     record_dir = Path(base.HEAD_DIR)/'record-files'
     project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+
+    all_annotations = Annotation.objects.all()
+    ann_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    
+    for ann in all_annotations:
+        proj = ann.project
+        rec = ann.record
+        evt = ann.event
+        is_adj = ann.is_adjudication
+        decision = ann.decision
+        ann_counts[proj][rec][evt].append((decision, is_adj))
+            
     num_events = 0
     no_anns = 0
     one_ann = 0
@@ -1018,8 +1031,8 @@ def leaderboard(request):
 
             for event in events:
                 num_events += 1
-                anns = Annotation.objects.filter(project=project, record=record.stem, event=event)
-                adj = [a for a in anns if a.is_adjudication]
+                anns = ann_counts[project][record.stem][event]
+                adj = [a for a in anns if a[1]]
 
                 if not adj:
                     if len(anns) == 0:
@@ -1027,20 +1040,20 @@ def leaderboard(request):
                     elif len(anns) == 1:
                         one_ann += 1
                     elif len(anns) == 2:
-                        if (anns[0].decision == 'True') and (anns[1].decision == 'True'):
+                        if (anns[0][0] == 'True') and (anns[1][0] == 'True'):
                             unan_true += 1
-                        elif (anns[0].decision == 'False') and (anns[1].decision == 'False'):
+                        elif (anns[0][0] == 'False') and (anns[1][0] == 'False'):
                             unan_false += 1
-                        elif (anns[0].decision == 'Uncertain') and (anns[1].decision == 'Uncertain'):
+                        elif (anns[0][0] == 'Uncertain') and (anns[1][0] == 'Uncertain'):
                             unan_uncertain += 1
-                        elif 'Reject' in [anns[0].decision, anns[1].decision]:
+                        elif 'Reject' in [anns[0][0], anns[1][0]]:
                             # Annotation is rejected if only one person thinks
                             # it should be
                             unan_reject += 1
                         else:
                             conflict += 1
                 else:
-                    decision = adj[0].decision
+                    decision = adj[0][0]
                     if decision == 'True':
                         true_adj += 1
                     elif decision == 'False':
@@ -1086,19 +1099,19 @@ def practice_test(request):
     results = {}
     correct = 0
     total = 0
-    if user.practice_status == 'CO':
-        for project,events in base.PRACTICE_SET.items():
-            results[project] = {}
-            for event,answer in events.items():
-                try:
-                    user_response = Annotation.objects.get(
-                        user=user, project=project, event=event,
-                        is_adjudication=False).decision
-                except Annotation.DoesNotExist:
-                    user_response = None
-                results[project][event] = (str(answer), user_response)
-                total += 1
-                correct = correct + 1 if str(answer) == user_response else correct + 0
+
+    for project,events in base.PRACTICE_SET.items():
+        results[project] = {}
+        for event,answer in events.items():
+            try:
+                user_response = Annotation.objects.get(
+                    user=user, project=project, event=event,
+                    is_adjudication=False).decision
+            except Annotation.DoesNotExist:
+                user_response = None
+            results[project][event] = (str(answer), user_response)
+            total += 1
+            correct = correct + 1 if str(answer) == user_response else correct + 0
 
     if request.method == 'POST':
         if 'start-practice' in request.POST:

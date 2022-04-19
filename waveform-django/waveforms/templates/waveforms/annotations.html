@@ -68,7 +68,7 @@
       {% endif %}
     {% endif %}
     <br />
-    <h2>{%if user.practice_status == "ED"%}Current Assignment{% else %} <i>Practice Mode</i> {%endif%}</h2>
+    <h2>{%if user.practice_status == "ED"%}Current Assignment{% else %} <i style="color:red">Practice Mode</i> {%endif%}</h2>
     <span style="font-size: 20px; float: left;">Remaining Events: </span>
     <span style="font-size: 20px; float: right;">{{ remaining }}</span>
     <br /><br />
