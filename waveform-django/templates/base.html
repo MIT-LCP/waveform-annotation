@@ -70,14 +70,26 @@
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if 'waveforms' in request.path and 'annotations' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'waveform_published_home' %}" style="font-size: large;">Create More Annotations</a>
+              <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
+                {%if user.practice_status == "ED"%}
+                Create More Annotations
+                {% else %}
+                Annotate Practice Sample
+                {% endif %}
+              </a>
             </button>
           </div>
         </th>
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if 'waveforms/annotations' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'render_annotations' %}" style="font-size: large;">Current Assignment</a>
+              <a href="{% url 'render_annotations' %}" style="font-size: large;">
+              {%if user.practice_status == "ED"%}
+                Current Assignment
+              {% else %}
+                View All Practice Samples 
+              {% endif %}
+              </a>
             </button>
           </div>
         </th>
@@ -93,7 +105,13 @@
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'practice_test' %}" style="font-size: large;">Practice Test</a>
+              <a href="{% url 'practice_test' %}" style="font-size: large;">
+              {%if user.practice_status == "ED"%}
+                Practice Test
+              {% else %}
+                Submit Practice 
+              {% endif %}
+              </a>
             </button>
           </div>
         </th>
