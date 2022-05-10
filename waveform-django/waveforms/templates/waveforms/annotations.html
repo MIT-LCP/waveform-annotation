@@ -32,7 +32,8 @@
 </style>
 
 <div class="container">
-  <h1>All Annotations</h1>
+  <h1>All {%if user.practice_status != "ED"%} Practice {% endif %} Annotations</h1>
+  
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
