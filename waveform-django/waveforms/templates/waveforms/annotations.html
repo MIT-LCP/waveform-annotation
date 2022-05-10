@@ -32,7 +32,8 @@
 </style>
 
 <div class="container">
-  <h1>All Annotations</h1>
+  <h1>All {%if user.practice_status != "ED"%} Practice {% endif %} Annotations</h1>
+  
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
@@ -69,6 +70,11 @@
     {% endif %}
     <br />
     <h2>{%if user.practice_status == "ED"%}Current Assignment{% else %} <i style="color:red">Practice Mode</i> {%endif%}</h2>
+    {%if user.practice_status != "ED"%}
+      <span style="font-size: 20px;">Go to the "Submit Practice" page when you are ready to submit your responses and view the answers</span>
+      <br />
+      <br />
+    {% endif %}
     <span style="font-size: 20px; float: left;">Remaining Events: </span>
     <span style="font-size: 20px; float: right;">{{ remaining }}</span>
     <br /><br />
