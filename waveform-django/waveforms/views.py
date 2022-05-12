@@ -270,7 +270,10 @@ def admin_console(request):
                 'comments', 'decision_date', 'is_adjudication'
             ]
             all_anns = list(Annotation.objects.values(*all_anns_keys))
-            all_anns = [a for a in all_anns if not base.PRACTICE_SET[a['project']].get(a['event']) ]
+            all_anns = [
+                a for a in all_anns if not (base.PRACTICE_SET.get(a['project']) and \
+                    base.PRACTICE_SET.get(a['project']).get(a['event'])) 
+            ]
             csv_columns = ['username', 'project', 'record', 'event',
                            'decision', 'comments', 'date', 'is_adjudication']
             all_anns = {csv_columns[i]: [d.get(k) for d in all_anns] for i,k in enumerate(all_anns_keys)}
