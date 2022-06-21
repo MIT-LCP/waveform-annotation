@@ -71,9 +71,9 @@ def update_assignments(csv_data, project_folder):
             if user:
                 row = [event]
                 if type(user) is str:
-                    row.extend([user])
+                    row.extend({user})
                 else:
-                    row.extend(user)
+                    row.extend(set(user))
                 csvwriter.writerows([row])
     
 
@@ -124,7 +124,6 @@ def get_all_assignments(project_folder):
             csv_data[ann[0]] = [ann[1]]
         elif ann[1] not in csv_data[ann[0]]:
             csv_data[ann[0]].append(ann[1])
-
     return csv_data
 
 
