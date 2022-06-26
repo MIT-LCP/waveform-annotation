@@ -17,7 +17,9 @@ class GraphSettings(forms.ModelForm):
     Allow the user to change their default graph settings.
     """
     class Meta:
+        # The name of the model to be modified.
         model = UserSettings
+        # The attributes of the model to be modified.
         fields = (
             'fig_height', 'fig_width', 'margin_left', 'margin_top',
             'margin_right', 'margin_bottom', 'grid_color', 'background_color',
@@ -26,6 +28,7 @@ class GraphSettings(forms.ModelForm):
             'signal_std', 'time_range_min', 'time_range_max',
             'window_size_min', 'window_size_max'
         )
+        # The help text that further informs the user.
         help_texts = {
             'fig_height': """The figure height""",
             'fig_width': """The figure width""",
@@ -60,6 +63,7 @@ class GraphSettings(forms.ModelForm):
             'window_size_max': """How much initial signal should be displayed
                 after the event (seconds)"""
         }
+        # What kind of input is accepted for each model attribute.
         widgets = {
             'fig_height': forms.NumberInput(attrs={'min': 0, 'type': 'number'}),
             'fig_width': forms.NumberInput(attrs={'min': 0, 'type': 'number'}),
@@ -83,6 +87,7 @@ class GraphSettings(forms.ModelForm):
             'window_size_min': forms.NumberInput(attrs={'min': 0, 'max': 300, 'type': 'number'}),
             'window_size_max': forms.NumberInput(attrs={'min': 0, 'max': 300, 'type': 'number'}),
         }
+        # The main label for each setting.
         labels = {
             'fig_height': 'Figure height',
             'fig_width': 'Figure width',
@@ -109,14 +114,32 @@ class GraphSettings(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         """
-        Initialize a settings model for the user
+        Initialize a settings model for the user.
+
+        Parameters
+        ----------
+        TODO
+
+        Returns
+        -------
+        N/A
+
         """
         super().__init__(*args, **kwargs)
         self.user = user.username
 
     def clean(self):
         """
-        Check for any invalid values that may break the code later
+        Check for any invalid values that may break the code later.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         if self.errors:
             return
@@ -129,7 +152,16 @@ class GraphSettings(forms.ModelForm):
 
     def reset_default(self):
         """
-        Reset all the values to their defaults
+        Reset all the values to their defaults.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         for f in self.instance._meta.fields:
             if f.name in set(self.fields):
@@ -138,12 +170,24 @@ class GraphSettings(forms.ModelForm):
 
     def save(self):
         """
-        Save the cleaned form data
+        Save the cleaned form data.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         super().save()
 
 
 class InviteUserForm(forms.Form):
+    """
+    The form used to invite new users to the platform.
+    """
     email = forms.EmailField(
         label=_('Email'),
         max_length=254,
@@ -154,6 +198,15 @@ class InviteUserForm(forms.Form):
     def clean(self):
         """
         Check for any invalid values that may break the code later.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         if self.errors:
             return
@@ -162,6 +215,26 @@ class InviteUserForm(forms.Form):
                   from_email, to_email, html_email_template_name=None):
         """
         Send an invite email to `to_email`.
+
+        Parameters
+        ----------
+        subject_template_name : str
+            The template for the email subject.
+        email_template_name : str
+            The template for the email.
+        context : str
+            The information (headers) needed for the email.
+        from_email : str
+            The email of the sender.
+        to_email : str
+            The email of the receiver.
+        html_email_template_name : str, optional
+            The template for the HTML email.
+
+        Returns
+        -------
+        N/A
+
         """
         subject = loader.render_to_string(subject_template_name, context)
         # Email subject *must not* contain newlines
@@ -184,6 +257,28 @@ class InviteUserForm(forms.Form):
              extra_email_context=None):
         """
         Send the invited user an email so they can sign up for an account.
+
+        Parameters
+        ----------
+        domain_override : str, optional
+            The name of the site.
+        subject_template_name : str, optional
+            The template for the email subject.
+        email_template_name : str, optional
+            The template for the email.
+        from_email : str, optional
+            The email of the sender.
+        request : Request object, optional
+            The current HTTP request.
+        html_email_template_name : str, optional
+            The template for the HTML email.
+        extra_email_context : str, optional
+            The extra information (headers) needed for the email.
+
+        Returns
+        -------
+        N/A
+
         """
         email = self.cleaned_data['email']
 

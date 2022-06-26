@@ -5,6 +5,9 @@ from django.utils import six
 
 
 class UserTokenGenerator(PasswordResetTokenGenerator):
+    """
+    Generate a token for a user's new password.
+    """
     def _make_hash_value(self, user, timestamp):
         # Reset the link every hour
         # TODO: Add a last_login field and incorporate this to the token in

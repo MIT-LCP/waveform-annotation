@@ -9,6 +9,18 @@ from website.settings import base
 
 
 def update_annotations():
+    """
+    Automatically download the annotations to a CSV file as a cron job.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A
+
+    """
     # Update the annotation CSV file each night at midnight.
     all_anns = Annotation.objects.all()
     csv_df = pd.DataFrame.from_dict({

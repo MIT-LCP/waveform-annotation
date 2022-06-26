@@ -273,8 +273,6 @@ def get_user_records(user):
     ----------
     user : User
         The User whose records will be retrieved.
-    project_folder : str
-        The project used to retrieve the records.
 
     Returns
     -------

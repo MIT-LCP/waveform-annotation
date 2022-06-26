@@ -1,20 +1,19 @@
-import os
 from collections import Counter, defaultdict
+import csv
 from datetime import timedelta
 from operator import itemgetter
-import csv
+import os
 import random as rd
 
-from pathlib import Path
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.core.paginator import Paginator
-from django.db import connection
 import pandas as pd
+from pathlib import Path
 
 from waveforms.forms import GraphSettings, InviteUserForm
 from waveforms.models import Annotation, InvitedEmails, User, UserSettings
@@ -75,12 +74,13 @@ def update_assignments(csv_data, project_folder):
                 else:
                     row.extend(set(user))
                 csvwriter.writerows([row])
-    
+
 
 def get_all_assignments(project_folder):
     """
     Return a dictionary that holds events as keys and a list assigned to users
-    as values, based on the assignment CSV file as well as completed annotations.
+    as values, based on the assignment CSV file as well as completed
+    annotations.
 
     Parameters
     ----------
@@ -129,16 +129,18 @@ def get_all_assignments(project_folder):
 
 def get_practice_anns(ann):
     """
-    Filter Annotation object to only include events in practice set
+    Filter Annotation object to only include events in practice set.
 
     Parameters
     ----------
     ann : Annotation object
-        Object to be filtered
+        The object to be filtered.
 
     Returns
     -------
     ann: Annotation object
+        The object after it has been filtered.
+
     """
     events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
     events = []
@@ -245,7 +247,7 @@ def admin_console(request):
 
     Parameters
     ----------
-    N/A : N/A
+    N/A
 
     Returns
     -------
@@ -468,7 +470,7 @@ def render_adjudications(request):
 
     Parameters
     ----------
-    N/A : N/A
+    N/A
 
     Returns
     -------
@@ -632,7 +634,7 @@ def render_annotations(request):
 
     Parameters
     ----------
-    N/A : N/A
+    N/A
 
     Returns
     -------
@@ -996,7 +998,7 @@ def leaderboard(request):
 
     all_annotations = Annotation.objects.all()
     ann_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-    
+
     for ann in all_annotations:
         proj = ann.project
         rec = ann.record
@@ -1004,7 +1006,7 @@ def leaderboard(request):
         is_adj = ann.is_adjudication
         decision = ann.decision
         ann_counts[proj][rec][evt].append((decision, is_adj))
-            
+
     num_events = 0
     no_anns = 0
     one_ann = 0
@@ -1084,7 +1086,7 @@ def leaderboard(request):
 @login_required
 def practice_test(request):
     """
-    Request practice set of events
+    Request practice set of events.
 
     Parameters
     ----------
@@ -1093,7 +1095,7 @@ def practice_test(request):
     Returns
     -------
     N/A : HTML page / template variable
-        HTML webpage responsible for assigning practice events
+        HTML webpage responsible for assigning practice events.
 
     """
     user = User.objects.get(username=request.user)

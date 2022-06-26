@@ -13,6 +13,16 @@ from website.settings import base
 def register_page(request):
     """
     Create a new account upon request.
+
+    Parameters
+    ----------
+    request : Request object
+        The current HTTP request.
+
+    Returns
+    -------
+    N/A
+
     """
     if request.user.is_authenticated:
         return redirect('waveform_published_home')
@@ -58,9 +68,20 @@ def register_page(request):
                 return redirect('login')
         return render(request, 'website/register.html', {'form': form})
 
+
 def login_page(request):
     """
     Login the user upon request.
+
+    Parameters
+    ----------
+    request : Request object
+        The current HTTP request.
+
+    Returns
+    -------
+    N/A
+
     """
     if request.user.is_authenticated:
         return redirect('waveform_published_home')
@@ -89,7 +110,21 @@ def login_page(request):
             else:
                 return redirect('waveform_published_home')
 
+
 def reset_password(request):
+    """
+    Reset the user's password.
+
+    Parameters
+    ----------
+    request : Request object
+        The current HTTP request.
+
+    Returns
+    -------
+    N/A
+
+    """
     form = ResetPasswordForm()
     if request.method == 'POST':
         form = ResetPasswordForm(request.POST)
@@ -102,7 +137,21 @@ def reset_password(request):
     return render(request, 'registration/password_reset_form.html',
                   {'form': form})
 
-def change_password(request, uidb64, token):
+
+def change_password(request):
+    """
+    Change the user's password.
+
+    Parameters
+    ----------
+    request : Request object
+        The current HTTP request.
+
+    Returns
+    -------
+    N/A
+
+    """
     form = ChangePasswordForm()
     if request.method == 'POST':
         form = ChangePasswordForm(request.POST)
@@ -113,10 +162,21 @@ def change_password(request, uidb64, token):
     return render(request, 'registration/password_reset_confirm.html',
                   {'form': form})
 
+
 @login_required
 def logout_user(request):
     """
     Logout the user upon request.
+
+    Parameters
+    ----------
+    request : Request object
+        The current HTTP request.
+
+    Returns
+    -------
+    N/A
+
     """
     logout(request)
     messages.info(request, 'Logged out successfully!')
