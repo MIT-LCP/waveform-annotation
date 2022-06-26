@@ -118,7 +118,7 @@ def get_all_assignments(project_folder):
                 break
 
     anns = Annotation.objects.filter(
-        project=project_folder).values_list(*['event','user__username'])
+        project=project_folder, is_adjudication=False).values_list(*['event','user__username'])
     for ann in anns:
         if not csv_data.get(ann[0]):
             csv_data[ann[0]] = [ann[1]]
