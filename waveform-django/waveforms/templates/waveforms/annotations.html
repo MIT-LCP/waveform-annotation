@@ -33,7 +33,7 @@
 
 <div class="container">
   <h1>All {%if user.practice_status != "ED"%} Practice {% endif %} Annotations</h1>
-  
+
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
@@ -195,15 +195,23 @@
   {% if complete_page %}
     <div class="page-links">
       {% if complete_page.has_previous %}
-        <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.previous_page_number}}#complete_annotations">Previous Page</a>&emsp;
+        <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.previous_page_number }}#complete_annotations">Previous Page</a>&emsp;
       {% endif %}
       {% if complete_page.has_next %}
-        <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.next_page_number}}#complete_annotations">Next Page</a>&emsp;
+        <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.next_page_number }}#complete_annotations">Next Page</a>&emsp;
       {% endif %}
-      {% if request.GET.complete_page == 'all' %}
-        <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
+      {% if request.GET %}
+        {% if request.GET.complete_page == 'all' %}
+          <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
+        {% else %}
+          {% if n_complete > 5 %}
+            <a href="{% url 'render_annotations' %}?incomplete_page=all#complete_annotations">Show all</a>
+          {% endif %}
+        {% endif %}
       {% else %}
-        <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
+        {% if n_complete > 5 %}
+          <a href="{% url 'render_annotations' %}?incomplete_page=all#complete_annotations">Show all</a>
+        {% endif %}
       {% endif %}
     </div>
   {% endif %}
@@ -248,18 +256,26 @@
   <div id="incomplete_annotations">
     <h2>Incomplete Annotations</h2>
   </div>
-  {% if incomplete_page%}
+  {% if incomplete_page %}
     <div class="page-links">
       {% if incomplete_page.has_previous %}
-        <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.previous_page_number}}#incomplete_annotations">Previous Page</a>&emsp;
+        <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.previous_page_number }}#incomplete_annotations">Previous Page</a>&emsp;
       {% endif %}
       {% if incomplete_page.has_next %}
-        <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.next_page_number}}#incomplete_annotations">Next Page</a>&emsp;
+        <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.next_page_number }}#incomplete_annotations">Next Page</a>&emsp;
       {% endif %}
-      {% if request.GET.incomplete_page == 'all' %}
-        <a href="{% url 'render_annotations' %}?incomplete_page=1#incomplete_annotations">Show pages</a>
+      {% if request.GET %}
+        {% if request.GET.incomplete_page == 'all' %}
+          <a href="{% url 'render_annotations' %}?incomplete_page=1#incomplete_annotations">Show pages</a>
+        {% else %}
+          {% if n_incomplete > 5 %}
+            <a href="{% url 'render_annotations' %}?incomplete_page=all#incomplete_annotations">Show all</a>
+          {% endif %}
+        {% endif %}
       {% else %}
-        <a href="{% url 'render_annotations' %}?incomplete_page=all#incomplete_annotations">Show all</a>
+        {% if n_incomplete > 5 %}
+          <a href="{% url 'render_annotations' %}?incomplete_page=all#incomplete_annotations">Show all</a>
+        {% endif %}
       {% endif %}
     </div>
   {% endif %}
