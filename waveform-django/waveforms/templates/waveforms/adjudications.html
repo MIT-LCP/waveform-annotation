@@ -111,8 +111,14 @@
       {% if complete_page.has_next %}
         <a href="{% url 'render_adjudications' %}?complete_page={{ complete_page.next_page_number }}#complete_adjudications">Next Page</a>&emsp;
       {% endif %}
-      {% if request.GET.complete_page == 'all' %}
-        <a href="{% url 'render_adjudications' %}?complete_page=1#complete_adjudications">Show pages</a>
+      {% if request.GET %}
+        {% if request.GET.complete_page == 'all' %}
+          <a href="{% url 'render_adjudications' %}?complete_page=1#complete_adjudications">Show pages</a>
+        {% else %}
+          {% if n_complete > 5 %}
+            <a href="{% url 'render_adjudications' %}?complete_page=all#complete_adjudications">Show all</a>
+          {% endif %}
+        {% endif %}
       {% else %}
         {% if n_complete > 5 %}
           <a href="{% url 'render_adjudications' %}?complete_page=all#complete_adjudications">Show all</a>
@@ -173,8 +179,14 @@
       {% if incomplete_page.has_next %}
         <a href="{% url 'render_adjudications' %}?incomplete_page={{ incomplete_page.next_page_number }}#incomplete_adjudications">Next Page</a>&emsp;
       {% endif %}
-      {% if request.GET.incomplete_page == 'all' %}
-        <a href="{% url 'render_adjudications' %}?incomplete_page=1#incomplete_adjudications">Show pages</a>
+      {% if request.GET %}
+        {% if request.GET.incomplete_page == 'all' %}
+          <a href="{% url 'render_adjudications' %}?incomplete_page=1#incomplete_adjudications">Show pages</a>
+        {% else %}
+          {% if n_incomplete > 5 %}
+            <a href="{% url 'render_adjudications' %}?incomplete_page=all#incomplete_adjudications">Show all</a>
+          {% endif %}
+        {% endif %}
       {% else %}
         {% if n_incomplete > 5 %}
           <a href="{% url 'render_adjudications' %}?incomplete_page=all#incomplete_adjudications">Show all</a>

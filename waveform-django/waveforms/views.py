@@ -785,17 +785,19 @@ def render_annotations(request):
     saved_page = pag_saved.get_page(saved_page_num)
     saved_anns = dict(saved_page)
 
+    n_complete = len(completed_anns.items())
     complete_page_num = request.GET.get('complete_page')
     if complete_page_num == 'all':
-        pag_complete = Paginator(tuple(completed_anns.items()), len(completed_anns.items()))
+        pag_complete = Paginator(tuple(completed_anns.items()), n_complete)
     else:
         pag_complete = Paginator(tuple(completed_anns.items()), 5)
     complete_page = pag_complete.get_page(complete_page_num)
     completed_anns = dict(complete_page)
 
+    n_incomplete = len(incompleted_anns.items())
     incomplete_page_num = request.GET.get('incomplete_page')
     if incomplete_page_num == 'all':
-        pag_incomplete = Paginator(tuple(incompleted_anns.items()), len(incompleted_anns.items()))
+        pag_incomplete = Paginator(tuple(incompleted_anns.items()), n_incomplete)
     else:
         pag_incomplete = Paginator(tuple(incompleted_anns.items()), 5)
     incomplete_page = pag_incomplete.get_page(incomplete_page_num)
@@ -883,7 +885,8 @@ def render_annotations(request):
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
                    'categories': categories, 'completed_anns': completed_anns,
-                   'complete_page': complete_page, 'search': search,
+                   'complete_page': complete_page, 'n_complete': n_complete,
+                   'n_incomplete': n_incomplete, 'search': search,
                    'saved_anns': saved_anns, 'saved_page': saved_page,
                    'incompleted_anns': incompleted_anns,
                    'incomplete_page': incomplete_page,
