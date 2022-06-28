@@ -75,7 +75,7 @@ def update_assignments(csv_data, project_folder):
                 else:
                     row.extend(set(user))
                 csvwriter.writerows([row])
-    
+
 
 def get_all_assignments(project_folder):
     """
@@ -843,7 +843,7 @@ def render_annotations(request):
             # First assign events that already have one user assigned
             for project,assignments in assigned_events.items():
                 for event,assignees in assignments.items():
-                    if len(assignees) == 1:
+                    if (len(assignees) == 1) and (user.username not in assignees):
                         assignees.append(user.username)
                         assigned_events[project][event] = assignees
                         num_events -= 1
