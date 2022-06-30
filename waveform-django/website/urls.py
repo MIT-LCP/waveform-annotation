@@ -1,7 +1,7 @@
-from django.urls import path
-from django.http import HttpResponse
 from django.conf.urls import include
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
+from django.urls import path
 
 import debug_toolbar
 from website import views

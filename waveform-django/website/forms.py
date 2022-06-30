@@ -10,17 +10,22 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 
 from waveforms.models import User
-from website.middleware import get_current_user
 from website.tokens import password_reset_token
 
 
 class CreateUserForm(UserCreationForm):
+    """
+    For creating a new user.
+    """
     class Meta:
         model = d_User
         fields = ['username', 'email', 'password1', 'password2']
 
 
 class ResetPasswordForm(forms.Form):
+    """
+    For changing the user's password.
+    """
     username = UsernameField(
         widget = forms.TextInput(attrs={'autofocus': True})
     )
@@ -36,6 +41,15 @@ class ResetPasswordForm(forms.Form):
     def clean(self):
         """
         Check for any invalid values that may break the code later.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         if self.errors:
             return
@@ -49,6 +63,26 @@ class ResetPasswordForm(forms.Form):
                   from_email, to_email, html_email_template_name=None):
         """
         Send a django.core.mail.EmailMultiAlternatives to `to_email`.
+
+        Parameters
+        ----------
+        subject_template_name : str
+            The template for the email subject.
+        email_template_name : str
+            The template for the email.
+        context : str
+            The extra information (headers) needed for the email.
+        from_email : str
+            The email of the sender.
+        to_email : str
+            The email of the receiver.
+        html_email_template_name : str, optional
+            The template for the HTML email.
+
+        Returns
+        -------
+        N/A
+
         """
         subject = loader.render_to_string(subject_template_name, context)
         # Email subject *must not* contain newlines
@@ -67,6 +101,18 @@ class ResetPasswordForm(forms.Form):
     def get_user(self, username):
         """
         Given a username, return matching user who should receive a reset.
+
+        Parameters
+        ----------
+        username : str
+            The user's username.
+
+        Returns
+        -------
+        user : User object
+            The object from the User model that matches the requested
+            username.
+
         """
         try:
             user = User.objects.get(username__exact=username)
@@ -87,6 +133,28 @@ class ResetPasswordForm(forms.Form):
         """
         Generate a one-use only link for resetting password and send it to the
         user.
+
+        Parameters
+        ----------
+        domain_override : str, optional
+            The name of the site.
+        subject_template_name : str, optional
+            The template for the email subject.
+        email_template_name : str, optional
+            The template for the email.
+        from_email : str, optional
+            The email of the sender.
+        request : Request object, optional
+            The current HTTP request.
+        html_email_template_name : str, optional
+            The template for the HTML email.
+        extra_email_context : str, optional
+            The extra information (headers) needed for the email.
+
+        Returns
+        -------
+        N/A
+
         """
         username = self.cleaned_data['username']
         email = self.cleaned_data['email']
@@ -116,6 +184,9 @@ class ResetPasswordForm(forms.Form):
 
 
 class ChangePasswordForm(forms.Form):
+    """
+    The form to change the user's password.
+    """
     username = UsernameField(
         widget = forms.TextInput(attrs={'autofocus': True})
     )
@@ -132,6 +203,15 @@ class ChangePasswordForm(forms.Form):
     def clean(self):
         """
         Check for any invalid values that may break the code later.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
         """
         if self.errors:
             return
@@ -141,6 +221,18 @@ class ChangePasswordForm(forms.Form):
                 match. Please try again.""")
 
     def save(self):
+        """
+        Save the new user's password.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
+        """
         user = d_User.objects.get(username__exact=self.cleaned_data['username'])
         user.set_password(self.cleaned_data['password1'])
         user.save()

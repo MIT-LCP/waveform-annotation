@@ -9,6 +9,9 @@ from website.settings import base
 
 
 class User(models.Model):
+    """
+    The model for each user on the platform.
+    """
     username = models.CharField(max_length=150, unique=True, blank=False)
     email = models.EmailField(max_length=255, unique=True, null=True,
         blank=False, validators=[EmailValidator()])
@@ -17,7 +20,7 @@ class User(models.Model):
     is_admin = models.BooleanField(default=False)
     last_login = models.DateTimeField(default=timezone.now)
     date_assigned = models.DateTimeField(default=timezone.now)
-
+    # Completion status of the practice test
     BEGAN = 'BG'
     COMPLETED = 'CO'
     ENDED = 'ED'
@@ -33,6 +36,20 @@ class User(models.Model):
     )
 
     def num_annotations(self, project=None):
+        """
+        Determine the number of annotations for the current user.
+
+        Parameters
+        ----------
+        project : str, optional
+            The desired project from which to query for user annotations.
+
+        Returns
+        -------
+        N/A : int
+            The number of annotations for the current user.
+
+        """
         if project:
             return len(Annotation.objects.filter(user=self, project=project,
                                                  is_adjudication=False))
@@ -41,6 +58,24 @@ class User(models.Model):
                                                  is_adjudication=False))
 
     def new_settings(self):
+        """
+        Returns the changes in the user settings from default values.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        diff_settings : dict
+            All of the user settings changes from default in the form of:
+                {
+                    'field1': [default1, user_change1],
+                    'field2': [default2, user_change2],
+                    ...
+                }
+
+        """
         diff_settings = {}
         all_fields = [f.name for f in UserSettings._meta.fields][2:]
         for field in all_fields:
@@ -51,6 +86,19 @@ class User(models.Model):
         return diff_settings
 
     def events_remaining(self):
+        """
+        Return the total number of event remaining from the user's assignment.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        count : int
+            The total number of events remaining from the user's assignment.
+
+        """
         BASE_DIR = base.BASE_DIR
         FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
         FILE_LOCAL = os.path.join('record-files')
@@ -75,6 +123,9 @@ class User(models.Model):
 
 
 class InvitedEmails(models.Model):
+    """
+    The emails which have been invited and their associated account.
+    """
     email = models.EmailField(max_length=255, unique=True, null=True,
         blank=False, validators=[EmailValidator()])
     last_invite_date = models.DateTimeField()
@@ -84,6 +135,8 @@ class InvitedEmails(models.Model):
 
 
 class Annotation(models.Model):
+    """
+    """
     user = models.ForeignKey('User', related_name='annotation',
         on_delete=models.CASCADE)
     project = models.CharField(max_length=50, blank=False)
@@ -95,22 +148,37 @@ class Annotation(models.Model):
     is_adjudication = models.BooleanField(default=False, null=True)
 
     def update(self):
-        all_annotations = Annotation.objects.filter(is_adjudication=False)
-        exists_already = False
-        for a in all_annotations:
-            if ((a.user == self.user) and (a.project == self.project) and
-               (a.record == self.record) and (a.event == self.event)):
-                exists_already = True
+        """
+        Update the user's annotation if it exists, else create a new one.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
+        """
+        all_annotations = Annotation.objects.filter(
+            user=self.user, project=self.project, record=self.record,
+            event=self.event, is_adjudication=False
+        )
+        if all_annotations:
+            for a in all_annotations:
                 a.decision = self.decision
                 a.comments = self.comments
                 a.decision_date = self.decision_date
                 a.save(update_fields=['decision', 'comments',
                                       'decision_date'])
-        if not exists_already:
+        else:
             self.save()
 
 
 class UserSettings(models.Model):
+    """
+    The settings for the user to adjust their graph display.
+    """
     user = models.ForeignKey('User', related_name='settings',
         on_delete=models.CASCADE)
     fig_height = models.FloatField(blank=False, default=690.0)

@@ -192,7 +192,12 @@ def get_current_conflicting_annotation(project='', record='', event=''):
 
     PARAMETERS
     ----------
-    N/A
+    project : str, optional
+        The desired project.
+    record : str, optional
+        The desired record.
+    event : str, optional
+        The desired event.
 
     RETURNS
     -------

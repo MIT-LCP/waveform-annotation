@@ -1,14 +1,28 @@
-from schema import Query
 from django.test.testcases import TestCase
 import graphene
 import json
+from schema import Query
 
 from waveforms.models import Annotation
 
 
 class TestGraphQL(TestCase):
-
+    """
+    Test the GraphQL API queries.
+    """
     def test_all_annotations(self):
+        """
+        Test querying for annotations and their attributes.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
+        """
         schema = graphene.Schema(query=Query, auto_camelcase=False)
         query_correct = """
             query {
