@@ -1,0 +1,8 @@
+test1_3m 4 250 150000
+test1_3m.mat 16+24 3354.4573/mV 0 0 2349 12864 0 II
+test1_3m.mat 16+24 1879.6348/mV 0 0 -486 -25445 0 V
+test1_3m.mat 16+24 3227.8724/% 0 0 2641 -4493 0 PLETH
+test1_3m.mat 16+24 72.0079/mmHg 0 0 2739 15258 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record test1_3

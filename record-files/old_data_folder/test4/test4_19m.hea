@@ -1,0 +1,8 @@
+test4_19m 4 250 150000
+test4_19m.mat 16+24 2932.3076/mV 0 0 -3 10659 0 II
+test4_19m.mat 16+24 2868.1358/mV 0 0 -147 30917 0 V
+test4_19m.mat 16+24 4345.7942/% 0 0 8390 -27308 0 PLETH
+test4_19m.mat 16+24 37.0264/mmHg 0 0 1506 1432 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record test4_19

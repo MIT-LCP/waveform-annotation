@@ -1,32 +1,5 @@
-# Django database
-db.sqlite3
-
-# Redis cache
-*.rdb
-
-# WFDB files
-*.hea*
-*.alm*
-*.dat*
-*.mat*
-*.cba*
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
-
-# Django stuff
-*.log
-local_settings.py
-
-# Dotenv
-.env
-.venv
-
-# virtualenv
-env/
-env3/
-venv/
-ENV/
 
 # OSX .DS_Store
 .DS_Store

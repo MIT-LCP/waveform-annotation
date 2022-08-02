@@ -1,0 +1,8 @@
+test3_3m 4 250 150000
+test3_3m.mat 16+24 2967.8877/mV 0 0 1121 9100 0 II
+test3_3m.mat 16+24 744.4333/mV 0 0 32767 -7086 0 V
+test3_3m.mat 16+24 2508.539/% 0 0 4229 -22398 0 PLETH
+test3_3m.mat 16+24 16314.762/Imp 0 0 -116 30451 0 RESP
+#VTach
+#Creator: wfdb2mat
+#Source: record test3_3

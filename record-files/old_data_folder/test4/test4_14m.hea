@@ -1,0 +1,8 @@
+test4_14m 4 250 150000
+test4_14m.mat 16+24 2498.9116/mV 0 0 -1825 -24478 0 II
+test4_14m.mat 16+24 3081.4269/mV 0 0 251 25142 0 V
+test4_14m.mat 16+24 4072.7057/% 0 0 6653 4259 0 PLETH
+test4_14m.mat 16+24 37.0297/mmHg 0 0 1196 -15449 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record test4_14

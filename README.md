@@ -1,37 +1,60 @@
-# waveform-annotation
-Platform for annotating physiological waveform data.
+# waveform-annotation admin test branch!
+Branch for testing admin features of the annotator. Most of the source code and other files are removed to reduce confusion about where to find testing features. Do not make pull requests or merge this branch unless it regards the development of the testing for the admin features. When finished testing, run `git reset --hard admin_practice` to revert back to the original state of the branch to practice some more.
 
-## Running local instance using Django server
+---
 
-- Install sqlite3: `sudo apt-get install sqlite3`.
-- Install redis for cache (or more recent version):
+## For adding `RECORDS` files to a new data folder
+### Move into where the data is stored (if starting in project folder, `waveform-annotation`)
 ```
-$ wget https://download.redis.io/releases/redis-6.2.6.tar.gz
-$ tar xzf redis-6.2.6.tar.gz
-$ cd redis-6.2.6
-$ make
-$ make install
+cd record-files
 ```
-- Create python environment with python 3.6: `python3 -m venv env`.
-- Activate virtual python environment: `source env/bin/activate`.
-- Install packages: `pip install -r requirements.txt`.
-- Set up environment: `cp .env.example .env`.
-- Within the `waveform-django` directory:
-  - Run: `python manage.py runserver` to run the server.
-- You should be able to access the waveform landing page at: <http://localhost:8000/waveform-annotation/waveforms/>
-- To have access to the cache:
-  - Run: `redis-server` in another terminal tab. You should be able to see the content of the website which would have been sent on the live site. If you do not run this command first before testing out the parts of the site which need cache, you will receive a `ConnectionRefusedError: [Errno 61] Connection refused` error.
-- If you would like to test out the email features:
-  - Run: `python -m smtpd -n -c DebuggingServer localhost:1025` in another terminal tab. You should be able to see the content of the email which would have been sent on the live site. If you do not run this command first before testing out the email features, you will receive a `ConnectionRefusedError: [Errno 61] Connection refused` error.
+### Get the scripts to create the annotation folders
+```
+cp -r old_data_folder/*.sh new_data_folder
+```
+### Move to the folder with the new data
+```
+cd new_data_folder
+```
+### Make sure the `RECORDS` files in each copied script are what you want
+### Create all of the `RECORDS` files in the sub-directories and call it `RECORDS_VTVF` ... note, feel free to change the name, you will just have to adjust the `RECORDS_FILE` variable in the `waveform-django/website/settings/base.py` script
+```
+./sub_records.sh RECORDS_VTVF
+```
+### Create all the `RECORDS` file in the top-directory and call it `RECORDS_VTVF`
+```
+./top_records.sh RECORDS_VTVF
+```
+### Create a blank file to track annotations
+```
+touch user_assignments.csv
+```
+### Filter the annotations to be a specific number (pull from `RECORDS_VTVF`, limit of 5 events per record)
+```
+./filter_anns.sh RECORDS_VTVF 5
+```
 
-## Basic server commands
-- To migrate new models:
-  - Run: `python manage.py migrate --run-syncdb`
-- To reset the database:
-  - Run: `python manage.py flush`
-- After finished, deactivate virtual python environment: `deactivate`
+---
 
-## Viewing current annotations in database
-
-- Using GraphQL API: Go to <http://localhost:8000/waveform-annotation/graphql?query={all_annotations{edges{node{user{username},record,event,decision,comments,decision_date}}}}> or other desired query as seen here ... <https://graphql.org/learn/queries/>
-- Using SQLite3: `cd waveform-django`, `sqlite3 db.sqlite3`, then `select * from waveforms_annotation;`
+## For merging completed new data folders with existing folders
+### Move into where the data is stored (if starting in project folder, `waveform-annotation`)
+```
+cd record-files
+```
+### Find if folder names overlap, if they do then change the new folder names and adjust the WFDB files accordingly ... it is okay if you get temporary files such as `.DS_Store`
+```
+find "old_data_folder/" "merge_data_folder/" -printf '%P\n' | sort | uniq -d
+```
+### Note, if this fails (especially on Mac) you have have to do the following instead
+```
+brew install findutils
+gfind "old_data_folder/" "merge_data_folder/" -printf '%P\n' | sort | uniq -d
+```
+### Copy the new data to the old data folder
+```
+find merge_data_folder/ -mindepth 1 -maxdepth 1 -type d -exec cp -rv {} old_data_folder/ \;
+```
+### Append the new `RECORDS` to the old `RECORDS`
+```
+cat merge_data_folder/RECORDS_VTVF >> old_data_folder/RECORDS_VTVF
+```

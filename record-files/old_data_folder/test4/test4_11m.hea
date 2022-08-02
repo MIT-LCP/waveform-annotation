@@ -1,0 +1,8 @@
+test4_11m 4 250 150000
+test4_11m.mat 16+24 1808.101/mV 0 0 406 30216 0 II
+test4_11m.mat 16+24 2759.7535/mV 0 0 82 20493 0 V
+test4_11m.mat 16+24 2945.0938/% 0 0 5686 13952 0 PLETH
+test4_11m.mat 16+24 40.7037/mmHg 0 0 1174 14888 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record test4_11
