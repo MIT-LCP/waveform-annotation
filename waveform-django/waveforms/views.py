@@ -359,15 +359,12 @@ def admin_console(request):
         records = [a[0] for a in all_annotations]
         events = [a[1] for a in all_annotations]
 
-        conflict_anns[project] = {}
-        unanimous_anns[project] = {}
-        all_anns[project] = {}
+        conflict_anns[project] = defaultdict(dict)
+        unanimous_anns[project] = defaultdict(dict)
+        all_anns[project] = defaultdict(dict)
 
         # Get the events
         for rec in all_records[project]:
-            conflict_anns[project][rec] = {}
-            unanimous_anns[project][rec] = {}
-            all_anns[project][rec] = {}
             records_path = os.path.join(PROJECT_PATH, project, rec,
                                         base.RECORDS_FILE)
             with open(records_path, 'r') as f:
@@ -395,6 +392,7 @@ def admin_console(request):
                                                         ann[3], ann[4]])
                 else:
                     temp_all_anns.append(['-', '-', '-', '-', '-'])
+                
                 # Get the completion stats for each record
                 if temp_conflict_anns != []:
                     conflict_anns[project][rec][evt] = temp_conflict_anns
@@ -402,6 +400,25 @@ def admin_console(request):
                     unanimous_anns[project][rec][evt] = temp_unanimous_anns
                 if temp_all_anns != []:
                     all_anns[project][rec][evt] = temp_all_anns
+        
+        conf_page_num = request.GET.get(f"{project}_conflicts")
+        unan_page_num = request.GET.get(f"{project}_unanimous")
+        unfi_page_num = request.GET.get(f"{project}_unfinished")
+
+        page_conflict = Paginator(tuple(conflict_anns[project].items()), 3).get_page(conf_page_num)
+        page_unanimous = Paginator(tuple(unanimous_anns[project].items()), 3).get_page(unan_page_num)
+        page_unfinished = Paginator(tuple(all_anns[project].items()), 3).get_page(unfi_page_num)
+        
+        conflict_anns[project] = page_conflict
+        unanimous_anns[project] = page_unanimous
+        all_anns[project] = page_unfinished
+
+        if not page_conflict:
+            del conflict_anns[project]
+        if not unanimous_anns[project]:
+            del unanimous_anns[project]
+        if not all_anns[project]:
+            del all_anns[project]
 
     # Categories to display for the annotations
     categories = [

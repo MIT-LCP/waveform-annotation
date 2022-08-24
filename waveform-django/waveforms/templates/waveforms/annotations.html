@@ -205,12 +205,12 @@
           <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
         {% else %}
           {% if n_complete > 5 %}
-            <a href="{% url 'render_annotations' %}?incomplete_page=all#complete_annotations">Show all</a>
+            <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
           {% endif %}
         {% endif %}
       {% else %}
         {% if n_complete > 5 %}
-          <a href="{% url 'render_annotations' %}?incomplete_page=all#complete_annotations">Show all</a>
+          <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
         {% endif %}
       {% endif %}
     </div>
