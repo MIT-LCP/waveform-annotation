@@ -159,9 +159,19 @@
     <br />
   </div>
   {% for project,k in conflict_anns.items %}
-    <h2>Project: {{ project }}</h2>
-    <h3><u>Conflicting Annotations</u></h3>
-    {% for rec,info in k.items %}
+    <h2 id="{{ project }}_conflicts">Project: {{ project }}</h2>
+    <h3><i>Conflicting Annotations</i></h3>
+
+    <div class="page-links">
+      {% if k.has_previous %}
+        <a href="{% url 'admin_console' %}?{{project}}_conflicts={{ k.previous_page_number }}#{{project}}_conflicts">Previous Page</a>&emsp;
+      {% endif %}
+      {% if k.has_next %}
+        <a href="{% url 'admin_console' %}?{{project}}_conflicts={{ k.next_page_number }}#{{project}}_conflicts">Next Page</a>&emsp;
+      {% endif %}
+    </div>
+
+    {% for rec,info in k %}
       {% if info|length > 0 %}
         <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
         {% for evt,nfo in info.items %}
@@ -187,12 +197,23 @@
         {% endfor %}
         <br />
       {% endif %}
+      <hr>
     {% endfor %}
   {% endfor %}
   {% for project,k in unanimous_anns.items %}
-    <h2>Project: {{ project }}</h2>
-    <h3><u>Unanimous Annotations</u></h3>
-    {% for rec,info in k.items %}
+    <h2 id="{{ project }}_unanimous">Project: {{ project }}</h2>
+    <h3><i>Unanimous Annotations</i></h3>
+
+    <div class="page-links">
+      {% if k.has_previous %}
+        <a href="{% url 'admin_console' %}?{{project}}_unanimous={{ k.previous_page_number }}#{{project}}_unanimous">Previous Page</a>&emsp;
+      {% endif %}
+      {% if k.has_next %}
+        <a href="{% url 'admin_console' %}?{{project}}_unanimous={{ k.next_page_number }}#{{project}}_unanimous">Next Page</a>&emsp;
+      {% endif %}
+    </div>
+
+    {% for rec,info in k %}
       {% if info|length > 0 %}
         <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
         {% for evt,nfo in info.items %}
@@ -218,12 +239,24 @@
         {% endfor %}
         <br />
       {% endif %}
+      <hr>
     {% endfor %}
   {% endfor %}
   {% for project,k in all_anns.items %}
-    <h2>Project: {{ project }}</h2>
-    <h3><u>Unfinished Annotations</u></h3>
-    {% for rec,info in k.items %}
+    <h2 id="{{ project }}_unfinished">Project: {{ project }}</h2>
+    <h3><i>Unfinished Annotations</i></h3>
+
+    <div class="page-links">
+      {% if k.has_previous %}
+        <a href="{% url 'admin_console' %}?{{project}}_unfinished={{ k.previous_page_number }}#{{project}}_unfinished">Previous Page</a>&emsp;
+      {% endif %}
+      {% if k.has_next %}
+        <a href="{% url 'admin_console' %}?{{project}}_unfinished={{ k.next_page_number }}#{{project}}_unfinished">Next Page</a>&emsp;
+      {% endif %}
+    </div>
+
+
+    {% for rec,info in k %}
       {% if info|length > 0 %}
         <h4 style="float: left;">Record: {{ rec }}</h4><br /><br />
         {% for evt,nfo in info.items %}
@@ -249,6 +282,7 @@
         {% endfor %}
         <br />
       {% endif %}
+      <hr>
     {% endfor %}
   {% endfor %}
 </div>

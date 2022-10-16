@@ -10,6 +10,13 @@ from waveforms.models import InvitedEmails, User, UserSettings
 from website.settings import base
 
 
+def redirect_home(request):
+    """
+    Redirects users to home page
+    """
+    return redirect(login_page)
+
+
 def register_page(request):
     """
     Create a new account upon request.

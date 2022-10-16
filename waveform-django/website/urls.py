@@ -30,6 +30,7 @@ urlpatterns = [
              template_name='registration/password_reset_complete.html'),
          name='password_reset_complete'),
     # Waveform annotator dashboard
+    path('', views.redirect_home),
     path('waveform-annotation/waveforms/', include('waveforms.urls')),
     # GraphQL API interface
     path('waveform-annotation/', include('export.urls')),
