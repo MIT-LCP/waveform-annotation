@@ -335,6 +335,31 @@ def admin_console(request):
             )
             new_adjudicator.is_adjudicator = False
             new_adjudicator.save()
+        elif 'add_annotator' in request.POST:
+            new_annotator = User.objects.get(
+                username__exact=request.POST['add_annotator']
+            )
+            new_annotator.is_annotator = True
+            new_annotator.practice_status = 'ED'
+
+            for proj, events in base.PRACTICE_SET.items():
+                for event in events:
+                    try:
+                        Annotation.objects.get(user=new_annotator, project=proj,
+                                            event=event,
+                                            is_adjudication=False).delete()
+                    except Annotation.DoesNotExist:
+                        pass
+            new_annotator.save()            
+        elif 'remove_annotator' in request.POST:
+            new_annotator = User.objects.get(
+                username__exact=request.POST['remove_annotator']
+            )
+            new_annotator.is_annotator = False
+            new_annotator.practice_status = 'BG'
+            new_annotator.save()
+        return redirect('admin_console')
+            
 
     # Find the files
     BASE_DIR = base.BASE_DIR
@@ -1150,7 +1175,10 @@ def practice_test(request):
             if user.practice_status != 'BG':
                 raise PermissionError()
             user.practice_status = 'CO'
+            if user.is_annotator == False:
+                user.entrance_score = f"{correct}/{total}"
             user.save()
+            # user.entrance_score = 
             return redirect('practice_test')
 
         if 'end-practice' in request.POST:

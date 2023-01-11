@@ -18,6 +18,11 @@ class User(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
     is_adjudicator = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    is_annotator = models.BooleanField(default=False)
+    entrance_score = models.CharField(
+        max_length=8,
+        default='NA',
+    )
     last_login = models.DateTimeField(default=timezone.now)
     date_assigned = models.DateTimeField(default=timezone.now)
     # Completion status of the practice test
@@ -32,7 +37,7 @@ class User(models.Model):
     practice_status = models.CharField(
         max_length=2,
         choices=practice_modes,
-        default=ENDED,
+        default=BEGAN,
     )
 
     def num_annotations(self, project=None):

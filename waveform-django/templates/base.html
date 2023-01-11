@@ -67,19 +67,26 @@
             </div>
           </th>
         {% endif %}
-        <th class="text-center col">
-          <div class="dropdown">
-            <button class="btn {% if 'waveforms' in request.path and 'annotations' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
-                {%if user.practice_status == "ED"%}
-                Create More Annotations
-                {% else %}
-                Annotate Practice Sample
-                {% endif %}
-              </a>
-            </button>
-          </div>
-        </th>
+        {% if user.is_annotator is True or user.practice_status != 'CO' %} 
+          <th class="text-center col">
+            <div class="dropdown">
+              <button class="btn {% if 'waveforms' in request.path and 'annotations' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+                
+                <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
+                  {%if user.practice_status == "ED"%}
+                  Create More Annotations
+                  {% else %}
+                  {% if user.is_annotator == False%}
+                    Annotate Exam Sample
+                  {% else %}
+                    Annotate Practice Sample
+                  {% endif %}
+                  {% endif %}
+                </a>
+              </button>
+            </div>
+          </th>
+        {% endif %}
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if 'waveforms/annotations' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
@@ -87,7 +94,11 @@
               {%if user.practice_status == "ED"%}
                 Current Assignment
               {% else %}
-                View All Practice Samples
+                {% if user.is_annotator == False%}
+                  View All Exam Samples
+                {% else %}
+                  View All Practice Samples
+                {% endif %}
               {% endif %}
               </a>
             </button>
@@ -109,7 +120,11 @@
               {%if user.practice_status == "ED"%}
                 Practice Test
               {% else %}
-                Submit Practice
+                {% if user.is_annotator == False%}
+                  Test Info
+                {% else %}
+                  Practice Info
+                {% endif %}
               {% endif %}
               </a>
             </button>

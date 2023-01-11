@@ -107,18 +107,36 @@
         <th>Username</th>
         <th>Join Date</th>
         <th>Last Login</th>
-        <th style="width:15%">Total Number of Annotations (across all projects)</th>
-        <th style="width:25%">New Settings &lt;{field: [default,user set], ...}&gt;</th>
-        <th style="width:17%">Adjudicator Control</th>
+        <th>Annotations Made</th>
+        <th>Toggle Annotator Status</th>
+        <th>Entrance Score</th>
+        <th>Adjudicator Control</th>
         <th>Admin Control</th>
       </tr>
       {% for u in all_users %}
         <tr>
           <td>{{ u.username }}</td>
-          <td>{{ u.join_date }}</td>
-          <td>{{ u.last_login }}</td>
+          <td>{{ u.join_date.date }}</td>
+          <td>{{ u.last_login.date }}</td>
           <td>{{ u.num_annotations }}</td>
-          <td>{{ u.new_settings }}</td>
+          <td>
+            {% if u.is_annotator %}
+              <div class="btn-container-rsp mg-left">
+                <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="remove_annotator">
+                  {% csrf_token %}
+                  <button class="btn btn-secondary btn-rsp" name="remove_annotator" value="{{ u.username }}" type="submit">Remove Status</button>
+                </form>
+              </div>
+            {% else %}
+              <div class="btn-container-rsp mg-left">
+                <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="add_annotator">
+                  {% csrf_token %}
+                  <button class="btn btn-success btn-rsp" name="add_annotator" value="{{ u.username }}" type="submit">Add Status</button>
+                </form>
+              </div>
+            {% endif %}
+          </td>
+          <td> {{u.entrance_score}}</td>
           <td>
             {% if u.is_adjudicator %}
               <div class="btn-container-rsp mg-left">
