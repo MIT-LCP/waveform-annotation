@@ -1,0 +1,7 @@
+v143l 4 250 82500
+v143l_1m.mat 16+24 3451/mV 16 0 179 5801 0 II
+v143l_1m.mat 16+24 962.7/mV 16 0 -1656 -6543 0 V
+v143l_1m.mat 16+24 608.3/NU 16 0 -1349 5433 0 PLETH
+v143l_1m.mat 16+24 679.4/NU 16 0 696 -15417 0 RESP
+#Ventricular_Tachycardia
+#True alarm
