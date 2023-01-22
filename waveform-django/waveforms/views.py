@@ -903,6 +903,7 @@ def render_annotations(request):
 
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'all_anns_frac': all_anns_frac,
+                   'min_assigned': base.MIN_ASSIGNED,
                    'categories': categories, 'completed_anns': completed_anns,
                    'complete_page': complete_page, 'n_complete': n_complete,
                    'n_incomplete': n_incomplete, 'search': search,
