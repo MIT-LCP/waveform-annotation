@@ -231,16 +231,25 @@ STATICFILE_FINDERS = [
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-RECORDS_FILE = 'RECORDS_VTVF'
+RECORDS_FILE = 'RECORDS_VTVF_LIMIT-5'
 ASSIGNMENT_FILE = 'user_assignments.csv'
-ALL_PROJECTS = ['2015_data', '2021_data']
+ALL_PROJECTS = ['sample_data']
 
 # Projects in blacklist cannot be automatically assigned to users
-BLACKLIST = ['2021_data']
+BLACKLIST = []
+
+# The minimum amount of events to assign
+MIN_ASSIGNED = 10
 
 # Events to be used in the practice data set
 PRACTICE_SET = {
-    '2015_data': {'ge1_1m': True, 'ge9_10m': False},
+    'sample_data': {
+        'v101l': False,
+        'v111l': False,
+        'v131l': True,
+        'v135l': False,
+        'v139l': True
+    }
 }
 
 # List of permitted HTML tags and attributes for rich text fields.
