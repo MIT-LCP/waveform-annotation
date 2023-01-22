@@ -5,11 +5,11 @@ db.sqlite3
 *.rdb
 
 # WFDB files
-*.hea*
-*.alm*
-*.dat*
-*.mat*
-*.cba*
+#*.hea*
+#*.alm*
+#*.dat*
+#*.mat*
+#*.cba*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
