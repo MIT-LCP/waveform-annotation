@@ -421,9 +421,9 @@ class WaveformVizTools:
         for i,r in enumerate(sig_order):
             sig_name_index = sig_name.index(sig_name[r])
             if i < n_ekgs:
-                current_y_vals = record[0][:,sig_name_index][index_start:index_stop:self.DOWN_SAMPLE_EKG]
+                current_y_vals = record.e_p_signal[sig_name_index][index_start:index_stop:self.DOWN_SAMPLE_EKG]
             else:
-                current_y_vals = record[0][:,sig_name_index][index_start:index_stop:self.DOWN_SAMPLE]
+                current_y_vals = record.e_p_signal[sig_name_index][index_start:index_stop:self.DOWN_SAMPLE]
             current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
             all_y_vals.append(current_y_vals)
 
@@ -643,10 +643,10 @@ class WaveformVizTools:
         # Determine the signal information
         record_path = os.path.join(PROJECT_PATH, dropdown_project,
                                    dropdown_record, dropdown_event)
-        record = wfdb.rdsamp(record_path, return_res=16)
-        fs = record[1]['fs']
-        sig_name = record[1]['sig_name']
-        units = record[1]['units']
+        record = wfdb.rdrecord(record_path, return_res=16, smooth_frames=False)
+        fs = record.fs
+        sig_name = record.sig_name
+        units = record.units
 
         # Set the initial display range of y-values based on values in
         # initial range of x-values
