@@ -21,7 +21,7 @@ class User(models.Model):
     is_annotator = models.BooleanField(default=False)
     entrance_score = models.CharField(
         max_length=8,
-        default='NA',
+        default='N/A',
     )
     last_login = models.DateTimeField(default=timezone.now)
     date_assigned = models.DateTimeField(default=timezone.now)

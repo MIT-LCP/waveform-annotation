@@ -19,6 +19,9 @@ urlpatterns = [
     path('annotations/delete/<set_project>/<set_record>/<set_event>/', views.delete_annotation, name='delete_annotation'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('tutorial/', views.viewer_tutorial, name='viewer_tutorial'),
+    path('overview/', views.viewer_overview, name='viewer_overview'),
     path('practice/', views.practice_test, name='practice_test'),
+    path('assessment-info/', views.assessment, name='assessment'),
+    path('assessment-result/<annotator>/', views.assessment_results, name='assessment_result'),
     path('settings/', views.viewer_settings, name='viewer_settings'),
 ]

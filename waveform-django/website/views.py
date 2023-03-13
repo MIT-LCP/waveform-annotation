@@ -32,7 +32,7 @@ def register_page(request):
 
     """
     if request.user.is_authenticated:
-        return redirect('waveform_published_home')
+        return redirect('viewer_overview')
     else:
         form = CreateUserForm()
         if request.method == 'POST':
@@ -91,7 +91,7 @@ def login_page(request):
 
     """
     if request.user.is_authenticated:
-        return redirect('waveform_published_home')
+        return redirect('viewer_overview')
     else:
         if request.method == 'POST':
             username = request.POST.get('username')
@@ -105,7 +105,7 @@ def login_page(request):
                 if 'annotations' in request.environ['QUERY_STRING']:
                     return redirect('render_annotations')
                 else:
-                    return redirect('waveform_published_home')
+                    return redirect('viewer_overview')
             else:
                 messages.info(request, 'Username OR password is incorrect')
                 return render(request, 'website/login.html', {})
@@ -115,7 +115,7 @@ def login_page(request):
             elif 'annotations' in request.GET.dict()['next']:
                 return redirect('render_annotations')
             else:
-                return redirect('waveform_published_home')
+                return redirect('viewer_overview')
 
 
 def reset_password(request):

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container">
+  
+  <h1>Assessment Results</h1>
+  <br>
+  <h3>Username: <i>{{annotator.username}}</i></h3>
+  <br>
+  <h5><b>Responses:</b></h5>
+  <table style="width:100%;">
+  <tr>
+    <th>Project</th>
+    <th>Event</th>
+    <th>Correct Label</th>
+    <th>Response</th>
+  </tr>
+    {% for project,events in results.items %}
+      {% for event,responses in events.items %}
+        <tr>
+          <th style="font-weight: 400;">{{ project }}</th>
+          <th style="font-weight: 400;"><a href="{% url 'waveform_published_specific' project responses.0 event %}">{{ event }}</a></th>
+          <th style="font-weight: 400;">{{ responses.1 }}</th>
+          <th style="font-weight: 400;">{{ responses.2 }} {% if responses.1 == responses.2 %} &#10004;&#65039; {% else %} &#10060; {% endif %}</th>
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </table>
+  <br>
+  <h5>Total Score: {{ correct }} / {{ total }}</h5>
+  <br>
+  {% if annotator.is_annotator %}
+    <div class="btn-container-rsp mg-left">
+      <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="remove_annotator">
+        {% csrf_token %}
+        <button class="btn btn-secondary btn-rsp" name="remove_annotator" value="{{ annotator.username }}" type="submit">Remove Annotator Status</button>
+      </form>
+    </div>
+  {% else %}
+    <div class="btn-container-rsp mg-left">
+      <form action="{% url 'admin_console' %}" method="post" class="form-signin row no-pd" name="add_annotator">
+        {% csrf_token %}
+        <button class="btn btn-success btn-rsp" name="add_annotator" value="{{ annotator.username }}" type="submit">Add As Annotator</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

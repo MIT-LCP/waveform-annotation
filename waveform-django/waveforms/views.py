@@ -9,7 +9,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.http import *
 from django.shortcuts import redirect, render
 from django.utils import timezone
 import pandas as pd
@@ -357,6 +357,7 @@ def admin_console(request):
             )
             new_annotator.is_annotator = False
             new_annotator.practice_status = 'BG'
+            new_annotator.entrance_score = 'N/A'
             new_annotator.save()
         return redirect('admin_console')
             
@@ -1199,6 +1200,138 @@ def practice_test(request):
                   {'user': user, 'results': results, 'total': total,
                    'correct': correct})
 
+
+
+@login_required
+def assessment(request):
+    """
+    Configures and displays events for entry assessment.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for enabling entry assessment.
+
+    """
+    user = User.objects.get(username=request.user)
+
+    results = {}
+    correct = 0
+    total = 0
+
+    for project,events in base.PRACTICE_SET.items():
+        results[project] = {}
+        for event,answer in events.items():
+            try:
+                user_response = Annotation.objects.get(
+                    user=user, project=project, event=event,
+                    is_adjudication=False).decision
+            except Annotation.DoesNotExist:
+                user_response = None
+            results[project][event] = (str(answer), user_response)
+            total += 1
+            correct = correct + 1 if str(answer) == user_response else correct + 0
+
+    if request.method == 'POST':
+        if 'start-practice' in request.POST:
+            if user.practice_status != 'ED':
+                raise PermissionError()
+            user.practice_status = 'BG'
+            user.save()
+            return redirect('render_annotations')
+
+        if 'submit-practice' in request.POST:
+            if user.practice_status != 'BG':
+                raise PermissionError()
+            user.practice_status = 'CO'
+            if user.is_annotator == False:
+                user.entrance_score = f"{correct}/{total}"
+            user.save()
+            # user.entrance_score = 
+            return redirect('practice_test')
+
+        if 'end-practice' in request.POST:
+            # Delete practice events
+            for proj, events in base.PRACTICE_SET.items():
+                for event in events:
+                    try:
+                        Annotation.objects.get(user=user, project=proj,
+                                               event=event,
+                                               is_adjudication=False).delete()
+                    except Annotation.DoesNotExist:
+                        pass
+            user.practice_status = 'ED'
+            user.save()
+            return redirect('render_annotations')
+
+    return render(request, 'waveforms/assessment_info.html',
+                  {'user': user, 'results': results, 'total': total,
+                   'correct': correct})
+
+
+@login_required
+def assessment_results(request, annotator):
+    """
+    Displays the results of a user's assessment.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for enabling entry assessment.
+
+    """
+    current_user = User.objects.get(username=request.user)
+    annotator = User.objects.get(username=annotator)
+    if current_user.is_admin == False:
+        return HttpResponseNotFound('<h1>Page not found</h1>')
+    
+    results = {}
+    correct = 0
+    total = 0
+
+    for project,events in base.PRACTICE_SET.items():
+        results[project] = {}
+        for event,answer in events.items():
+            try:
+                user_response = Annotation.objects.get(
+                    user=annotator, project=project, event=event,
+                    is_adjudication=False).decision
+            except Annotation.DoesNotExist:
+                user_response = None
+            record = event[:event.index('_')]
+            results[project][event] = (record, str(answer), user_response)
+            total += 1
+            correct = correct + 1 if str(answer) == user_response else correct + 0
+
+
+    return render(request, 'waveforms/assessment_result.html', {'user': current_user, 'annotator': annotator, 
+                                                                'results':results, 'correct':correct,'total':total})
+
+
+@login_required
+def viewer_overview(request):
+    """
+    Render the project overview page.
+
+    Parameters
+    ----------
+    N/A
+
+    Returns
+    ----------
+    N/A : HTML page / template variable
+        HTML webpage responsible for hosting the overview.
+    """
+    user = User.objects.get(username=request.user)
+    return render(request, 'waveforms/overview.html', {'user': user})
 
 @login_required
 def viewer_tutorial(request):

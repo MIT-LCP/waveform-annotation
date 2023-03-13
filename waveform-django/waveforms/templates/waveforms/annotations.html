@@ -36,7 +36,7 @@
     <h1> My Annotations </h1>
   {% else %}
     {% if user.is_annotator == False%}
-      <h1> Exam Samples </h1>
+      <h1> Assessment Samples </h1>
     {% else %}
       <h1> Practice Samples </h1>
     {% endif %}
@@ -89,14 +89,35 @@
     </h2>
 
     {% if user.is_annotator == False and user.practice_status == "CO"%}
-        <p style="font-size: 20px;">Exam has been submitted and is under review</p>
+        <p style="font-size: 20px;">Assessment has been submitted and is under review</p>
       </div>
     {% else%}
         {%if user.practice_status != "ED"%}
           {% if user.is_annotator == True %}
             <span style="font-size: 20px;">Go to the "Practice Info" page to read the instructions for the practice test, and when you are ready to submit your responses</span>
           {% else %}
-            <span style="font-size: 20px;">Go to the "Test Info" page to read the instructions for this assessment, and when you are ready to submit your responses</span>
+            <span style="font-size: 20px;">Go to the <a href="{% url 'assessment' %}">Assessment Info</a> page to read the instructions for this assessment. When you are ready to submit your responses, press "Submit Assessment".</span>
+            <br>
+            <br>
+            <div>
+              <form action="{% url 'assessment' %}" method="post" class="form-signin row no-pd" name="submit-practice">
+                {% csrf_token %}
+                {% if user.practice_status == "BG" %}
+                  {% if user.is_annotator == True %}
+                    <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
+                  {% else %}
+                    <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Assessment">
+                  {% endif %}
+                {% endif %}
+                {% if user.practice_status == "ED" %}
+                  <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
+                {% else %}
+                  {% if user.is_annotator == True%}
+                    <input type="submit" name="end-practice" class="btn btn-warning btn-rsp" value="End Practice">
+                  {% endif %}
+                {% endif %}
+              </form>
+            </div>
           {% endif %}
           <br />
           <br />

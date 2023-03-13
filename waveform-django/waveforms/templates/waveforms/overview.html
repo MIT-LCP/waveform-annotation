@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  
+  <h1>Project Overview</h1>
+  <br>
+  <h5>Thank you for offering to volunteer your time and expertise to help us build our database!</h5>
+  <br>
+  <h3>Objective</h3>
+  <div>
+  <p>
+    Our goal is to build a large dataset of patient-monitoring data, where ECG samples that show signs of Ventricular Tachycardia (VT) have been classified by experts.
+    <ul>
+      <li>Several commercial heart-monitor companies have provided us with data captured from patient monitors</li>
+      <li>This data represents instances where the vendor's VT detection algorithm was triggered</li>
+      <li>Commercial VT detection algorithms are often unreliable, as they are easily triggered without the occurance of a VT event</li>
+      <li>Hospital staff often have to deal with false-positive alarms, which can desensitize them to the alarms</li>
+      <ul>
+        <li>Desensitization may lead to delayed responses when a patient is suffering from a true VT event, which can significantly impact their chances of receiving appropriate care in a timely fashion</li>
+        <li>The overabundance of alarms has also shown to increase the stress experienced by patients and staff in the ICU</li>
+      </ul>
+      <li>There is a great need to improve the VT detection abilities of bedside monitors</li>
+      <li>We aim to employ a Machine-Learning approach to developing a VT detection algorithm</li>
+      <ul>
+        <li>To begin this process, we first need a database to train and test our ML model on</li>
+        <li>Each data sample must be labeled based on the presence of a VT event by experts</li>
+        <li>This platform allows experts to view and label data samples in an effort to build our database</li>
+      </ul>
+    </ul>
+  </p>
+  </div>
+  <br>
+  <h3>Getting Started</h3>
+  <div>
+  <h4>Initial Assessment</h4>
+  <p>
+    Before you can begin annotating events, we require all participants to take an evaluation on their ability to accurately identify VT.
+    <ul>
+      <li>We have created an assessment that consists of a set of events that our experts have already labeled</li>
+      <li>New members are asked to view these events and label them to the best of their abilities</li>
+      <li>These labels will be compared to the correct labels, and the assessment will be scored for accuracy</li>
+      <li>After submitting the assessment, your results will be sent to our team</li>
+      <ul>
+        <li>If your score is approved by our team, you will be given access to our unlabeled data, and you may proceed to assign yourself events to annotate</li>
+        {% if user.is_annotator %}
+          <li style="color:MediumSeaGreen;"><b><i>Our records indicate that you have completed this assessment, and have been approved to annotate new events</i></b></li>
+        {% else %}
+          {% if user.practice_status == "CO" %}
+            <li style="color:blue;"><b><i>Our records indicate that you have completed this assessment and are awaiting evaluation by our team. Please check back at a later time!</i></b></li>
+          {% else %}
+            <li style="color:red;"><i>Our records indicate that you have not completed this assessment. Please go to the <a style="color:red;" href="{% url 'assessment' %}"><u><b>Assessment Info</b></u></a> page to get started.</i></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+    </ul>
+  </p>
+  </div>
+  <div>
+  <h4>Annotating Events</h4>
+  <p>
+    <ul>
+      <li>To begin annotating events, you must first assign yourself a set of events you plan to annotate</li>
+      <ul>
+        <li>You can do this on the <a href="{% url 'render_annotations' %}">Current Assignment</a> page</li>
+      </ul>
+      <li>You may begin annotating events by going to the <a href="{% url 'waveform_published_home'%}">Create Annotation</a> page</li>
+      <li>The Current Assignment page will show you all of your assigned events</li>
+      <ul>
+        <li>This includes annotated events, unannotated events, and events that you have saved for later</li>
+      </ul>
+    </ul>
+  </p>
+  </div>
+
+</div>
+
+{% endblock %}

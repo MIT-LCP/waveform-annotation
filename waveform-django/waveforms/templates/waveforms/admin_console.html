@@ -136,7 +136,7 @@
               </div>
             {% endif %}
           </td>
-          <td> {{u.entrance_score}}</td>
+          <td> {% if u.entrance_score == 'N/A'%}N/A{% else %}<a href="{% url 'assessment_result' u.username %}">{{u.entrance_score}}</a>{% endif %}</td>
           <td>
             {% if u.is_adjudicator %}
               <div class="btn-container-rsp mg-left">
