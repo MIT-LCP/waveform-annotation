@@ -11,17 +11,16 @@ import pytz
 import wfdb
 
 from waveforms.dash_apps.finished_apps.waveform_vis_tools import WaveformVizTools
-from waveforms.models import Annotation, User
+from waveforms.models import Annotation, User, WaveformEvent
 from website.middleware import get_current_user
 from website.settings import base
+from django.core import cache
 
+from pathlib import Path
+from itertools import chain
 
-# Specify the record file locations
-BASE_DIR = base.BASE_DIR
-FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-FILE_LOCAL = os.path.join('record-files')
-PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-ALL_PROJECTS = base.ALL_PROJECTS
+PROJECT_PATH = Path(base.HEAD_DIR)/'record-files'
+
 # Formatting settings
 sidebar_width = '100%'
 event_fontsize = '100%'
@@ -140,223 +139,41 @@ app.layout = html.Div([
     dcc.Input(id='set_project', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
+    dcc.Input(id='set_pageid', type='hidden', persistence=False, value=''),
     # Hidden div inside the app that stores the current project, record, and event
     dcc.Input(id='temp_project', type='hidden', persistence=False, value=''),
     dcc.Input(id='temp_record', type='hidden', persistence=False, value=''),
     dcc.Input(id='temp_event', type='hidden', persistence=False, value=''),
+    dcc.Input(id='temp_pageid', type='hidden', persistence=False, value=''),
+
 ])
 
 
-def get_practice_anns(ann):
-    """
-    Filter Annotation object to only include events in practice set.
-
-    Parameters
-    ----------
-    ann : Annotation object
-        Object to be filtered.
-
-    Returns
-    -------
-    ann: Annotation object
-        Filtered object.
-
-    """
-    events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
-    events = []
-    for i in events_per_proj:
-        events += i
-    return ann.filter(
-        project__in=[key for key in base.PRACTICE_SET.keys()],
-        event__in=events
-    )
-
-
-def get_all_records_events(project_folder):
-    """
-    Get all possible records and events.
-
-    Parameters
-    ----------
-    project_folder : str
-        The project used to retrieve the records and events.
-
-    Returns
-    -------
-    N/A : list[str]
-        List of all records.
-    N/A : list[str]
-        List of all events.
-
-    """
-    # Get records
-    records_path = os.path.join(PROJECT_PATH, project_folder,
-                                base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        record_list = f.read().splitlines()
-    # Get events
-    event_list = []
-    for record in record_list:
-        event_path = os.path.join(PROJECT_PATH, project_folder, record,
-                                  base.RECORDS_FILE)
-        with open(event_path, 'r') as f:
-            event_list += f.read().splitlines()
-    event_list = [e for e in event_list if '_' in e]
-    return record_list, event_list
-
-
-def get_user_events(user, project_folder):
-    """
-    Get the events assigned to a user in the CSV file.
-
-    Parameters
-    ----------
-    user : User
-        The User whose events will be retrieved.
-    project_folder : str
-        The project used to retrieve the events.
-
-    Returns
-    -------
-    N/A: list[str]
-        List of events assigned to the user.
-
-    """
-    # Find the files
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-
-    if user.is_admin and user.practice_status == 'ED':
-        record_list, event_list = get_all_records_events(project_folder)
-    elif user.practice_status != 'ED':
-        events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
-        events = []
-        for i in events_per_proj:
-            events += i
-        return events
-    else:
-        csv_path = os.path.join(PROJECT_PATH, project_folder,
-                                base.ASSIGNMENT_FILE)
-        event_list = []
-        with open(csv_path, 'r') as csv_file:
-            csvreader = csv.reader(csv_file, delimiter=',')
-            next(csvreader)
-            for row in csvreader:
-                names = []
-                for val in row[1:]:
-                    if val:
-                        names.append(val)
-                if user.username in names:
-                    event_list.append(row[0])
-        user_ann = Annotation.objects.filter(user=user,
-                                             project=project_folder,
-                                             is_adjudication=False)
-        if user.practice_status != 'ED':
-            user_ann = get_practice_anns(user_ann)
-
-        event_list += [a.event for a in user_ann if a.event not in event_list]
-    return event_list
-
-
-def get_user_records(user):
-    """
-    Get the records assigned to a user in the CSV file.
-
-    Parameters
-    ----------
-    user : User
-        The User whose records will be retrieved.
-
-    Returns
-    -------
-    N/A: dict
-        The records assigned to the user by project.
-
-    """
-    user_records = {}
-    if user.is_admin and user.practice_status == 'ED':
-        for project in ALL_PROJECTS:
-            temp_records, _ = get_all_records_events(project)
-            user_records[project] = temp_records
-        return user_records
-    if user.practice_status == 'ED':
-        # Get all user annotations
-        annotations = Annotation.objects.filter(
-            user=user, is_adjudication=False
-        )
-        if user.practice_status != 'ED':
-            annotations = get_practice_anns(annotations)
-        # Get all user events
-        user_events = {}
-        for project in ALL_PROJECTS:
-            user_events[project] = get_user_events(user, project)
-        # Get all user records
-        for project in ALL_PROJECTS:
-            events = user_events[project]
-            user_records[project] = []
-            for evt in events:
-                rec = evt[:evt.find('_')]
-                if rec not in user_records[project]:
-                    user_records[project].append(rec)
-        for ann in annotations:
-            if ann.record not in user_records[ann.project]:
-                user_records[ann.project].append(ann.record)
-
-    return user_records
-
-
-def get_header_info(project, file_path):
-    """
-    Return all records/events in header from file path.
-
-    Parameters
-    ----------
-    project : str
-        Which project the record is in
-    file_path : str
-        The directory of the record file to be read.
-
-    Returns
-    -------
-    file_contents : list[str]
-        The stripped and cleaned lines of the record file. Essentially, all
-        of the records to be read.
-
-    """
-    current_user = User.objects.get(username=get_current_user())
-    records_path = os.path.join(PROJECT_PATH, project, file_path,
-                                base.RECORDS_FILE)
-    with open(records_path, 'r') as f:
-        file_contents = f.read().splitlines()
-    all_events = get_user_events(current_user, project)
-    file_contents = [e for e in file_contents if '_' in e and e in all_events]
-    return file_contents
-
-
 @app.callback(
-    [dash.dependencies.Output('dropdown_record', 'children'),
+    [dash.dependencies.Output('dropdown_project', 'children'),
+     dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
-     dash.dependencies.Output('dropdown_project', 'children'),
      dash.dependencies.Output('event_text', 'children'),
      dash.dependencies.Output('temp_project', 'value'),
      dash.dependencies.Output('temp_record', 'value'),
-     dash.dependencies.Output('temp_event', 'value')],
+     dash.dependencies.Output('temp_event', 'value'),
+     dash.dependencies.Output('temp_pageid', 'value')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value'),
-     dash.dependencies.Input('set_event', 'value')],
+     dash.dependencies.Input('set_event', 'value'),
+     dash.dependencies.Input('set_pageid', 'value')],
     [dash.dependencies.State('temp_project', 'value'),
      dash.dependencies.State('temp_record', 'value'),
      dash.dependencies.State('temp_event', 'value'),
+     dash.dependencies.State('temp_pageid', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
 def get_record_event_options(click_submit, click_previous, click_next,
-                             set_project, set_record, set_event,
-                             project_value, record_value, event_value,
+                             set_project, set_record, set_event, set_pageid,
+                             project_value, record_value, event_value, pageid_value,
                              decision_value, comments_value):
     """
     Dynamically update the labels and stored variables given the current
@@ -389,12 +206,16 @@ def get_record_event_options(click_submit, click_previous, click_next,
 
     Returns
     -------
+    return_project : list[html.Span object]
+        The current project in HTML form so it can be rendered on the page.
     return_record : list[html.Span object]
         The current record in HTML form so it can be rendered on the page.
     return_event : list[html.Span object]
         The current event in HTML form so it can be rendered on the page.
     event_text : list[html.Span object]
         The current event in HTML form so it can be rendered on the page.
+    dropdown_project : str
+        The new selected project.
     dropdown_record : str
         The new selected record.
     dropdown_event : str
@@ -405,82 +226,45 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
+    
     # One project at a time
-    if current_user.practice_status == 'ED':
-        project = list(set(base.ALL_PROJECTS) - set(base.BLACKLIST))[0]
-        user_annotations = Annotation.objects.filter(
-            user=current_user, project=project, is_adjudication=False)
-    else:
-        project = [i for i in base.PRACTICE_SET.keys()][0]
-        user_annotations = Annotation.objects.filter(
-            user=current_user, project=project, is_adjudication=False)
-        user_annotations = get_practice_anns(user_annotations)
+    user_saved = current_user.get_waveforms('saved')
+    user_unannotated = current_user.get_waveforms('unannotated')
+    user_annotations = current_user.get_waveforms('annotated')
 
-    # Display "Save for Later" first
-    user_annotations = sorted(
-        user_annotations, key=lambda x: 0 if x.decision=='Save for Later' else 1
-    )
-    all_events = []
-    # Handle initial load
-    if not project_value:
-        # Completed annotations
-        completed_events = []
-        for a in user_annotations:
-            completed_events.append([a.project, a.event])
-        # Every assigned event / future annotation
-        proj_events = get_user_events(current_user, project)
-        for event in proj_events:
-            all_events.append([project, event])
-        if all_events != []:
-            # Get the earliest annotation
-            if completed_events:
-                ann_indices = [all_events.index(a) for a in completed_events]
-                all_indices = sorted(list(set(np.arange(len(all_events))) - set(ann_indices))) + ann_indices
-                current_event = all_indices[0]
-            else:
-                current_event = 0
-            return_project = all_events[current_event][0]
-            return_record = all_events[current_event][1].split('_')[0]
-            return_event = all_events[current_event][1]
-        else:
-            # Display empty graph since no data
-            return_project = 'N/A'
-            return_record = 'N/A'
-            return_event = 'N/A'
-    else:
-        completed_events = [a.event for a in user_annotations if a.project==project_value]
-        if current_user.is_admin and current_user.practice_status == 'ED':
-            _, all_events = get_all_records_events(project_value)
-        else:
-            all_events = get_user_events(current_user, project_value)
-        # The indices of completed annotations
-        ann_indices = [all_events.index(a) for a in completed_events]
-        # The indices of incomplete annotations
-        non_ann_indices = sorted(list(set(np.arange(len(all_events))) - set(ann_indices)))
-        # Eventually `len(non_ann_indices) == 0` so "Save for Later" will
-        # be first
-        all_indices = non_ann_indices + ann_indices
+    all_waveforms = list(chain(user_saved, user_unannotated, user_annotations))
+
+    print(f"\n\n set project: {set_project}\n set_record: {set_record}\n set_event: {set_event}\n set_pageid: {set_pageid}\n")
+
+    if not set_project or not set_record or not set_event:
+        pass
 
     if ctx.triggered:
         # Determine what triggered the function
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        
+        print(f"\n\nCLICK ID: {click_id}")
+
         # We already know the current project
         return_project = project_value
-        # The location of event in the sorted event list
-        event_idx = all_indices.index(all_events.index(event_value))
+
         # Going backward in the list
         if click_id == 'previous_annotation':
-            return_record = all_events[all_indices[event_idx-1]].split('_')[0]
-            return_event = all_events[all_indices[event_idx-1]]
+            return_record = 'v101l'
+            return_event = 'v101l_1m'
+            return_pageid = 0
         # Going forward in the list
         elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
             try:
-                return_record = all_events[all_indices[event_idx+1]].split('_')[0]
-                return_event = all_events[all_indices[event_idx+1]]
+                return_record = 'v101l'
+                return_event = 'v101l_1m'
+                return_pageid = 0
+
             except IndexError:
                 # End of list, go back to the beginning
-                return_record = all_events[all_indices[0]].split('_')[0]
-                return_event = all_events[all_indices[0]]
+                return_record = 'v101l'
+                return_event = 'v101l_1m'
+                return_pageid = 0
 
         # Update the annotations: only save the annotations if a decision is
         # made and the submit button was pressed
@@ -492,6 +276,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
             submit_time = set_timezone.localize(submit_time)
             # Save the annotation to the database only if changes
             # were made or a new annotation
+            waveform = WaveformEvent.objects.get(project=project_value, record=record_value, event=event_value)
             try:
                 res = Annotation.objects.get(
                     user=current_user, project=project_value,
@@ -506,7 +291,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
                         user=current_user, project=project_value,
                         record=record_value, event=event_value,
                         decision=decision_value, comments=comments_value,
-                        decision_date=submit_time, is_adjudication=False
+                        decision_date=submit_time, is_adjudication=False,
+                        waveform=waveform
                     )
                     annotation.update()
             except Annotation.DoesNotExist:
@@ -515,15 +301,15 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     user=current_user, project=project_value,
                     record=record_value, event=event_value,
                     decision=decision_value, comments=comments_value,
-                    decision_date=submit_time, is_adjudication=False
+                    decision_date=submit_time, is_adjudication=False,
+                    waveform=waveform
                 )
                 annotation.update()
     else:
-        # See if record and event was requested (never event without record)
-        if set_record != '':
-            return_project = set_project
-            return_record = set_record
-            return_event = set_event
+        return_project = set_project
+        return_record = set_record
+        return_event = set_event
+        return_pageid = set_pageid
 
     # Update the event text
     alarm_text = html.Span([''], style={'fontSize': event_fontsize})
@@ -535,34 +321,34 @@ def get_record_event_options(click_submit, click_previous, click_next,
         ]
     else:
         # Get the annotation information
-        ann_path = os.path.join(PROJECT_PATH, return_project,
-                                return_record, return_event)
+        ann_path = str(PROJECT_PATH / return_project / return_record / return_event)
         ann = wfdb.rdann(ann_path, 'alm')
         ann_event = ann.aux_note[0]
         # Update the annotation event text
         alarm_text = [
-            html.Span(['{}'.format(ann_event), html.Br(), html.Br()],
+            html.Span([f'{ann_event}', html.Br(), html.Br()],
                       style={'fontSize': event_fontsize})
         ]
 
     # Update the annotation current project text
     project_text = [
-        html.Span(['{}'.format(return_project)],
+        html.Span([f'{return_project}'],
                   style={'fontSize': event_fontsize})
     ]
     # Update the annotation current record text
     record_text = [
-        html.Span(['{}'.format(return_record)],
+        html.Span([f'{return_record}'],
                   style={'fontSize': event_fontsize})
     ]
     # Update the annotation current event text
     event_text = [
-        html.Span(['{}'.format(return_event)],
+        html.Span([f'{return_event}'],
                   style={'fontSize': event_fontsize})
     ]
 
-    return (record_text, event_text, project_text, alarm_text,
-            return_project, return_record, return_event)
+    print(f"\n\n project_value: {project_value}\n record_value: {record_value}\n event_value: {event_value}\n pageid_value: {pageid_value}\n")
+    return (project_text, record_text, event_text, alarm_text,
+            return_project, return_record, return_event, return_pageid)
 
 
 @app.callback(

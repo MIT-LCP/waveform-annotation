@@ -1,9 +1,12 @@
 from collections import Counter, defaultdict
-import csv
+from itertools import chain
+from pathlib import Path
 from datetime import timedelta
 from operator import itemgetter
 import os
+import csv
 import random as rd
+import pandas as pd
 
 from django import forms
 from django.contrib import messages
@@ -12,12 +15,36 @@ from django.core.paginator import Paginator
 from django.http import *
 from django.shortcuts import redirect, render
 from django.utils import timezone
-import pandas as pd
-from pathlib import Path
+from django.db import IntegrityError
+from django.db.models import Count
 
 from waveforms.forms import GraphSettings, InviteUserForm
-from waveforms.models import Annotation, InvitedEmails, User, UserSettings
+from waveforms.models import Annotation, InvitedEmails, User, UserSettings, WaveformEvent
 from website.settings import base
+
+
+def load_waveforms():
+    """
+    Read in each waveform in record-files and create WaveformEvent objects.
+    """
+    record_folder = Path(base.HEAD_DIR)/'record-files'
+    project_list = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+    for project in project_list:
+        project_path = record_folder/project
+        record_file = project_path/base.RECORDS_FILE
+        with open(record_file, 'r') as f:
+            record_list = f.read().splitlines()
+        
+        for record in record_list:
+            record_path = project_path/record
+            event_file = record_path/base.RECORDS_FILE
+            with open(event_file, 'r') as f:
+                event_list = f.read().splitlines()
+            for event in event_list:
+                try:
+                    WaveformEvent.objects.create(project=project, record=record, event=event)
+                except IntegrityError:
+                    pass
 
 
 def user_rank(global_ranks, username):
@@ -228,12 +255,20 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
         HTML webpage responsible for hosting the waveform plot.
 
     """
-    user = User.objects.get(username=request.user.username)
+    user = User.objects.get(username=request.user)
+    
+    if set_project and set_record and set_event:
+        waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+
+        if user not in waveform.annotators.all():
+            return redirect('render_annotations')
+    
     dash_context = {
         'is_adjudicator': {'value': False},
         'set_project': {'value': set_project},
         'set_record': {'value': set_record},
-        'set_event': {'value': set_event}
+        'set_event': {'value': set_event},
+        'set_pageid': {'value': 0},
     }
 
     return render(request, 'waveforms/home.html', {'user': user,
@@ -299,17 +334,8 @@ def admin_console(request):
                     contacted.""")
         elif 'end_assignment' in request.POST:
             user = User.objects.get(username=request.POST['user_info'])
-            for project in base.ALL_PROJECTS:
-                csv_data = get_all_assignments(project)
-                for event, names in csv_data.items():
-                    if user.username in names:
-                        try:
-                            Annotation.objects.get(user=user, project=project,
-                                                   event=event,
-                                                   is_adjudication=False)
-                        except Annotation.DoesNotExist:
-                            csv_data[event].remove(user.username)
-                update_assignments(csv_data, project)
+            user.waveforms.clear()
+            
             return redirect('admin_console')
         elif 'add_admin' in request.POST:
             new_admin = User.objects.get(
@@ -685,260 +711,56 @@ def render_annotations(request):
         HTML webpage responsible for displaying the annotations.
 
     """
-    # Find the files
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-
     # Get all the annotations for the requested user
     user = User.objects.get(username=request.user)
-    # All annotations
-    all_annotations = Annotation.objects.filter(user=user, is_adjudication=False)
 
-    if user.practice_status != 'ED':
-        events_per_proj = [list(events.keys()) for events in base.PRACTICE_SET.values()]
-        events = []
-        for i in events_per_proj:
-            events += i
-        all_annotations = all_annotations.filter(
-            project__in=[key for key in base.PRACTICE_SET.keys()],
-            event__in=events
-        )
-
-    # Completed annotations
-    completed_annotations = all_annotations.filter(
-        decision__in=['True', 'False', 'Uncertain', 'Reject']
-    )
-    completed_records = [a.record for a in completed_annotations]
-    completed_events = [a.event for a in completed_annotations]
-    # Saved annotations
-    saved_annotations = all_annotations.filter(decision='Save for Later')
-    saved_records = [a.record for a in saved_annotations]
-    saved_events = [a.event for a in saved_annotations]
-    save_warning = len(saved_annotations) > 0
-
-    # Hold all of the annotation information
-    completed_anns = {}
-    saved_anns = {}
-    incompleted_anns = {}
-
-    # Get list where each element is a list of records from a project folder
-    all_projects = base.ALL_PROJECTS if user.practice_status == 'ED' else list(base.PRACTICE_SET.keys())
-    # Get all user records
-    user_records = {}
-    # Get all user events
-    user_events = {}
-    if user.is_admin and user.practice_status == 'ED':
-        for project in all_projects:
-            user_events[project] = []
-            records_path = os.path.join(PROJECT_PATH, project,
-                                        base.RECORDS_FILE)
-            with open(records_path, 'r') as f:
-                user_records[project] = f.read().splitlines()
-            for record in user_records[project]:
-                event_path = os.path.join(PROJECT_PATH, project, record,
-                                        base.RECORDS_FILE)
-                with open(event_path, 'r') as f:
-                    user_events[project] += f.read().splitlines()
-            user_events[project] = [e for e in user_events[project] if '_' in e]
-    else:
-        for project in all_projects:
-            user_events[project] = get_user_events(user, project) if user.practice_status == 'ED' \
-                else list(base.PRACTICE_SET[project].keys())
-        for project in all_projects:
-            events = user_events[project]
-            user_records[project] = []
-            for evt in events:
-                rec = evt[:evt.find('_')]
-                if rec not in user_records[project]:
-                    user_records[project].append(rec)
-
-    # Get the total number of annotations
-    total_anns = sum([len(user_events[k]) for k in user_events.keys()])
-
-    # Display user events
-    for project,record_list in user_records.items():
-        for rec in sorted(record_list):
-            temp_events = [e for e in user_events[project] if e[:e.find('_')] == rec]
-
-            # Add annotations by event
-            temp_completed_anns = []
-            temp_saved_anns = []
-            temp_incompleted_anns = []
-            for evt in temp_events:
-                if (rec in completed_records) and (evt in completed_events):
-                    ann = completed_annotations[completed_events.index(evt)]
-                    temp_completed_anns.append([ann.event,
-                                                ann.decision,
-                                                ann.comments,
-                                                ann.decision_date])
-                elif (rec in saved_records) and (evt in saved_events):
-                    ann = saved_annotations[saved_events.index(evt)]
-                    temp_saved_anns.append([ann.event,
-                                                ann.decision,
-                                                ann.comments,
-                                                ann.decision_date])
-                else:
-                    temp_incompleted_anns.append([evt, '-', '-', '-'])
-
-            # Get the completion stats for each record
-            if temp_completed_anns != []:
-                progress_stats = f'{len(temp_completed_anns)}/{len(temp_events)}'
-                temp_completed_anns.insert(0, progress_stats)
-                temp_completed_anns.insert(1, project)
-                completed_anns[rec] = temp_completed_anns
-            if temp_saved_anns != []:
-                progress_stats = f'{len(temp_saved_anns)}/{len(temp_events)}'
-                temp_saved_anns.insert(0, progress_stats)
-                temp_saved_anns.insert(1, project)
-                saved_anns[rec] = temp_saved_anns
-            if temp_incompleted_anns != []:
-                progress_stats = f'{len(temp_incompleted_anns)}/{len(temp_events)}'
-                temp_incompleted_anns.insert(0, progress_stats)
-                temp_incompleted_anns.insert(1, project)
-                incompleted_anns[rec] = temp_incompleted_anns
-
-    search = {}
-    if request.GET.get('record'):
-        results = {
-            'save': saved_anns.get(request.GET['record']),
-            'inc' : incompleted_anns.get(request.GET['record']),
-            'com' : completed_anns.get(request.GET['record'])
-        }
-
-        if list(results.values()) == [None, None, None]:
-            messages.error(request, 'Record not found')
-        else:
-            num = len(results['com'][2:]) if results['com'] else 0
-            den = sum([len(r[2:]) for r in list(results.values()) if r])
-            frac = f'{num}/{den}'
-
-            results = {key:val for key,val in results.items() if val}
-            dataset = list(results.values())[0][1]
-
-            search = [frac, dataset]
-            for r in list(results.values()):
-                search.extend(r[2:])
-            search = {request.GET['record'] : search}
-
-    saved_page_num = request.GET.get('saved_page')
-    if saved_page_num == 'all':
-        pag_saved = Paginator(tuple(saved_anns.items()), len(saved_anns.items()))
-    else:
-        pag_saved = Paginator(tuple(saved_anns.items()), 5)
-    saved_page = pag_saved.get_page(saved_page_num)
-    saved_anns = dict(saved_page)
-
-    n_complete = len(completed_anns.items())
-    complete_page_num = request.GET.get('complete_page')
-    if complete_page_num == 'all':
-        pag_complete = Paginator(tuple(completed_anns.items()), n_complete)
-    else:
-        pag_complete = Paginator(tuple(completed_anns.items()), 5)
-    complete_page = pag_complete.get_page(complete_page_num)
-    completed_anns = dict(complete_page)
-
-    n_incomplete = len(incompleted_anns.items())
-    incomplete_page_num = request.GET.get('incomplete_page')
-    if incomplete_page_num == 'all':
-        pag_incomplete = Paginator(tuple(incompleted_anns.items()), n_incomplete)
-    else:
-        pag_incomplete = Paginator(tuple(incompleted_anns.items()), 5)
-    incomplete_page = pag_incomplete.get_page(incomplete_page_num)
-    incompleted_anns = dict(incomplete_page)
+    unannotated_waveforms = user.get_waveforms('unannotated')
+    saved_waveforms = user.get_waveforms('saved')
+    annotated_waveforms = user.get_waveforms('annotated')
 
     categories = [
-        'event',
-        'decision',
-        'comments',
-        'decision_date'
+        'Event',
+        'Decision',
+        'Comments',
+        'Decision Date'
     ]
-    all_anns_frac = f'{len(completed_annotations)}/{total_anns}'
-    finished_assignment = len(completed_annotations) == total_anns
+
+    progress = f"{len(annotated_waveforms)}/{len(unannotated_waveforms) + len(saved_waveforms) + len(annotated_waveforms)}"
+
     if request.method == 'POST':
+        # Create a new assignment for current user
         if 'new_assignment' in request.POST:
-            record_dir = Path(base.HEAD_DIR)/'record-files'
-            available_projects = [p for p in all_projects if p not in base.BLACKLIST]
+            load_waveforms()
             num_events = int(request.POST['num_events'])
-            assigned_events = {}
-            unassigned_events = {}
-
-            for project in available_projects:
-                assigned_events[project] = get_all_assignments(project)
-                project_dir = record_dir/project
-
-                records_path = project_dir/base.RECORDS_FILE
-                with open(records_path, 'r') as f:
-                    record_list = f.read().splitlines()
-                proj_events = []
-
-                for record in record_list:
-                    event_path = project_dir/record/base.RECORDS_FILE
-                    with open(event_path, 'r') as f:
-                        proj_events += f.read().splitlines()
-                proj_events = [e for e in proj_events if '_' in e]
-                for event in proj_events:
-                    if event not in assigned_events[project].keys():
-                        try:
-                            unassigned_events[project].append(event)
-                        except KeyError:
-                            unassigned_events[project] = [event]
-
-            # First assign events that already have one user assigned
-            for project,assignments in assigned_events.items():
-                for event,assignees in assignments.items():
-                    if (len(assignees) == 1) and (user.username not in assignees):
-                        assignees.append(user.username)
-                        assigned_events[project][event] = assignees
-                        num_events -= 1
-                        if num_events == 0:
-                            break
-                    if num_events == 0:
-                            break
-
-            # No event is only assigned to one user, randomly assign new events
-            while num_events:
-                try:
-                    rand_project = rd.choice(available_projects)
-                except IndexError:
-                    # No project has free events
+            
+            # Get waveforms not assigned to user, and not already assigned to max number of annotators
+            waveforms = WaveformEvent.objects.\
+                exclude(annotators=user).\
+                annotate(num_annotators=Count('annotators')).\
+                filter(num_annotators__lt=base.NUM_ANNOTATORS).\
+                order_by('-num_annotators')
+            
+            for w in waveforms:
+                if num_events == 0:
                     break
-
-                if unassigned_events.get(rand_project):
-                    rand_event = rd.choice(unassigned_events[rand_project])
-                    assigned_events[rand_project][rand_event] = [user.username]
-                    unassigned_events[rand_project].remove(rand_event)
-                    num_events -= 1
                 else:
-                    available_projects.remove(rand_project)
+                    w.annotators.add(user)
+                    num_events -= 1
 
-            for proj,data in assigned_events.items():
-                update_assignments(data, proj)
-
-            # Update the user's assignment start date
             if num_events:
                 num_events = int(request.POST['num_events']) - num_events
                 messages.error(
                     request, f'Not enough events remaining. You have been given {num_events} events'
                 )
-
+            
             user.date_assigned = timezone.now()
             user.save()
             return redirect('render_annotations')
 
     return render(request, 'waveforms/annotations.html',
-                  {'user': user, 'all_anns_frac': all_anns_frac,
-                   'min_assigned': base.MIN_ASSIGNED,
-                   'categories': categories, 'completed_anns': completed_anns,
-                   'complete_page': complete_page, 'n_complete': n_complete,
-                   'n_incomplete': n_incomplete, 'search': search,
-                   'saved_anns': saved_anns, 'saved_page': saved_page,
-                   'incompleted_anns': incompleted_anns,
-                   'incomplete_page': incomplete_page,
-                   'finished_assignment': finished_assignment,
-                   'remaining': total_anns - len(completed_annotations),
-                   'save_warning': save_warning})
+                  {'user': user, 'min_assigned': base.MIN_ASSIGNED, 'progress': progress,
+                   'categories': categories, 'unannotated_waveforms': unannotated_waveforms,
+                   'saved_waveforms': saved_waveforms, 'annotated_waveforms': annotated_waveforms})
 
 
 @login_required

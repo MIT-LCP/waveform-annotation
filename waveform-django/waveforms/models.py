@@ -3,9 +3,33 @@ import os
 
 from django.core.validators import EmailValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.utils import timezone
 
 from website.settings import base
+
+
+class WaveformEvent(models.Model):
+    """
+    Defines the model for each waveform event. Contains info about each event that has been assigned.
+    """
+    project = models.CharField(max_length=50, unique=False, blank=False)
+    record = models.CharField(max_length=50, unique=False, blank=False)
+    event = models.CharField(max_length=50, unique=False, blank=False)
+    is_practice = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f'{self.project}/{self.record}/{self.event}'
+    
+    @property
+    def path(self):
+        return f'{self.project}/{self.record}/{self.event}'
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['project', 'record', 'event'], name='unique_fields')
+        ]
+        ordering = ['project', 'record', 'event']
 
 
 class User(models.Model):
@@ -19,6 +43,7 @@ class User(models.Model):
     is_adjudicator = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_annotator = models.BooleanField(default=False)
+    waveforms = models.ManyToManyField(WaveformEvent, related_name='annotators')
     entrance_score = models.CharField(
         max_length=8,
         default='N/A',
@@ -90,7 +115,7 @@ class User(models.Model):
                 diff_settings[field] = [default, user_set]
         return diff_settings
 
-    def events_remaining(self):
+    def num_events_remaining(self):
         """
         Return the total number of event remaining from the user's assignment.
 
@@ -104,27 +129,51 @@ class User(models.Model):
             The total number of events remaining from the user's assignment.
 
         """
-        BASE_DIR = base.BASE_DIR
-        FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-        FILE_LOCAL = os.path.join('record-files')
-        PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+        all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+        all_waveforms = WaveformEvent.objects.filter(annotators=self, project__in=all_projects)
 
-        count = 0
-        for project in base.ALL_PROJECTS:
-            event_list = []
-            csv_path = os.path.join(PROJECT_PATH, project, base.ASSIGNMENT_FILE)
-            with open(csv_path, 'r') as csv_file:
-                csvreader = csv.reader(csv_file, delimiter=',')
-                next(csvreader)
-                for row in csvreader:
-                    if self.username in row[1:]:
-                        event_list.append(row[0])
-            complete_events = Annotation.objects.filter(
-                user=self, project=project, is_adjudication=False).exclude(
-                decision='Save for Later').values_list('event', flat=True)
-            event_list = [e for e in event_list if e not in complete_events]
-            count += len(event_list)
-        return count
+        saved_annotations = Annotation.objects.filter(user=self, project__in=all_projects, decision='Save for Later')
+        unannotated_waveforms = all_waveforms.exclude(annotation__user=self)
+        return len(unannotated_waveforms) + len(saved_annotations)
+    
+    def get_waveforms(self, type):
+        """
+        Return the waveforms for the user based on the type of waveforms requested.
+
+        Parameters
+        ----------
+        type : str
+            The type of waveforms to return. Options are:
+                - unannotated
+                - saved
+                - annotated
+                - adjudicated
+        """
+
+        requested_adjudicated = type == 'adjudicated'
+
+        if self.practice_status == 'ED':
+            if self.is_admin:
+                all_projects = base.ALL_PROJECTS
+                all_waveforms = WaveformEvent.objects.filter(is_practice=False)
+                all_annotations = Annotation.objects.filter(user=self, is_adjudication=requested_adjudicated, waveform__is_practice=False)
+            else:
+                all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+                all_waveforms = WaveformEvent.objects.filter(annotators=self, project__in=all_projects, is_practice=False)
+                all_annotations = Annotation.objects.filter(user=self, project__in=all_projects, is_adjudication=requested_adjudicated, waveform__is_practice=False)
+        else:
+            all_projects = list(base.PRACTICE_SET.keys())
+            all_waveforms = WaveformEvent.objects.filter(is_practice=True)
+            all_annotations = Annotation.objects.filter(user=self, is_adjudication=requested_adjudicated, waveform__is_practice=True)
+        
+        if type == 'unannotated':
+            return all_waveforms.exclude(annotation__user=self)
+        elif type == 'saved':
+            return all_annotations.filter(decision='Save for Later')
+        elif type == 'annotated' or type == 'adjudicated':
+            return all_annotations.filter(decision__in=['True', 'False', 'Uncertain', 'Reject'])
+        else:
+            raise ValueError(f'Invalid type argument: {type}')
 
 
 class InvitedEmails(models.Model):
@@ -144,6 +193,7 @@ class Annotation(models.Model):
     """
     user = models.ForeignKey('User', related_name='annotation',
         on_delete=models.CASCADE)
+    waveform = models.ForeignKey('WaveformEvent', on_delete=models.CASCADE, default=None)
     project = models.CharField(max_length=50, blank=False)
     record = models.CharField(max_length=50, blank=False)
     event = models.CharField(max_length=50, blank=False)

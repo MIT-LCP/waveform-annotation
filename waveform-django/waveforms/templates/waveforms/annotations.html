@@ -3,384 +3,396 @@
 
 {% block content %}
 <style>
-.accordion {
-  background-color: #eee;
-  color: #444;
-  cursor: pointer;
-  padding: 18px;
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: 20px;
-  transition: 0.2s;
-}
-.active, .accordion:hover {
-  background-color: #ccc;
-}
-.panel {
-  padding: 0 18px;
-  background-color: white;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
-}
-.label-warning {
-  white-space: pre-wrap;
-  margin: 0px;
-  color: red;
-}
+    .accordion {
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 20px;
+        transition: 0.2s;
+    }
+
+    .active,
+    .accordion:hover {
+        background-color: #ccc;
+    }
+
+    .panel {
+        padding: 0 18px;
+        background-color: white;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+    }
+
+    .label-warning {
+        white-space: pre-wrap;
+        margin: 0px;
+        color: red;
+    }
 </style>
 
 <div class="container">
-  {% if user.practice_status == "ED" %}
+    {% if user.practice_status == "ED" %}
     <h1> My Annotations </h1>
-  {% else %}
-    {% if user.is_annotator == False%}
-      <h1> Assessment Samples </h1>
     {% else %}
-      <h1> Practice Samples </h1>
+    {% if user.is_annotator == False%}
+    <h1> Assessment Samples </h1>
+    {% else %}
+    <h1> Practice Samples </h1>
     {% endif %}
-  {% endif %}
+    {% endif %}
 
-  <div>
-    <span style="font-size: 20px; float: left;">Total Complete</span>
-    <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
-  </div><br /><br />
-  {% if messages %}
+    <div>
+        <span style="font-size: 20px; float: left;">Total Complete</span>
+        <span style="font-size: 20px; float: right;">{{ progress }}</span>
+    </div><br /><br />
+    {% if messages %}
     <ul class="messages">
-      {% for message in messages %}
-      <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
-      {% endfor %}
+        {% for message in messages %}
+        <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
+        {% endfor %}
     </ul>
     {% endif %}
 
-  <div>
-    {%if user.practice_status == "ED"%}
-      {% if finished_assignment%}
+    <div>
+        {%if user.practice_status == "ED"%}
+        {% if user.num_events_remaining == 0 %}
         <form action="" method="post">
-          {% csrf_token %}
-          <h2>Annotate More Events</h2>
-          <label for="num_events">Number of events to assign:</label>
-          <input id="num_events" type="number" name="num_events" value="{{ min_assigned }}" min="{{ min_assigned }}" max="800" required
-                value="Must assign at least {{ min_assigned }} events">
-          <br />
-          <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
+            {% csrf_token %}
+            <h2>Annotate More Events</h2>
+            <label for="num_events">Number of events to assign:</label>
+            <input id="num_events" type="number" name="num_events" value="{{ min_assigned }}" min="{{ min_assigned }}"
+                max="800" required value="Must assign at least {{ min_assigned }} events">
+            <br />
+            <input type="submit" name="new_assignment" class="btn btn-primary btn-rsp" value="Submit">
         </form>
-      {% else %}
+        {% else %}
         {% if save_warning %}
-          <label class="label-warning">
+        <label class="label-warning">
             ***
             There can be no annotations which are <u>Save for Later</u>.
             All annotations must either be <u>True</u>, <u>False</u>, <u>Uncertain</u>, or <u>Reject</u>.
             ***
-          </label>
+        </label>
         {% endif %}
-      {% endif %}
+        {% endif %}
+        {% endif %}
+        <br />
+        <h2>
+            {%if user.practice_status == "ED"%}
+            Current Assignment
+            {% elif user.is_annotator == False %}
+            <i style="color:purple">Assessment</i>
+            {% else %}
+            <i style="color:red">Practice Mode</i>
+            {%endif%}
+        </h2>
+
+        {% if user.is_annotator == False and user.practice_status == "CO"%}
+        <p style="font-size: 20px;">Assessment has been submitted and is under review</p>
+    </div>
+    {% else%}
+    {%if user.practice_status != "ED"%}
+    {% if user.is_annotator == True %}
+    <span style="font-size: 20px;">Go to the "Practice Info" page to read the instructions for the practice test, and
+        when
+        you are ready to submit your responses</span>
+    {% else %}
+    <span style="font-size: 20px;">Go to the <a href="{% url 'assessment' %}">Assessment Info</a> page to read the
+        instructions for this assessment. When you are ready to submit your responses, press "Submit Assessment".</span>
+    <br>
+    <br>
+    <div>
+        <form action="{% url 'assessment' %}" method="post" class="form-signin row no-pd" name="submit-practice">
+            {% csrf_token %}
+            {% if user.practice_status == "BG" %}
+            {% if user.is_annotator == True %}
+            <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
+            {% else %}
+            <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Assessment">
+            {% endif %}
+            {% endif %}
+            {% if user.practice_status == "ED" %}
+            <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
+            {% else %}
+            {% if user.is_annotator == True%}
+            <input type="submit" name="end-practice" class="btn btn-warning btn-rsp" value="End Practice">
+            {% endif %}
+            {% endif %}
+        </form>
+    </div>
     {% endif %}
     <br />
-    <h2>
-      {%if user.practice_status == "ED"%}
-        Current Assignment
-      {% elif user.is_annotator == False %}
-        <i style="color:purple">Assessment</i>
-      {% else %}
-        <i style="color:red">Practice Mode</i> 
-      {%endif%}
-    </h2>
-
-    {% if user.is_annotator == False and user.practice_status == "CO"%}
-        <p style="font-size: 20px;">Assessment has been submitted and is under review</p>
-      </div>
-    {% else%}
-        {%if user.practice_status != "ED"%}
-          {% if user.is_annotator == True %}
-            <span style="font-size: 20px;">Go to the "Practice Info" page to read the instructions for the practice test, and when you are ready to submit your responses</span>
-          {% else %}
-            <span style="font-size: 20px;">Go to the <a href="{% url 'assessment' %}">Assessment Info</a> page to read the instructions for this assessment. When you are ready to submit your responses, press "Submit Assessment".</span>
-            <br>
-            <br>
-            <div>
-              <form action="{% url 'assessment' %}" method="post" class="form-signin row no-pd" name="submit-practice">
-                {% csrf_token %}
-                {% if user.practice_status == "BG" %}
-                  {% if user.is_annotator == True %}
-                    <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
-                  {% else %}
-                    <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Assessment">
-                  {% endif %}
-                {% endif %}
-                {% if user.practice_status == "ED" %}
-                  <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
-                {% else %}
-                  {% if user.is_annotator == True%}
-                    <input type="submit" name="end-practice" class="btn btn-warning btn-rsp" value="End Practice">
-                  {% endif %}
-                {% endif %}
-              </form>
-            </div>
-          {% endif %}
-          <br />
-          <br />
-        {% endif %}
-        <span style="font-size: 20px; float: left;">Remaining Events: </span>
-        <span style="font-size: 20px; float: right;">{{ remaining }}</span>
-        <br /><br />
-      </div>
-      <div>
-        <h3>Search for record</h3>
-        {% if messages %}
-          <ul class="messages">
-            {% for message in messages %}
-              <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
-            {% endfor %}
-          </ul>
-        {% endif %}
-        <form action="{% url 'render_annotations' %}">
-          <input type="text" id="record" name="record" placeholder="e.g. 003c13" required>
-          <input type="submit" class="btn btn-secondary" value="Search"><br><br>
-        </form>
-        {% if search %}
-          {% for rec,info in search.items %}
-            <button class="accordion">
-              <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
-              <span style="float: right;">{{ info.0 }}</span>
-            </button>
-            <div class="panel">
-              <table style="width:100%">
-                <!-- Header names of the columns -->
-                <tr>
-                  {% for cat in categories %}
-                    <th>
-                      {{ cat }}
-                    </th>
-                  {% endfor %}
-                </tr>
-                <!-- Values of each column -->
-                {% for val in info|slice:"2:" %}
-                  <tr>
-                    {% for v in val %}
-                      <td>
-                        {{ v }}
-                      </td>
-                    {% endfor %}
-                    <td>
-                      <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
-                    </td>
-                    <!-- Only display if annotation (timestamp) is found -->
-                    {% if val.3 != "-" %}
-                      <td>
-                        <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
-                      </td>
-                    {% endif %}
-                  </tr>
-                {% endfor %}
-              </table>
-            </div>
-            <br>
-          {% endfor %}
-        {% endif %}
-      </div>
-      <div id="saved_annotations">
-        <h2>Save for Later Annotations</h2>
-      </div>
-      {% if saved_page %}
-        <div class="page-links">
-          {% if saved_page.has_previous %}
-            <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.previous_page_number}}#saved_annotations">Previous Page</a>&emsp;
-          {% endif %}
-          {% if saved_page.has_next %}
-            <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.next_page_number}}#saved_annotations">Next Page</a>&emsp;
-          {% endif %}
-          {% if request.GET.saved_page == 'all' %}
-            <a href="{% url 'render_annotations' %}?saved_page=1#saved_annotations">Show pages</a>
-          {% else %}
-            <a href="{% url 'render_annotations' %}?saved_page=all#saved_annotations">Show all</a>
-          {% endif %}
-        </div>
-      {% endif %}
-      {% for rec,info in saved_anns.items %}
-        <button class="accordion">
-          <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
-          <span style="float: right;">{{ info.0 }}</span>
-        </button>
-        <div class="panel">
-          <table style="width:100%">
-            <!-- Header names of the columns -->
-            <tr>
-              {% for cat in categories %}
-                <th>
-                  {{ cat }}
-                </th>
-              {% endfor %}
-            </tr>
-            <!-- Values of each column -->
-            {% for val in info|slice:"2:" %}
-              <tr>
-                {% for v in val %}
-                  <td>
-                    {{ v }}
-                  </td>
-                {% endfor %}
-                <td>
-                  <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
-                </td>
-                <!-- Only display if annotation (timestamp) is found -->
-                {% if val.3 != "-" %}
-                  <td>
-                    <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
-                  </td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          </table>
-        </div>
-      {% endfor %}
-      <br />
-      <div id="complete_annotations">
-        <h2>Complete Annotations</h2>
-      </div>
-      {% if complete_page %}
-        <div class="page-links">
-          {% if complete_page.has_previous %}
-            <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.previous_page_number }}#complete_annotations">Previous Page</a>&emsp;
-          {% endif %}
-          {% if complete_page.has_next %}
-            <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.next_page_number }}#complete_annotations">Next Page</a>&emsp;
-          {% endif %}
-          {% if request.GET %}
-            {% if request.GET.complete_page == 'all' %}
-              <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
-            {% else %}
-              {% if n_complete > 5 %}
-                <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
-              {% endif %}
-            {% endif %}
-          {% else %}
-            {% if n_complete > 5 %}
-              <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
-            {% endif %}
-          {% endif %}
-        </div>
-      {% endif %}
-      {% for rec,info in completed_anns.items %}
-        <button class="accordion">
-          <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
-          <span style="float: right;">{{ info.0 }}</span>
-        </button>
-        <div class="panel">
-          <table style="width:100%">
-            <!-- Header names of the columns -->
-            <tr>
-              {% for cat in categories %}
-                <th>
-                  {{ cat }}
-                </th>
-              {% endfor %}
-            </tr>
-            <!-- Values of each column -->
-            {% for val in info|slice:"2:" %}
-              <tr>
-                {% for v in val %}
-                  <td>
-                    {{ v }}
-                  </td>
-                {% endfor %}
-                <td>
-                  <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
-                </td>
-                <!-- Only display if annotation (timestamp) is found -->
-                {% if val.3 != "-" %}
-                  <td>
-                    <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
-                  </td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          </table>
-        </div>
-      {% endfor %}
-      <br />
-      <div id="incomplete_annotations">
-        <h2>Incomplete Annotations</h2>
-      </div>
-      {% if incomplete_page %}
-        <div class="page-links">
-          {% if incomplete_page.has_previous %}
-            <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.previous_page_number }}#incomplete_annotations">Previous Page</a>&emsp;
-          {% endif %}
-          {% if incomplete_page.has_next %}
-            <a href="{% url 'render_annotations' %}?incomplete_page={{ incomplete_page.next_page_number }}#incomplete_annotations">Next Page</a>&emsp;
-          {% endif %}
-          {% if request.GET %}
-            {% if request.GET.incomplete_page == 'all' %}
-              <a href="{% url 'render_annotations' %}?incomplete_page=1#incomplete_annotations">Show pages</a>
-            {% else %}
-              {% if n_incomplete > 5 %}
-                <a href="{% url 'render_annotations' %}?incomplete_page=all#incomplete_annotations">Show all</a>
-              {% endif %}
-            {% endif %}
-          {% else %}
-            {% if n_incomplete > 5 %}
-              <a href="{% url 'render_annotations' %}?incomplete_page=all#incomplete_annotations">Show all</a>
-            {% endif %}
-          {% endif %}
-        </div>
-      {% endif %}
-      {% for rec,info in incompleted_anns.items %}
-        <button class="accordion">
-          <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
-          <span style="float: right;">{{ info.0 }}</span>
-        </button>
-        <div class="panel">
-          <table style="width:100%">
-            <!-- Header names of the columns -->
-            <tr>
-              {% for cat in categories %}
-                <th>
-                  {{ cat }}
-                </th>
-              {% endfor %}
-            </tr>
-            <!-- Values of each column -->
-            {% for val in info|slice:"2:" %}
-              <tr>
-                {% for v in val %}
-                  <td>
-                    {{ v }}
-                  </td>
-                {% endfor %}
-                <td>
-                  <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
-                </td>
-                <!-- Only display if annotation (timestamp) is found -->
-                {% if val.3 != "-" %}
-                  <td>
-                    <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
-                  </td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          </table>
-        </div>
-      {% endfor %}
-    </div><br />
+    <br />
     {% endif %}
-    
+    <span style="font-size: 20px; float: left;">Remaining Events: </span>
+    <span style="font-size: 20px; float: right;">{{ unannotated_waveforms.count|add:saved_waveforms.count }}</span>
+    <br /><br />
+</div>
+<div>
+    <h3>Search for record</h3>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form action="{% url 'render_annotations' %}">
+        <input type="text" id="record" name="record" placeholder="e.g. 003c13" required>
+        <input type="submit" class="btn btn-secondary" value="Search"><br><br>
+    </form>
+    {% if search %}
+    {% for rec,info in search.items %}
+    <button class="accordion">
+        <span style="float: left;">{{ info.1 }}:&emsp;{{ rec }}</span>
+        <span style="float: right;">{{ info.0 }}</span>
+    </button>
+    <div class="panel">
+        <table style="width:100%">
+            <tr>
+                {% for cat in categories %}
+                <th>
+                    {{ cat }}
+                </th>
+                {% endfor %}
+            </tr>
+            <!-- Values of each column -->
+            {% for val in info|slice:"2:" %}
+            <tr>
+                {% for v in val %}
+                <td>
+                    {{ v }}
+                </td>
+                {% endfor %}
+                <td>
+                    <a href="{% url 'waveform_published_specific' info.1 rec val.0 %}">Edit annotation</a>
+                </td>
+                <!-- Only display if annotation (timestamp) is found -->
+                {% if val.3 != "-" %}
+                <td>
+                    <a href="{% url 'delete_annotation' info.1 rec val.0 %}">Delete annotation</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <br>
+    {% endfor %}
+    {% endif %}
+</div>
+
+{% if saved_waveforms.count > 0 %}
+<div id="saved_annotations">
+    <h2>Bookmarked Waveforms</h2>
+</div>
+{% if saved_page %}
+<div class="page-links">
+    {% if saved_page.has_previous %}
+    <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.previous_page_number}}#saved_annotations">Previous
+        Page</a>&emsp;
+    {% endif %}
+    {% if saved_page.has_next %}
+    <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.next_page_number}}#saved_annotations">Next
+        Page</a>&emsp;
+    {% endif %}
+    {% if request.GET.saved_page == 'all' %}
+    <a href="{% url 'render_annotations' %}?saved_page=1#saved_annotations">Show pages</a>
+    {% else %}
+    <a href="{% url 'render_annotations' %}?saved_page=all#saved_annotations">Show all</a>
+    {% endif %}
+</div>
+{% endif %}
+{% for waveform in saved_waveforms %}
+{% ifchanged waveform.project waveform.record%}
+{% if not forloop.first %}
+</table>
+</div>
+{% endif %}
+<button class="accordion">
+    <span style="float: left;">{{ waveform.project }}:&emsp;{{ waveform.record }}</span>
+</button>
+<div class="panel">
+    <table style="width:100%">
+        <tr>
+            {% for cat in categories %}
+            <th>
+                {{ cat }}
+            </th>
+            {% endfor %}
+        </tr>
+        {% endifchanged %}
+        <tr>
+            <td>
+                {{ waveform.event }}
+            </td>
+            <td>
+                Bookmarked
+            </td>
+            <td>
+                {{waveform.comments}}
+            </td>
+            <td>
+                {{waveform.decision_date}}
+            </td>
+            <td>
+                <a href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">Edit
+                    annotation</a>
+            </td>
+            <td>
+                <a href="{% url 'delete_annotation' waveform.project waveform.record waveform.event %}">Delete
+                    annotation</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<br>
+{% endif %}
+
+
+{% if annotated_waveforms.count > 0 %}
+<div id="complete_annotations">
+    <h2>Annotated Waveforms</h2>
+</div>
+{% if complete_page %}
+<div class="page-links">
+    {% if complete_page.has_previous %}
+    <a
+        href="{% url 'render_annotations' %}?complete_page={{ complete_page.previous_page_number }}#complete_annotations">Previous
+        Page</a>&emsp;
+    {% endif %}
+    {% if complete_page.has_next %}
+    <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.next_page_number }}#complete_annotations">Next
+        Page</a>&emsp;
+    {% endif %}
+    {% if request.GET %}
+    {% if request.GET.complete_page == 'all' %}
+    <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
+    {% else %}
+    {% if n_complete > 5 %}
+    <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
+    {% endif %}
+    {% endif %}
+    {% else %}
+    {% if n_complete > 5 %}
+    <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
+    {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+{% for waveform in annotated_waveforms %}
+{% ifchanged waveform.project waveform.record%}
+{% if not forloop.first %}
+</table>
+</div>
+{% endif %}
+<button class="accordion">
+    <span style="float: left;">{{ waveform.project }}:&emsp;{{ waveform.record }}</span>
+</button>
+<div class="panel">
+    <table style="width:100%">
+        <tr>
+            {% for cat in categories %}
+            <th>
+                {{ cat }}
+            </th>
+            {% endfor %}
+        </tr>
+        {% endifchanged %}
+        <tr>
+            <td>
+                {{ waveform.event }}
+            </td>
+            <td>
+                {{waveform.decision}}
+            </td>
+            <td>
+                {{waveform.comments}}
+            </td>
+            <td>
+                {{waveform.decision_date}}
+            </td>
+            <td>
+                <a href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">Edit
+                    annotation</a>
+            </td>
+            <td>
+                <a href="{% url 'delete_annotation' waveform.project waveform.record waveform.event %}">Delete
+                    annotation</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<br>
+{% endif %}
+
+{% if unannotated_waveforms.count > 0 %}
+<div id="unannotated_waveforms">
+    <h2>Unannotated Waveforms</h2>
+</div>
+{% for waveform in unannotated_waveforms %}
+{% ifchanged waveform.project waveform.record%}
+{% if not forloop.first %}
+</table>
+</div>
+{% endif %}
+<button class="accordion">
+    <span style="float: left;">{{ waveform.project }}:&emsp;{{ waveform.record }}</span>
+</button>
+<div class="panel">
+    <table style="width:100%">
+        <tr>
+            {% for cat in categories %}
+            <th>
+                {{ cat }}
+            </th>
+            {% endfor %}
+        </tr>
+        {% endifchanged %}
+        <tr>
+            <td>
+                {{ waveform.event }}
+            </td>
+            {% for _ in "123" %}
+            <td>
+                None
+            </td>
+            {% endfor %}
+            <td>
+                <a href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">Edit
+                    annotation</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<br>
+</div><br />
+{% endif %}
+{% endif %}
+
 
 <script>
-  var acc = document.getElementsByClassName("accordion");
-  var i;
+    var acc = document.getElementsByClassName("accordion");
+    var i;
 
-  for (i = 0; i < acc.length; i++) {
-    acc[i].addEventListener("click", function() {
-      this.classList.toggle("active");
-      var panel = this.nextElementSibling;
-      if (panel.style.maxHeight) {
-        panel.style.maxHeight = null;
-      } else {
-        panel.style.maxHeight = panel.scrollHeight + "px";
-      }
-    });
-  }
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function () {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    }
 </script>
 {% endblock %}
