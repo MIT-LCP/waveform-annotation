@@ -281,9 +281,6 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
     
     dash_context = {
         'is_adjudicator': {'value': False},
-        'set_project': {'value': set_project},
-        'set_record': {'value': set_record},
-        'set_event': {'value': set_event},
         'set_pageid': {'value': page_index},
         'page_order': {'value': all_waveforms},
     }

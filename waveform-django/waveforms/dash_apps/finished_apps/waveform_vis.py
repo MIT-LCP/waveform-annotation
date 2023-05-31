@@ -1,5 +1,4 @@
 import datetime
-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -132,9 +131,6 @@ app.layout = html.Div([
         ], style={'display': 'inline-block'})
     ], type='default'),
     # Hidden div inside the app that stores the desired project, record, and event
-    dcc.Input(id='set_project', type='hidden', persistence=False, value=''),
-    dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
-    dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_pageid', type='hidden', persistence=False, value=''),
     dcc.Input(id='page_order', type='hidden', persistence=False, value=''),
 ])
@@ -145,23 +141,16 @@ app.layout = html.Div([
      dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
      dash.dependencies.Output('event_text', 'children'),
-     dash.dependencies.Output('set_project', 'value'),
-     dash.dependencies.Output('set_record', 'value'),
-     dash.dependencies.Output('set_event', 'value'),
      dash.dependencies.Output('set_pageid', 'value')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('set_project', 'value'),
-     dash.dependencies.Input('set_record', 'value'),
-     dash.dependencies.Input('set_event', 'value'),
-     dash.dependencies.Input('set_pageid', 'value'),
-     dash.dependencies.Input('page_order', 'value')],
-    [dash.dependencies.State('reviewer_decision', 'value'),
+     dash.dependencies.Input('set_pageid', 'value')],
+    [dash.dependencies.State('page_order', 'value'),
+     dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
-def get_record_event_options(click_submit, click_previous, click_next,
-                             set_project, set_record, set_event, set_pageid,
-                             page_order, decision_value, comments_value):
+def get_record_event_options(click_submit, click_previous, click_next, 
+                             set_pageid, page_order, decision_value, comments_value):
     """
     Dynamically update the labels and stored variables given the current
     record and event.
@@ -174,18 +163,10 @@ def get_record_event_options(click_submit, click_previous, click_next,
         The timestamp if the previous button was clicked in ms from epoch.
     click_next : int
         The timestamp if the next button was clicked in ms from epoch.
-    set_project : str
-        The desired project.
-    set_record : str
-        The desired record.
-    set_event : str
-        The desired event.
-    project_value : str
-        The current project.
-    record_value : str
-        The current record.
-    event_value : str
-        The current event.
+    set_pageid : str
+        The pageid of the current waveform the viewer is displaying.
+    page_order : str
+        The order of the pages for the viewer to display.
     decision_value : str
         The decision of the user.
     comments_value : str
@@ -201,16 +182,14 @@ def get_record_event_options(click_submit, click_previous, click_next,
         The current event in HTML form so it can be rendered on the page.
     event_text : list[html.Span object]
         The current event in HTML form so it can be rendered on the page.
-    dropdown_project : str
-        The new selected project.
-    dropdown_record : str
-        The new selected record.
-    dropdown_event : str
-        The new selected event.
+    return_pageid : str
+        The page the user has navigated to.
 
     """
+
     # Determine what triggered this function
     ctx = dash.callback_context
+
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
 
@@ -258,7 +237,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     )
                 annotation.update()
 
-
         # Going backward in the list
         if click_id == 'previous_annotation':
             if set_pageid == 0:
@@ -274,7 +252,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 return_pageid = set_pageid + 1
         
         next_waveform = WaveformEvent.objects.get(pk=page_order[return_pageid])
-
         return_project = next_waveform.project
         return_record = next_waveform.record
         return_event = next_waveform.event
@@ -321,32 +298,26 @@ def get_record_event_options(click_submit, click_previous, click_next,
                   style={'fontSize': event_fontsize})
     ]
 
-    return (project_text, record_text, event_text, alarm_text,
-            return_project, return_record, return_event, return_pageid)
+    return (project_text, record_text, event_text, alarm_text, return_pageid)
 
 
 @app.callback(
     [dash.dependencies.Output('the_graph', 'figure'),
      dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
-    [dash.dependencies.Input('dropdown_event', 'children')],
-    [dash.dependencies.State('dropdown_record', 'children'),
-     dash.dependencies.State('dropdown_project', 'children')])
-def update_graph(dropdown_event, dropdown_record, dropdown_project):
+    [dash.dependencies.Input('set_pageid', 'value')],
+    [dash.dependencies.State('page_order', 'value')])
+def update_graph(set_pageid, page_order):
     """
     Run the app and render the waveforms using the chosen initial conditions.
 
     Parameters
     ----------
-    dropdown_event : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current record.
-    dropdown_record : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current event.
-    dropdown_project : list[dict], dict
-        Either a list (if multiple input triggers) of dictionaries or a single
-        dictionary (if single input trigger) of the current project.
+    set_pageid : int
+        The current page the viewer is displaying.
+
+    page_order : list
+        The list of pages to display.
 
     Returns
     -------
@@ -361,10 +332,13 @@ def update_graph(dropdown_event, dropdown_record, dropdown_project):
     # Import the waveform tools for the current user
     current_user = get_current_user()
     wvt = WaveformVizTools(current_user)
+    display_waveform = WaveformEvent.objects.get(pk=page_order[set_pageid])
+    
     # Create the figure
-    dropdown_record = wvt.get_dropdown(dropdown_record)
-    dropdown_event = wvt.get_dropdown(dropdown_event)
-    dropdown_project = wvt.get_dropdown(dropdown_project)
+    dropdown_project = display_waveform.project
+    dropdown_record = display_waveform.record
+    dropdown_event = display_waveform.event
+
     # Blank figure if empty
     if ((dropdown_record == 'N/A') or (dropdown_event == 'N/A') or
        (dropdown_project == 'N/A')):
