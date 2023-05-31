@@ -1,12 +1,9 @@
-import csv
 import datetime
-import os
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from django_plotly_dash import DjangoDash
-import numpy as np
 import pytz
 import wfdb
 
@@ -14,7 +11,6 @@ from waveforms.dash_apps.finished_apps.waveform_vis_tools import WaveformVizTool
 from waveforms.models import Annotation, User, WaveformEvent
 from website.middleware import get_current_user
 from website.settings import base
-from django.core import cache
 
 from pathlib import Path
 from itertools import chain
@@ -140,12 +136,7 @@ app.layout = html.Div([
     dcc.Input(id='set_record', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_event', type='hidden', persistence=False, value=''),
     dcc.Input(id='set_pageid', type='hidden', persistence=False, value=''),
-    # Hidden div inside the app that stores the current project, record, and event
-    dcc.Input(id='temp_project', type='hidden', persistence=False, value=''),
-    dcc.Input(id='temp_record', type='hidden', persistence=False, value=''),
-    dcc.Input(id='temp_event', type='hidden', persistence=False, value=''),
-    dcc.Input(id='temp_pageid', type='hidden', persistence=False, value=''),
-
+    dcc.Input(id='page_order', type='hidden', persistence=False, value=''),
 ])
 
 
@@ -154,27 +145,23 @@ app.layout = html.Div([
      dash.dependencies.Output('dropdown_record', 'children'),
      dash.dependencies.Output('dropdown_event', 'children'),
      dash.dependencies.Output('event_text', 'children'),
-     dash.dependencies.Output('temp_project', 'value'),
-     dash.dependencies.Output('temp_record', 'value'),
-     dash.dependencies.Output('temp_event', 'value'),
-     dash.dependencies.Output('temp_pageid', 'value')],
+     dash.dependencies.Output('set_project', 'value'),
+     dash.dependencies.Output('set_record', 'value'),
+     dash.dependencies.Output('set_event', 'value'),
+     dash.dependencies.Output('set_pageid', 'value')],
     [dash.dependencies.Input('submit_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('set_project', 'value'),
      dash.dependencies.Input('set_record', 'value'),
      dash.dependencies.Input('set_event', 'value'),
-     dash.dependencies.Input('set_pageid', 'value')],
-    [dash.dependencies.State('temp_project', 'value'),
-     dash.dependencies.State('temp_record', 'value'),
-     dash.dependencies.State('temp_event', 'value'),
-     dash.dependencies.State('temp_pageid', 'value'),
-     dash.dependencies.State('reviewer_decision', 'value'),
+     dash.dependencies.Input('set_pageid', 'value'),
+     dash.dependencies.Input('page_order', 'value')],
+    [dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
 def get_record_event_options(click_submit, click_previous, click_next,
                              set_project, set_record, set_event, set_pageid,
-                             project_value, record_value, event_value, pageid_value,
-                             decision_value, comments_value):
+                             page_order, decision_value, comments_value):
     """
     Dynamically update the labels and stored variables given the current
     record and event.
@@ -226,45 +213,10 @@ def get_record_event_options(click_submit, click_previous, click_next,
     ctx = dash.callback_context
     # Prepare to return the record and event value for the user
     current_user = User.objects.get(username=get_current_user())
-    
-    # One project at a time
-    user_saved = current_user.get_waveforms('saved')
-    user_unannotated = current_user.get_waveforms('unannotated')
-    user_annotations = current_user.get_waveforms('annotated')
-
-    all_waveforms = list(chain(user_saved, user_unannotated, user_annotations))
-
-    print(f"\n\n set project: {set_project}\n set_record: {set_record}\n set_event: {set_event}\n set_pageid: {set_pageid}\n")
-
-    if not set_project or not set_record or not set_event:
-        pass
 
     if ctx.triggered:
         # Determine what triggered the function
         click_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        
-        print(f"\n\nCLICK ID: {click_id}")
-
-        # We already know the current project
-        return_project = project_value
-
-        # Going backward in the list
-        if click_id == 'previous_annotation':
-            return_record = 'v101l'
-            return_event = 'v101l_1m'
-            return_pageid = 0
-        # Going forward in the list
-        elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
-            try:
-                return_record = 'v101l'
-                return_event = 'v101l_1m'
-                return_pageid = 0
-
-            except IndexError:
-                # End of list, go back to the beginning
-                return_record = 'v101l'
-                return_event = 'v101l_1m'
-                return_pageid = 0
 
         # Update the annotations: only save the annotations if a decision is
         # made and the submit button was pressed
@@ -276,11 +228,11 @@ def get_record_event_options(click_submit, click_previous, click_next,
             submit_time = set_timezone.localize(submit_time)
             # Save the annotation to the database only if changes
             # were made or a new annotation
-            waveform = WaveformEvent.objects.get(project=project_value, record=record_value, event=event_value)
+            waveform = WaveformEvent.objects.get(pk=page_order[set_pageid])
             try:
                 res = Annotation.objects.get(
-                    user=current_user, project=project_value,
-                    record=record_value, event=event_value,
+                    user=current_user, project=waveform.project,
+                    record=waveform.record, event=waveform.event,
                     is_adjudication=False
                 )
                 current_annotation = [res.decision, res.comments]
@@ -288,8 +240,8 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 # Only save annotation if something has changed
                 if current_annotation != proposed_annotation:
                     annotation = Annotation(
-                        user=current_user, project=project_value,
-                        record=record_value, event=event_value,
+                        user=current_user, project=waveform.project,
+                        record=waveform.record, event=waveform.event,
                         decision=decision_value, comments=comments_value,
                         decision_date=submit_time, is_adjudication=False,
                         waveform=waveform
@@ -298,18 +250,41 @@ def get_record_event_options(click_submit, click_previous, click_next,
             except Annotation.DoesNotExist:
                 # Create new annotation since none already exist
                 annotation = Annotation(
-                    user=current_user, project=project_value,
-                    record=record_value, event=event_value,
-                    decision=decision_value, comments=comments_value,
-                    decision_date=submit_time, is_adjudication=False,
-                    waveform=waveform
-                )
+                        user=current_user, project=waveform.project,
+                        record=waveform.record, event=waveform.event,
+                        decision=decision_value, comments=comments_value,
+                        decision_date=submit_time, is_adjudication=False,
+                        waveform=waveform
+                    )
                 annotation.update()
+
+
+        # Going backward in the list
+        if click_id == 'previous_annotation':
+            if set_pageid == 0:
+                return_pageid = len(page_order) - 1
+            else:
+                return_pageid = set_pageid - 1
+
+        # Going forward in the list
+        elif (click_id == 'next_annotation') or (click_id == 'submit_annotation'):
+            if set_pageid == len(page_order) - 1:
+                return_pageid = 0
+            else:
+                return_pageid = set_pageid + 1
+        
+        next_waveform = WaveformEvent.objects.get(pk=page_order[return_pageid])
+
+        return_project = next_waveform.project
+        return_record = next_waveform.record
+        return_event = next_waveform.event
+        
     else:
-        return_project = set_project
-        return_record = set_record
-        return_event = set_event
         return_pageid = set_pageid
+        next_waveform = WaveformEvent.objects.get(pk=page_order[return_pageid])
+        return_project = next_waveform.project
+        return_record = next_waveform.record
+        return_event = next_waveform.event
 
     # Update the event text
     alarm_text = html.Span([''], style={'fontSize': event_fontsize})
@@ -346,7 +321,6 @@ def get_record_event_options(click_submit, click_previous, click_next,
                   style={'fontSize': event_fontsize})
     ]
 
-    print(f"\n\n project_value: {project_value}\n record_value: {record_value}\n event_value: {event_value}\n pageid_value: {pageid_value}\n")
     return (project_text, record_text, event_text, alarm_text,
             return_project, return_record, return_event, return_pageid)
 

@@ -11,6 +11,7 @@ import pandas as pd
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.template import RequestContext
 from django.core.paginator import Paginator
 from django.http import *
 from django.shortcuts import redirect, render
@@ -257,18 +258,34 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
     """
     user = User.objects.get(username=request.user)
     
-    if set_project and set_record and set_event:
-        waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+    user_saved = [waveform.pk for waveform in user.get_waveforms('saved')]
+    user_unannotated = [waveform.pk for waveform in user.get_waveforms('unannotated')]
+    user_annotations = [waveform.pk for waveform in user.get_waveforms('annotated')]
+    all_waveforms = user_saved + user_unannotated + user_annotations
 
-        if user not in waveform.annotators.all():
-            return redirect('render_annotations')
+    if len(all_waveforms) == 0:
+        return redirect('render_annotations')
+
+    if set_project and set_record and set_event:
+        try:
+            waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+            if user not in waveform.annotators.all():
+                return HttpResponseForbidden('<h1>You do not have access to this waveform</h1>')
+        except WaveformEvent.DoesNotExist:
+            return HttpResponseNotFound('<h1>Waveform not found</h1>')
+        
+        page_index = all_waveforms.index(waveform.pk)
+    
+    else:
+        page_index = 0
     
     dash_context = {
         'is_adjudicator': {'value': False},
         'set_project': {'value': set_project},
         'set_record': {'value': set_record},
         'set_event': {'value': set_event},
-        'set_pageid': {'value': 0},
+        'set_pageid': {'value': page_index},
+        'page_order': {'value': all_waveforms},
     }
 
     return render(request, 'waveforms/home.html', {'user': user,
@@ -715,8 +732,8 @@ def render_annotations(request):
     user = User.objects.get(username=request.user)
 
     unannotated_waveforms = user.get_waveforms('unannotated')
-    saved_waveforms = user.get_waveforms('saved')
-    annotated_waveforms = user.get_waveforms('annotated')
+    saved_waveforms = user.get_annotations(saved=True)
+    annotated_waveforms = user.get_annotations()
 
     categories = [
         'Event',

@@ -136,7 +136,7 @@ class User(models.Model):
         unannotated_waveforms = all_waveforms.exclude(annotation__user=self)
         return len(unannotated_waveforms) + len(saved_annotations)
     
-    def get_waveforms(self, type):
+    def get_waveforms(self, annotation = ''):
         """
         Return the waveforms for the user based on the type of waveforms requested.
 
@@ -144,36 +144,52 @@ class User(models.Model):
         ----------
         type : str
             The type of waveforms to return. Options are:
+                - EMPTY STRING (default) - all waveforms
                 - unannotated
                 - saved
                 - annotated
                 - adjudicated
         """
 
-        requested_adjudicated = type == 'adjudicated'
+        requested_adjudicated = annotation == 'adjudicated'
 
         if self.practice_status == 'ED':
             if self.is_admin:
                 all_projects = base.ALL_PROJECTS
                 all_waveforms = WaveformEvent.objects.filter(is_practice=False)
-                all_annotations = Annotation.objects.filter(user=self, is_adjudication=requested_adjudicated, waveform__is_practice=False)
             else:
                 all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
                 all_waveforms = WaveformEvent.objects.filter(annotators=self, project__in=all_projects, is_practice=False)
-                all_annotations = Annotation.objects.filter(user=self, project__in=all_projects, is_adjudication=requested_adjudicated, waveform__is_practice=False)
         else:
             all_projects = list(base.PRACTICE_SET.keys())
             all_waveforms = WaveformEvent.objects.filter(is_practice=True)
-            all_annotations = Annotation.objects.filter(user=self, is_adjudication=requested_adjudicated, waveform__is_practice=True)
         
-        if type == 'unannotated':
+        if annotation == 'unannotated':
             return all_waveforms.exclude(annotation__user=self)
-        elif type == 'saved':
-            return all_annotations.filter(decision='Save for Later')
-        elif type == 'annotated' or type == 'adjudicated':
-            return all_annotations.filter(decision__in=['True', 'False', 'Uncertain', 'Reject'])
+        elif annotation == 'saved':
+            return all_waveforms.filter(annotation__decision='Save for Later')
+        elif annotation == 'annotated' or annotation == 'adjudicated':
+            return all_waveforms.filter(annotation__decision__in=['True', 'False', 'Uncertain', 'Reject'])
         else:
-            raise ValueError(f'Invalid type argument: {type}')
+            return all_waveforms
+        
+
+    def get_annotations(self, saved=False, is_adjudicated=False):
+        if self.practice_status == 'ED':
+            if self.is_admin:
+                all_projects = base.ALL_PROJECTS
+                all_annotations = Annotation.objects.filter(user=self, is_adjudication=is_adjudicated, waveform__is_practice=False)
+            else:
+                all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+                all_annotations = Annotation.objects.filter(user=self, project__in=all_projects, is_adjudication=is_adjudicated, waveform__is_practice=False)
+        else:
+            all_projects = list(base.PRACTICE_SET.keys())
+            all_annotations = Annotation.objects.filter(user=self, is_adjudication=is_adjudicated, waveform__is_practice=True)
+        
+        if saved:
+            return all_annotations.filter(decision='Save for Later')
+        else:
+            return all_annotations.filter(decision__in=['True', 'False', 'Uncertain', 'Reject'])
 
 
 class InvitedEmails(models.Model):
@@ -201,7 +217,7 @@ class Annotation(models.Model):
     comments = models.TextField(default='')
     decision_date = models.DateTimeField(null=True, blank=False)
     is_adjudication = models.BooleanField(default=False, null=True)
-
+    
     def update(self):
         """
         Update the user's annotation if it exists, else create a new one.
