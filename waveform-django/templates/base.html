@@ -78,7 +78,7 @@
         {% if user.is_annotator is True or user.practice_status != 'CO' %} 
           <th class="text-center col">
             <div class="dropdown">
-              <button class="btn {% if 'waveforms' in request.path and 'annotations' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'overview' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'assessment' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+              <button class="btn {% if 'waveforms' in request.path and 'assignment' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'overview' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'assessment' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
                 
                 <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
                   {%if user.practice_status == "ED"%}
@@ -97,8 +97,8 @@
         {% endif %}
         <th class="text-center col">
           <div class="dropdown">
-            <button class="btn {% if 'waveforms/annotations' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'render_annotations' %}" style="font-size: large;">
+            <button class="btn {% if 'waveforms/assignment' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+              <a href="{% url 'current_assignment' %}" style="font-size: large;">
               {%if user.practice_status == "ED"%}
                 Current Assignment
               {% else %}

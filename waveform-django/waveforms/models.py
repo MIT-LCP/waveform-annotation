@@ -218,6 +218,9 @@ class Annotation(models.Model):
     decision_date = models.DateTimeField(null=True, blank=False)
     is_adjudication = models.BooleanField(default=False, null=True)
     
+    class Meta:
+        ordering = ['waveform__project', 'waveform__record', 'waveform__event']
+
     def update(self):
         """
         Update the user's annotation if it exists, else create a new one.

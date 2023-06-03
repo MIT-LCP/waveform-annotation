@@ -142,7 +142,7 @@
         {% endfor %}
     </ul>
     {% endif %}
-    <form action="{% url 'render_annotations' %}">
+    <form action="{% url 'current_assignment' %}">
         <input type="text" id="record" name="record" placeholder="e.g. 003c13" required>
         <input type="submit" class="btn btn-secondary" value="Search"><br><br>
     </form>
@@ -188,23 +188,25 @@
 </div>
 
 {% if saved_waveforms.count > 0 %}
-<div id="saved_annotations">
+<div id="bookmarked_waveforms">
     <h2>Bookmarked Waveforms</h2>
 </div>
-{% if saved_page %}
+{% if page_info.0 %}
 <div class="page-links">
-    {% if saved_page.has_previous %}
-    <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.previous_page_number}}#saved_annotations">Previous
+    {% if page_info.0.has_previous %}
+    <a
+        href="{% url 'current_assignment' %}?saved_page={{ page_info.0.previous_page_number }}#bookmarked_waveforms">Previous
         Page</a>&emsp;
     {% endif %}
-    {% if saved_page.has_next %}
-    <a href="{% url 'render_annotations' %}?saved_page={{ saved_page.next_page_number}}#saved_annotations">Next
+    {% if page_info.0.has_next %}
+    <a href="{% url 'current_assignment' %}?saved_page={{ page_info.0.next_page_number }}#bookmarked_waveforms">Next
         Page</a>&emsp;
     {% endif %}
     {% if request.GET.saved_page == 'all' %}
-    <a href="{% url 'render_annotations' %}?saved_page=1#saved_annotations">Show pages</a>
-    {% else %}
-    <a href="{% url 'render_annotations' %}?saved_page=all#saved_annotations">Show all</a>
+    <a href="{% url 'current_assignment' %}?saved_page=1#bookmarked_waveforms">Show pages</a>
+    {% endif %}
+    {% if page_info.0.has_next or page_info.0.has_previous %}
+    <a href="{% url 'current_assignment' %}?saved_page=all#bookmarked_waveforms">Show all</a>
     {% endif %}
 </div>
 {% endif %}
@@ -257,32 +259,25 @@
 
 
 {% if annotated_waveforms.count > 0 %}
-<div id="complete_annotations">
+<div id="annotated_waveforms">
     <h2>Annotated Waveforms</h2>
 </div>
-{% if complete_page %}
+{% if page_info.1 %}
 <div class="page-links">
-    {% if complete_page.has_previous %}
+    {% if page_info.1.has_previous %}
     <a
-        href="{% url 'render_annotations' %}?complete_page={{ complete_page.previous_page_number }}#complete_annotations">Previous
+        href="{% url 'current_assignment' %}?annotated_page={{ page_info.1.previous_page_number }}#annotated_waveforms">Previous
         Page</a>&emsp;
     {% endif %}
-    {% if complete_page.has_next %}
-    <a href="{% url 'render_annotations' %}?complete_page={{ complete_page.next_page_number }}#complete_annotations">Next
+    {% if page_info.1.has_next %}
+    <a href="{% url 'current_assignment' %}?annotated_page={{ page_info.1.next_page_number }}#annotated_waveforms">Next
         Page</a>&emsp;
     {% endif %}
-    {% if request.GET %}
-    {% if request.GET.complete_page == 'all' %}
-    <a href="{% url 'render_annotations' %}?complete_page=1#complete_annotations">Show pages</a>
-    {% else %}
-    {% if n_complete > 5 %}
-    <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
+    {% if request.GET.annotated_page == 'all' %}
+    <a href="{% url 'current_assignment' %}?annotated_page=1#annotated_waveforms">Show pages</a>
     {% endif %}
-    {% endif %}
-    {% else %}
-    {% if n_complete > 5 %}
-    <a href="{% url 'render_annotations' %}?complete_page=all#complete_annotations">Show all</a>
-    {% endif %}
+    {% if page_info.1.has_next or page_info.1.has_previous %}
+    <a href="{% url 'current_assignment' %}?annotated_page=all#annotated_waveforms">Show all</a>
     {% endif %}
 </div>
 {% endif %}
@@ -337,6 +332,25 @@
 <div id="unannotated_waveforms">
     <h2>Unannotated Waveforms</h2>
 </div>
+{% if page_info.2 %}
+<div class="page-links">
+    {% if page_info.2.has_previous %}
+    <a
+        href="{% url 'current_assignment' %}?unannotated_page={{ page_info.2.previous_page_number }}#unannotated_waveforms">Previous
+        Page</a>&emsp;
+    {% endif %}
+    {% if page_info.2.has_next %}
+    <a href="{% url 'current_assignment' %}?unannotated_page={{ page_info.2.next_page_number }}#unannotated_waveforms">Next
+        Page</a>&emsp;
+    {% endif %}
+    {% if request.GET.unannotated_page == 'all' %}
+    <a href="{% url 'current_assignment' %}?unannotated_page=1#unannotated_waveforms">Show pages</a>
+    {% endif %}
+    {% if page_info.2.has_next or page_info.2.has_previous %}
+    <a href="{% url 'current_assignment' %}?unannotated_page=all#unannotated_waveforms">Show all</a>
+    {% endif %}
+</div>
+{% endif %}
 {% for waveform in unannotated_waveforms %}
 {% ifchanged waveform.project waveform.record%}
 {% if not forloop.first %}

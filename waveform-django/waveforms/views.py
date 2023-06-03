@@ -258,18 +258,18 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
     """
     user = User.objects.get(username=request.user)
     
-    user_saved = [waveform.pk for waveform in user.get_waveforms('saved')]
-    user_unannotated = [waveform.pk for waveform in user.get_waveforms('unannotated')]
-    user_annotations = [waveform.pk for waveform in user.get_waveforms('annotated')]
+    user_saved = [waveform.pk for waveform in user.get_waveforms(annotation='saved')]
+    user_unannotated = [waveform.pk for waveform in user.get_waveforms(annotation='unannotated')]
+    user_annotations = [waveform.pk for waveform in user.get_waveforms(annotation='annotated')]
     all_waveforms = user_saved + user_unannotated + user_annotations
 
     if len(all_waveforms) == 0:
-        return redirect('render_annotations')
+        return redirect('current_assignment')
 
     if set_project and set_record and set_event:
         try:
             waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
-            if user not in waveform.annotators.all():
+            if user not in waveform.annotators.all() and user.is_admin == False:
                 return HttpResponseForbidden('<h1>You do not have access to this waveform</h1>')
         except WaveformEvent.DoesNotExist:
             return HttpResponseNotFound('<h1>Waveform not found</h1>')
@@ -402,89 +402,89 @@ def admin_console(request):
         return redirect('admin_console')
             
 
-    # Find the files
-    BASE_DIR = base.BASE_DIR
-    FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    FILE_LOCAL = os.path.join('record-files')
-    PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+    # # Find the files
+    # BASE_DIR = base.BASE_DIR
+    # FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+    # FILE_LOCAL = os.path.join('record-files')
+    # PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 
-    # Hold all of the annotation information
-    all_records = {}
-    conflict_anns = {}
-    unanimous_anns = {}
-    all_anns = {}
-    for project in base.ALL_PROJECTS:
-        records_path = os.path.join(PROJECT_PATH, project,
-                                    base.RECORDS_FILE)
-        with open(records_path, 'r') as f:
-            all_records[project] = f.read().splitlines()
+    # # Hold all of the annotation information
+    # all_records = {}
+    # conflict_anns = {}
+    # unanimous_anns = {}
+    # all_anns = {}
+    # for project in base.ALL_PROJECTS:
+    #     records_path = os.path.join(PROJECT_PATH, project,
+    #                                 base.RECORDS_FILE)
+    #     with open(records_path, 'r') as f:
+    #         all_records[project] = f.read().splitlines()
 
-        # Get all the annotations
-        all_annotations = Annotation.objects.filter(
-            project=project).values_list(*['record','event'])
-        records = [a[0] for a in all_annotations]
-        events = [a[1] for a in all_annotations]
+    #     # Get all the annotations
+    #     all_annotations = Annotation.objects.filter(
+    #         project=project).values_list(*['record','event'])
+    #     records = [a[0] for a in all_annotations]
+    #     events = [a[1] for a in all_annotations]
 
-        conflict_anns[project] = defaultdict(dict)
-        unanimous_anns[project] = defaultdict(dict)
-        all_anns[project] = defaultdict(dict)
+    #     conflict_anns[project] = defaultdict(dict)
+    #     unanimous_anns[project] = defaultdict(dict)
+    #     all_anns[project] = defaultdict(dict)
 
-        # Get the events
-        for rec in all_records[project]:
-            records_path = os.path.join(PROJECT_PATH, project, rec,
-                                        base.RECORDS_FILE)
-            with open(records_path, 'r') as f:
-                all_events = f.read().splitlines()
-            all_events = [e for e in all_events if '_' in e]
-            for evt in all_events:
-                # Add annotations by event
-                temp_conflict_anns = []
-                temp_unanimous_anns = []
-                temp_all_anns = []
-                if (rec in records) and (evt in events):
-                    same_anns = Annotation.objects.filter(
-                        project=project, record=rec, event=evt
-                    ).values_list(
-                        *['decision', 'user__username', 'comments',
-                          'decision_date', 'is_adjudication']
-                    )
-                    if len(set([a[0] for a in same_anns])) > 1:
-                        for ann in same_anns:
-                            temp_conflict_anns.append([ann[1], ann[0], ann[2],
-                                                       ann[3], ann[4]])
-                    else:
-                        for ann in same_anns:
-                            temp_unanimous_anns.append([ann[1], ann[0], ann[2],
-                                                        ann[3], ann[4]])
-                else:
-                    temp_all_anns.append(['-', '-', '-', '-', '-'])
+    #     # Get the events
+    #     for rec in all_records[project]:
+    #         records_path = os.path.join(PROJECT_PATH, project, rec,
+    #                                     base.RECORDS_FILE)
+    #         with open(records_path, 'r') as f:
+    #             all_events = f.read().splitlines()
+    #         all_events = [e for e in all_events if '_' in e]
+    #         for evt in all_events:
+    #             # Add annotations by event
+    #             temp_conflict_anns = []
+    #             temp_unanimous_anns = []
+    #             temp_all_anns = []
+    #             if (rec in records) and (evt in events):
+    #                 same_anns = Annotation.objects.filter(
+    #                     project=project, record=rec, event=evt
+    #                 ).values_list(
+    #                     *['decision', 'user__username', 'comments',
+    #                       'decision_date', 'is_adjudication']
+    #                 )
+    #                 if len(set([a[0] for a in same_anns])) > 1:
+    #                     for ann in same_anns:
+    #                         temp_conflict_anns.append([ann[1], ann[0], ann[2],
+    #                                                    ann[3], ann[4]])
+    #                 else:
+    #                     for ann in same_anns:
+    #                         temp_unanimous_anns.append([ann[1], ann[0], ann[2],
+    #                                                     ann[3], ann[4]])
+    #             else:
+    #                 temp_all_anns.append(['-', '-', '-', '-', '-'])
                 
-                # Get the completion stats for each record
-                if temp_conflict_anns != []:
-                    conflict_anns[project][rec][evt] = temp_conflict_anns
-                if temp_unanimous_anns != []:
-                    unanimous_anns[project][rec][evt] = temp_unanimous_anns
-                if temp_all_anns != []:
-                    all_anns[project][rec][evt] = temp_all_anns
+    #             # Get the completion stats for each record
+    #             if temp_conflict_anns != []:
+    #                 conflict_anns[project][rec][evt] = temp_conflict_anns
+    #             if temp_unanimous_anns != []:
+    #                 unanimous_anns[project][rec][evt] = temp_unanimous_anns
+    #             if temp_all_anns != []:
+    #                 all_anns[project][rec][evt] = temp_all_anns
         
-        conf_page_num = request.GET.get(f"{project}_conflicts")
-        unan_page_num = request.GET.get(f"{project}_unanimous")
-        unfi_page_num = request.GET.get(f"{project}_unfinished")
+    #     conf_page_num = request.GET.get(f"{project}_conflicts")
+    #     unan_page_num = request.GET.get(f"{project}_unanimous")
+    #     unfi_page_num = request.GET.get(f"{project}_unfinished")
 
-        page_conflict = Paginator(tuple(conflict_anns[project].items()), 3).get_page(conf_page_num)
-        page_unanimous = Paginator(tuple(unanimous_anns[project].items()), 3).get_page(unan_page_num)
-        page_unfinished = Paginator(tuple(all_anns[project].items()), 3).get_page(unfi_page_num)
+    #     page_conflict = Paginator(tuple(conflict_anns[project].items()), 3).get_page(conf_page_num)
+    #     page_unanimous = Paginator(tuple(unanimous_anns[project].items()), 3).get_page(unan_page_num)
+    #     page_unfinished = Paginator(tuple(all_anns[project].items()), 3).get_page(unfi_page_num)
         
-        conflict_anns[project] = page_conflict
-        unanimous_anns[project] = page_unanimous
-        all_anns[project] = page_unfinished
+    #     conflict_anns[project] = page_conflict
+    #     unanimous_anns[project] = page_unanimous
+    #     all_anns[project] = page_unfinished
 
-        if not page_conflict:
-            del conflict_anns[project]
-        if not unanimous_anns[project]:
-            del unanimous_anns[project]
-        if not all_anns[project]:
-            del all_anns[project]
+    #     if not page_conflict:
+    #         del conflict_anns[project]
+    #     if not unanimous_anns[project]:
+    #         del unanimous_anns[project]
+    #     if not all_anns[project]:
+    #         del all_anns[project]
 
     # Categories to display for the annotations
     categories = [
@@ -503,8 +503,6 @@ def admin_console(request):
     return render(request, 'waveforms/admin_console.html',
                   {'user': user, 'invited_users': invited_users,
                    'categories': categories, 'all_projects': base.ALL_PROJECTS,
-                   'conflict_anns': conflict_anns,
-                   'unanimous_anns': unanimous_anns, 'all_anns': all_anns,
                    'all_users': all_users, 'ann_to_csv_form': ann_to_csv_form,
                    'invite_user_form': invite_user_form,
                    'add_admin_form': add_admin_form,
@@ -711,9 +709,9 @@ def delete_adjudication(request, set_project, set_record, set_event):
 
 
 @login_required
-def render_annotations(request):
+def current_assignment(request):
     """
-    Render all saved annotations to allow edits.
+    Display a list of all waveforms assigned to and completed by user.
 
     Parameters
     ----------
@@ -725,13 +723,47 @@ def render_annotations(request):
         HTML webpage responsible for displaying the annotations.
 
     """
-    # Get all the annotations for the requested user
+    # Get all the waveforms for the requested user
     user = User.objects.get(username=request.user)
+    
+    waveform_list = [ 
+        user.get_annotations(saved=True),
+        user.get_annotations(),
+        user.get_waveforms(annotation='unannotated'),
+    ]
 
-    unannotated_waveforms = user.get_waveforms('unannotated')
-    saved_waveforms = user.get_annotations(saved=True)
-    annotated_waveforms = user.get_annotations()
+    waveform_values = [w.values_list('project', 'record') for w in waveform_list]
 
+    page_numbers = [
+        request.GET.get('saved_page'),
+        request.GET.get('annotated_page'),
+        request.GET.get('unannotated_page'),
+    ]
+
+    page_info = []
+    display_values = []
+
+    for i in range(len(waveform_values)):
+        if page_numbers[i]:        
+            if page_numbers[i].isdigit():
+                paginated_list = Paginator(waveform_values[i], 3)
+                results = paginated_list.get_page(int(page_numbers[i]))
+            else:
+                paginated_list = Paginator(waveform_values[i], len(waveform_values[i]))
+                results = paginated_list.get_page(1)
+        else:
+            paginated_list = Paginator(waveform_values[i], 3)
+            results = paginated_list.get_page(1)
+        
+        page_info.append(results)
+
+        proj_list = []
+        rec_list = []
+        for result in results.object_list:
+            proj_list.append(result[0])
+            rec_list.append(result[1])
+        display_values.append(waveform_list[i].filter(project__in=proj_list, record__in=rec_list))
+    
     categories = [
         'Event',
         'Decision',
@@ -739,7 +771,7 @@ def render_annotations(request):
         'Decision Date'
     ]
 
-    progress = f"{len(annotated_waveforms)}/{len(unannotated_waveforms) + len(saved_waveforms) + len(annotated_waveforms)}"
+    progress = f"{len(waveform_values[1])}/{len(waveform_values[0]) + len(waveform_values[1]) + len(waveform_values[2])}"
 
     if request.method == 'POST':
         # Create a new assignment for current user
@@ -748,20 +780,37 @@ def render_annotations(request):
             num_events = int(request.POST['num_events'])
             
             # Get waveforms not assigned to user, and not already assigned to max number of annotators
-            waveforms = WaveformEvent.objects.\
+            available_waveforms = WaveformEvent.objects.\
                 exclude(annotators=user).\
                 annotate(num_annotators=Count('annotators')).\
-                filter(num_annotators__lt=base.NUM_ANNOTATORS).\
-                order_by('-num_annotators')
+                filter(num_annotators__lt=base.NUM_ANNOTATORS)
             
-            for w in waveforms:
+            # First assign user to waveforms that have already been assigned to others
+            annotated_waveforms = available_waveforms.\
+                filter(num_annotators__gt=0).\
+                order_by('-num_annotators')
+                
+            for w in annotated_waveforms:
                 if num_events == 0:
                     break
                 else:
                     w.annotators.add(user)
                     num_events -= 1
 
-            if num_events:
+            if num_events > 0:
+                # If there are still events left, randomly assign user to unassigned waveforms
+                unannotated_waveforms = available_waveforms.\
+                    filter(annotators=None).\
+                    order_by('?')
+                
+                for w in unannotated_waveforms:
+                    if num_events == 0:
+                        break
+                    else:
+                        w.annotators.add(user)
+                        num_events -= 1
+
+            if num_events > 0:
                 num_events = int(request.POST['num_events']) - num_events
                 messages.error(
                     request, f'Not enough events remaining. You have been given {num_events} events'
@@ -769,12 +818,13 @@ def render_annotations(request):
             
             user.date_assigned = timezone.now()
             user.save()
-            return redirect('render_annotations')
+            return redirect('current_assignment')
 
     return render(request, 'waveforms/annotations.html',
                   {'user': user, 'min_assigned': base.MIN_ASSIGNED, 'progress': progress,
-                   'categories': categories, 'unannotated_waveforms': unannotated_waveforms,
-                   'saved_waveforms': saved_waveforms, 'annotated_waveforms': annotated_waveforms})
+                   'categories': categories, 'unannotated_waveforms': display_values[2],
+                   'saved_waveforms': display_values[0], 'annotated_waveforms': display_values[1],
+                   'page_info': page_info})
 
 
 @login_required
@@ -807,7 +857,7 @@ def delete_annotation(request, set_project, set_record, set_event):
         annotation.delete()
     except Annotation.DoesNotExist:
         pass
-    return render_annotations(request)
+    return current_assignment(request)
 
 
 @login_required()
@@ -1006,7 +1056,7 @@ def practice_test(request):
                 raise PermissionError()
             user.practice_status = 'BG'
             user.save()
-            return redirect('render_annotations')
+            return redirect('current_assignment')
 
         if 'submit-practice' in request.POST:
             if user.practice_status != 'BG':
@@ -1030,7 +1080,7 @@ def practice_test(request):
                         pass
             user.practice_status = 'ED'
             user.save()
-            return redirect('render_annotations')
+            return redirect('current_assignment')
 
     return render(request, 'waveforms/practice.html',
                   {'user': user, 'results': results, 'total': total,
@@ -1078,7 +1128,7 @@ def assessment(request):
                 raise PermissionError()
             user.practice_status = 'BG'
             user.save()
-            return redirect('render_annotations')
+            return redirect('current_assignment')
 
         if 'submit-practice' in request.POST:
             if user.practice_status != 'BG':
@@ -1102,7 +1152,7 @@ def assessment(request):
                         pass
             user.practice_status = 'ED'
             user.save()
-            return redirect('render_annotations')
+            return redirect('current_assignment')
 
     return render(request, 'waveforms/assessment_info.html',
                   {'user': user, 'results': results, 'total': total,

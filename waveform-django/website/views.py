@@ -103,7 +103,7 @@ def login_page(request):
                 user.last_login = timezone.now()
                 user.save()
                 if 'annotations' in request.environ['QUERY_STRING']:
-                    return redirect('render_annotations')
+                    return redirect('current_assignment')
                 else:
                     return redirect('viewer_overview')
             else:
@@ -113,7 +113,7 @@ def login_page(request):
             if (request.GET.dict() == {}) or not (request.user.is_authenticated):
                 return render(request, 'website/login.html', {})
             elif 'annotations' in request.GET.dict()['next']:
-                return redirect('render_annotations')
+                return redirect('current_assignment')
             else:
                 return redirect('viewer_overview')
 

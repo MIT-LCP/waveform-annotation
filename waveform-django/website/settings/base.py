@@ -233,7 +233,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 RECORDS_FILE = 'RECORDS_VTVF_LIMIT-5'
 ASSIGNMENT_FILE = 'user_assignments.csv'
-ALL_PROJECTS = ['sample_data']
+ALL_PROJECTS = ['sample_data', '2015_data']
 NUM_ANNOTATORS = 2
 
 # Projects in blacklist cannot be automatically assigned to users
