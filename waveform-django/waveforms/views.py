@@ -17,10 +17,11 @@ from django.http import *
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.db import IntegrityError
+from django.core.exceptions import FieldError
 from django.db.models import Count
 
 from waveforms.forms import GraphSettings, InviteUserForm
-from waveforms.models import Annotation, InvitedEmails, User, UserSettings, WaveformEvent
+from waveforms.models import Annotation, InvitedEmails, User, UserSettings, WaveformEvent, Bookmark
 from website.settings import base
 
 
@@ -402,89 +403,22 @@ def admin_console(request):
         return redirect('admin_console')
             
 
-    # # Find the files
-    # BASE_DIR = base.BASE_DIR
-    # FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-    # FILE_LOCAL = os.path.join('record-files')
-    # PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-
-    # # Hold all of the annotation information
-    # all_records = {}
-    # conflict_anns = {}
-    # unanimous_anns = {}
-    # all_anns = {}
-    # for project in base.ALL_PROJECTS:
-    #     records_path = os.path.join(PROJECT_PATH, project,
-    #                                 base.RECORDS_FILE)
-    #     with open(records_path, 'r') as f:
-    #         all_records[project] = f.read().splitlines()
-
-    #     # Get all the annotations
-    #     all_annotations = Annotation.objects.filter(
-    #         project=project).values_list(*['record','event'])
-    #     records = [a[0] for a in all_annotations]
-    #     events = [a[1] for a in all_annotations]
-
-    #     conflict_anns[project] = defaultdict(dict)
-    #     unanimous_anns[project] = defaultdict(dict)
-    #     all_anns[project] = defaultdict(dict)
-
-    #     # Get the events
-    #     for rec in all_records[project]:
-    #         records_path = os.path.join(PROJECT_PATH, project, rec,
-    #                                     base.RECORDS_FILE)
-    #         with open(records_path, 'r') as f:
-    #             all_events = f.read().splitlines()
-    #         all_events = [e for e in all_events if '_' in e]
-    #         for evt in all_events:
-    #             # Add annotations by event
-    #             temp_conflict_anns = []
-    #             temp_unanimous_anns = []
-    #             temp_all_anns = []
-    #             if (rec in records) and (evt in events):
-    #                 same_anns = Annotation.objects.filter(
-    #                     project=project, record=rec, event=evt
-    #                 ).values_list(
-    #                     *['decision', 'user__username', 'comments',
-    #                       'decision_date', 'is_adjudication']
-    #                 )
-    #                 if len(set([a[0] for a in same_anns])) > 1:
-    #                     for ann in same_anns:
-    #                         temp_conflict_anns.append([ann[1], ann[0], ann[2],
-    #                                                    ann[3], ann[4]])
-    #                 else:
-    #                     for ann in same_anns:
-    #                         temp_unanimous_anns.append([ann[1], ann[0], ann[2],
-    #                                                     ann[3], ann[4]])
-    #             else:
-    #                 temp_all_anns.append(['-', '-', '-', '-', '-'])
-                
-    #             # Get the completion stats for each record
-    #             if temp_conflict_anns != []:
-    #                 conflict_anns[project][rec][evt] = temp_conflict_anns
-    #             if temp_unanimous_anns != []:
-    #                 unanimous_anns[project][rec][evt] = temp_unanimous_anns
-    #             if temp_all_anns != []:
-    #                 all_anns[project][rec][evt] = temp_all_anns
+    annotated = WaveformEvent.get_filtered_waveforms(is_annotated=True).annotate(num_decision_types=Count('annotation__decision'))
+    unannotated = WaveformEvent.get_filtered_waveforms(is_annotated=False)
+    conflicts = annotated.filter(num_decision_types__gt=1)
+    unanimous = annotated.filter(num_decision_types=1)
+    
+    decision_list = [
+        'Unanimous',
+        'In progress',
+        'Conflicts',
+        'Not started'
+    ]
+    
+    waveform_list = [
         
-    #     conf_page_num = request.GET.get(f"{project}_conflicts")
-    #     unan_page_num = request.GET.get(f"{project}_unanimous")
-    #     unfi_page_num = request.GET.get(f"{project}_unfinished")
+    ]
 
-    #     page_conflict = Paginator(tuple(conflict_anns[project].items()), 3).get_page(conf_page_num)
-    #     page_unanimous = Paginator(tuple(unanimous_anns[project].items()), 3).get_page(unan_page_num)
-    #     page_unfinished = Paginator(tuple(all_anns[project].items()), 3).get_page(unfi_page_num)
-        
-    #     conflict_anns[project] = page_conflict
-    #     unanimous_anns[project] = page_unanimous
-    #     all_anns[project] = page_unfinished
-
-    #     if not page_conflict:
-    #         del conflict_anns[project]
-    #     if not unanimous_anns[project]:
-    #         del unanimous_anns[project]
-    #     if not all_anns[project]:
-    #         del all_anns[project]
 
     # Categories to display for the annotations
     categories = [
@@ -725,15 +659,21 @@ def current_assignment(request):
     """
     # Get all the waveforms for the requested user
     user = User.objects.get(username=request.user)
+
+    max_values_per_page = 5
     
     waveform_list = [ 
-        user.get_annotations(saved=True),
+        user.get_bookmarks(),
         user.get_annotations(),
         user.get_waveforms(annotation='unannotated'),
     ]
 
-    waveform_values = [w.values_list('project', 'record') for w in waveform_list]
-
+    waveform_values = [
+        list(set(waveform_list[0].values_list('waveform__project', 'waveform__record'))),
+        list(set(waveform_list[1].values_list('waveform__project', 'waveform__record'))),
+        list(set(waveform_list[2].values_list('project', 'record'))),
+    ] 
+    
     page_numbers = [
         request.GET.get('saved_page'),
         request.GET.get('annotated_page'),
@@ -746,23 +686,25 @@ def current_assignment(request):
     for i in range(len(waveform_values)):
         if page_numbers[i]:        
             if page_numbers[i].isdigit():
-                paginated_list = Paginator(waveform_values[i], 3)
+                paginated_list = Paginator(waveform_values[i], max_values_per_page)
                 results = paginated_list.get_page(int(page_numbers[i]))
             else:
                 paginated_list = Paginator(waveform_values[i], len(waveform_values[i]))
                 results = paginated_list.get_page(1)
         else:
-            paginated_list = Paginator(waveform_values[i], 3)
+            paginated_list = Paginator(waveform_values[i], max_values_per_page)
             results = paginated_list.get_page(1)
         
         page_info.append(results)
-
         proj_list = []
         rec_list = []
         for result in results.object_list:
             proj_list.append(result[0])
             rec_list.append(result[1])
-        display_values.append(waveform_list[i].filter(project__in=proj_list, record__in=rec_list))
+        try:
+            display_values.append(waveform_list[i].filter(waveform__project__in=proj_list, waveform__record__in=rec_list))
+        except FieldError:
+            display_values.append(waveform_list[i].filter(project__in=proj_list, record__in=rec_list))
     
     categories = [
         'Event',
@@ -771,7 +713,7 @@ def current_assignment(request):
         'Decision Date'
     ]
 
-    progress = f"{len(waveform_values[1])}/{len(waveform_values[0]) + len(waveform_values[1]) + len(waveform_values[2])}"
+    progress = f"{len(waveform_list[1])}/{len(waveform_list[0]) + len(waveform_list[1]) + len(waveform_list[2])}"
 
     if request.method == 'POST':
         # Create a new assignment for current user
@@ -846,17 +788,28 @@ def delete_annotation(request, set_project, set_record, set_event):
 
     """
     user = User.objects.get(username=request.user)
+    print(f"set project: {set_project}\t set record: {set_record}\t set event: {set_event}")
     try:
         annotation = Annotation.objects.get(
             user=user,
-            project=set_project,
-            record=set_record,
-            event=set_event,
+            waveform__project=set_project,
+            waveform__record=set_record,
+            waveform__event=set_event,
             is_adjudication=False
         )
         annotation.delete()
     except Annotation.DoesNotExist:
-        pass
+        try:
+            bookmark = Bookmark.objects.get(
+                user=user,
+                waveform__project=set_project,
+                waveform__record=set_record,
+                waveform__event=set_event
+            )
+            bookmark.delete()
+        except:
+            print("Passed")
+            pass
     return current_assignment(request)
 
 

@@ -7,7 +7,7 @@ import pytz
 import wfdb
 
 from waveforms.dash_apps.finished_apps.waveform_vis_tools import WaveformVizTools
-from waveforms.models import Annotation, User, WaveformEvent
+from waveforms.models import Annotation, User, WaveformEvent, Bookmark
 from website.middleware import get_current_user
 from website.settings import base
 
@@ -83,7 +83,7 @@ app.layout = html.Div([
                     {'label': 'False (alarm is incorrect)', 'value': 'False'},
                     {'label': 'Uncertain', 'value': 'Uncertain'},
                     {'label': 'Reject (alarm is un-readable)', 'value': 'Reject'},
-                    {'label': 'Save for Later', 'value': 'Save for Later'}
+                    {'label': 'Bookmark for Later', 'value': 'Bookmark'}
                 ],
                 labelStyle={'display': 'block'},
                 style={'width': sidebar_width},
@@ -200,42 +200,64 @@ def get_record_event_options(click_submit, click_previous, click_next,
         # Update the annotations: only save the annotations if a decision is
         # made and the submit button was pressed
         if decision_value and (click_id == 'submit_annotation'):
-            # Convert ms from epoch to datetime object (localize to the time
-            # zone in the settings)
             submit_time = datetime.datetime.fromtimestamp(click_submit/1000.0)
             set_timezone = pytz.timezone(base.TIME_ZONE)
             submit_time = set_timezone.localize(submit_time)
-            # Save the annotation to the database only if changes
-            # were made or a new annotation
+            
             waveform = WaveformEvent.objects.get(pk=page_order[set_pageid])
-            try:
-                res = Annotation.objects.get(
-                    user=current_user, project=waveform.project,
-                    record=waveform.record, event=waveform.event,
-                    is_adjudication=False
-                )
-                current_annotation = [res.decision, res.comments]
-                proposed_annotation = [decision_value, comments_value]
-                # Only save annotation if something has changed
-                if current_annotation != proposed_annotation:
+
+            if decision_value == "Bookmark":
+                try:
+                    res = Bookmark.objects.get(waveform=waveform, user=current_user)
+                    current_bookmark = [res.comments]
+                    proposed_bookmark = [comments_value]
+
+                    if current_bookmark != proposed_bookmark:
+                        bookmark = Bookmark(
+                            user=current_user, waveform=waveform,
+                            comments=comments_value, bookmark_date=submit_time
+                        )
+                        bookmark.update()
+
+                except Bookmark.DoesNotExist:
+                    bookmark = Bookmark(
+                        user=current_user, waveform=waveform,
+                        comments=comments_value, bookmark_date=submit_time
+                    )
+                    bookmark.update()
+                
+                try:
+                    Annotation.objects.get(waveform=waveform, user=current_user).delete()
+                except Annotation.DoesNotExist:
+                    pass
+            else:
+                try:
+                    res = Annotation.objects.get(
+                        waveform=waveform, user=current_user
+                    )
+                    current_annotation = [res.decision, res.comments]
+                    proposed_annotation = [decision_value, comments_value]
+                    # Only save annotation if something has changed
+                    if current_annotation != proposed_annotation:
+                        annotation = Annotation(
+                            user=current_user, waveform=waveform,
+                            decision=decision_value, comments=comments_value,
+                            decision_date=submit_time, is_adjudication=False,
+                        )
+                        annotation.update()
+                except Annotation.DoesNotExist:
+                    # Create new annotation since none already exist
                     annotation = Annotation(
-                        user=current_user, project=waveform.project,
-                        record=waveform.record, event=waveform.event,
-                        decision=decision_value, comments=comments_value,
-                        decision_date=submit_time, is_adjudication=False,
-                        waveform=waveform
-                    )
+                            user=current_user, waveform=waveform,
+                            decision=decision_value, comments=comments_value,
+                            decision_date=submit_time, is_adjudication=False,
+                        )
                     annotation.update()
-            except Annotation.DoesNotExist:
-                # Create new annotation since none already exist
-                annotation = Annotation(
-                        user=current_user, project=waveform.project,
-                        record=waveform.record, event=waveform.event,
-                        decision=decision_value, comments=comments_value,
-                        decision_date=submit_time, is_adjudication=False,
-                        waveform=waveform
-                    )
-                annotation.update()
+                
+                try:
+                    Bookmark.objects.get(waveform=waveform, user=current_user).delete()
+                except Bookmark.DoesNotExist:
+                    pass
 
         # Going backward in the list
         if click_id == 'previous_annotation':
@@ -356,14 +378,18 @@ def update_graph(set_pageid, page_order):
         user = User.objects.get(username=current_user)
         try:
             res = Annotation.objects.get(
-                user=user, project=dropdown_project, record=dropdown_record,
-                event=dropdown_event, is_adjudication=False
+                user=user, waveform=display_waveform, is_adjudication=False
             )
             return_decision = res.decision
             return_comments = res.comments
         except Annotation.DoesNotExist:
-            return_decision = None
-            return_comments = ''
+            try:
+                res = Bookmark.objects.get(user=user, waveform=display_waveform)
+                return_decision = "Bookmark"
+                return_comments = res.comments
+            except Bookmark.DoesNotExist:
+                return_decision = None
+                return_comments = ''
     else:
         return_decision = None
         return_comments = ''

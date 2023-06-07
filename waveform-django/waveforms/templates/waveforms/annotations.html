@@ -130,7 +130,7 @@
     <br />
     {% endif %}
     <span style="font-size: 20px; float: left;">Remaining Events: </span>
-    <span style="font-size: 20px; float: right;">{{ unannotated_waveforms.count|add:saved_waveforms.count }}</span>
+    <span style="font-size: 20px; float: right;">{{ user.num_events_remaining }}</span>
     <br /><br />
 </div>
 <div>
@@ -210,14 +210,14 @@
     {% endif %}
 </div>
 {% endif %}
-{% for waveform in saved_waveforms %}
-{% ifchanged waveform.project waveform.record%}
+{% for bookmark in saved_waveforms %}
+{% ifchanged bookmark.waveform.project bookmark.waveform.record%}
 {% if not forloop.first %}
 </table>
 </div>
 {% endif %}
 <button class="accordion">
-    <span style="float: left;">{{ waveform.project }}:&emsp;{{ waveform.record }}</span>
+    <span style="float: left;">{{ bookmark.waveform.project }}:&emsp;{{ bookmark.waveform.record }}</span>
 </button>
 <div class="panel">
     <table style="width:100%">
@@ -231,24 +231,24 @@
         {% endifchanged %}
         <tr>
             <td>
-                {{ waveform.event }}
+                {{ bookmark.waveform.event }}
             </td>
             <td>
                 Bookmarked
             </td>
             <td>
-                {{waveform.comments}}
+                {{bookmark.comments}}
             </td>
             <td>
-                {{waveform.decision_date}}
+                {{bookmark.decision_date}}
             </td>
             <td>
-                <a href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">Edit
-                    annotation</a>
+                <a href="{% url 'waveform_published_specific' bookmark.waveform.project bookmark.waveform.record bookmark.waveform.event %}">Return
+                    to Event</a>
             </td>
             <td>
-                <a href="{% url 'delete_annotation' waveform.project waveform.record waveform.event %}">Delete
-                    annotation</a>
+                <a href="{% url 'delete_annotation' bookmark.waveform.project bookmark.waveform.record bookmark.waveform.event %}">Delete
+                    Bookmark</a>
             </td>
         </tr>
         {% endfor %}
@@ -281,14 +281,14 @@
     {% endif %}
 </div>
 {% endif %}
-{% for waveform in annotated_waveforms %}
-{% ifchanged waveform.project waveform.record%}
+{% for annotation in annotated_waveforms %}
+{% ifchanged annotation.waveform.project annotation.waveform.record%}
 {% if not forloop.first %}
 </table>
 </div>
 {% endif %}
 <button class="accordion">
-    <span style="float: left;">{{ waveform.project }}:&emsp;{{ waveform.record }}</span>
+    <span style="float: left;">{{ annotation.waveform.project }}:&emsp;{{ annotation.waveform.record }}</span>
 </button>
 <div class="panel">
     <table style="width:100%">
@@ -302,23 +302,23 @@
         {% endifchanged %}
         <tr>
             <td>
-                {{ waveform.event }}
+                {{ annotation.waveform.event }}
             </td>
             <td>
-                {{waveform.decision}}
+                {{ annotation.decision}}
             </td>
             <td>
-                {{waveform.comments}}
+                {{ annotation.comments}}
             </td>
             <td>
-                {{waveform.decision_date}}
+                {{ annotation.decision_date}}
             </td>
             <td>
-                <a href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">Edit
+                <a href="{% url 'waveform_published_specific' annotation.waveform.project annotation.waveform.record annotation.waveform.event %}">Edit
                     annotation</a>
             </td>
             <td>
-                <a href="{% url 'delete_annotation' waveform.project waveform.record waveform.event %}">Delete
+                <a href="{% url 'delete_annotation' annotation.waveform.project annotation.waveform.record annotation.waveform.event %}">Delete
                     annotation</a>
             </td>
         </tr>
