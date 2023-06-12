@@ -31,40 +31,6 @@ class WaveformEvent(models.Model):
         ]
         ordering = ['project', 'record', 'event']
 
-    
-    def get_filtered_waveforms(is_practice=False, is_adjudicated=False, is_unannotated=False, is_annotated=False):
-        """
-        Get waveforms based on the filter parameters.
-
-        Parameters
-        ----------
-        is_practice : bool, optional
-            Get practice waveforms.
-        
-        is_adjudicated : bool, optional
-            Get adjudicated waveforms.
-        
-        unannotated : bool, optional
-            Get waveforms with no annotations.
-
-        annotated : bool, optional
-            Get waveforms with at least one annotation (unadjudicated, not saved).
-        
-        Returns QuerySet of WaveformEvent objects.
-        """
-        all_waveforms = WaveformEvent.objects.all()
-
-        if is_practice:
-            return all_waveforms.filter(is_practice=True)
-        elif is_adjudicated:
-            return all_waveforms.filter(annotation__is_adjudication=True)
-        elif is_unannotated:
-            return all_waveforms.filter(annotation__isnull=True)
-        elif is_annotated:
-            return all_waveforms.exclude(annotation__is_adjudication=False, annotation__decision='Save for Later')
-        else:
-            return all_waveforms.all()
-
 
 class User(models.Model):
     """

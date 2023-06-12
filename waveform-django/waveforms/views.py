@@ -403,44 +403,70 @@ def admin_console(request):
         return redirect('admin_console')
             
 
-    annotated = WaveformEvent.get_filtered_waveforms(is_annotated=True).annotate(num_decision_types=Count('annotation__decision'))
-    unannotated = WaveformEvent.get_filtered_waveforms(is_annotated=False)
-    conflicts = annotated.filter(num_decision_types__gt=1)
-    unanimous = annotated.filter(num_decision_types=1)
-    
-    decision_list = [
-        'Unanimous',
-        'In progress',
-        'Conflicts',
-        'Not started'
-    ]
-    
+    annotated = WaveformEvent.objects.annotate(num_annotations=Count('annotation'))
+    max_anns = annotated.filter(num_annotations=base.NUM_ANNOTATORS).annotate(num_diff_decisions=Count('annotation__decision', distinct=True))
+
     waveform_list = [
-        
+        max_anns.filter(num_diff_decisions=1), 
+        max_anns.filter(num_diff_decisions__gt=1),
+        annotated.filter(num_annotations__lt=base.NUM_ANNOTATORS),
     ]
 
+    waveform_values = [list(set(waveforms.values_list('project', 'record'))) for waveforms in waveform_list]
+
+    page_numbers = [
+        request.GET.get('final_decisions_page'),
+        request.GET.get('conflicts_page'),
+        request.GET.get('in_progress_page'),
+    ]
+
+    page_info = []
+    display_values = []
+    max_values_per_page = 3
+
+    for i in range(len(waveform_values)):
+        if page_numbers[i]:        
+            if page_numbers[i].isdigit():
+                paginated_list = Paginator(waveform_values[i], max_values_per_page)
+                results = paginated_list.get_page(int(page_numbers[i]))
+            else:
+                paginated_list = Paginator(waveform_values[i], len(waveform_values[i]))
+                results = paginated_list.get_page(1)
+        else:
+            paginated_list = Paginator(waveform_values[i], max_values_per_page)
+            results = paginated_list.get_page(1)
+        
+        page_info.append(results)
+        proj_list = []
+        rec_list = []
+        for result in results.object_list:
+            proj_list.append(result[0])
+            rec_list.append(result[1])
+        
+        display_values.append(waveform_list[i].filter(project__in=proj_list, record__in=rec_list))
 
     # Categories to display for the annotations
     categories = [
-        'user',
-        'decision',
-        'comments',
-        'decision_date',
-        'is_adjudication'
-        ''
+        'User',
+        'Decision',
+        'Comments',
+        'Decision Date'
     ]
 
     # Get all the current and invited users
     all_users = User.objects.all()
     invited_users = InvitedEmails.objects.all()
 
+    # import pdb; pdb.set_trace()
+
     return render(request, 'waveforms/admin_console.html',
                   {'user': user, 'invited_users': invited_users,
-                   'categories': categories, 'all_projects': base.ALL_PROJECTS,
-                   'all_users': all_users, 'ann_to_csv_form': ann_to_csv_form,
-                   'invite_user_form': invite_user_form,
-                   'add_admin_form': add_admin_form,
-                   'remove_admin_form': remove_admin_form})
+                   'categories': categories, 'all_users': all_users,
+                    'ann_to_csv_form': ann_to_csv_form, 'invite_user_form': invite_user_form,
+                    'add_admin_form': add_admin_form, 'remove_admin_form': remove_admin_form,
+                    'final_decisions': display_values[0], 'conflicts': display_values[1],
+                    'in_progress': display_values[2], 'page_info': page_info,
+                   })
 
 
 @login_required
