@@ -25,6 +25,8 @@ label_fontsize = '100%'
 button_height = '10%'
 submit_width = '49%'
 arrow_width = '23%'
+annotations_width = '100%'
+
 # Set the default configuration of the plot top buttons
 plot_config = {
     'responsive': True,
@@ -47,6 +49,17 @@ app = DjangoDash(name='waveform_graph')
 # Specify the app layout
 app.layout = html.Div([
     dcc.Loading(id='loading-1', children=[
+        # Previously annotated values
+        html.Div(
+            id='annotation_table',
+            children=[html.Table(
+                id='annotation_table_contents',
+                children=[],
+                style={'width': '100%'} 
+            ),
+            html.Hr(),],
+            style={'display': 'block', 'width': annotations_width}
+        ),
         # Area to submit annotations
         html.Div([
             # The project display
@@ -133,6 +146,7 @@ app.layout = html.Div([
     # Hidden div inside the app that stores the desired project, record, and event
     dcc.Input(id='set_pageid', type='hidden', persistence=False, value=''),
     dcc.Input(id='page_order', type='hidden', persistence=False, value=''),
+    dcc.Input(id='adjudication_mode', type='hidden', persistence=False, value=''),
 ])
 
 
@@ -148,9 +162,11 @@ app.layout = html.Div([
      dash.dependencies.Input('set_pageid', 'value')],
     [dash.dependencies.State('page_order', 'value'),
      dash.dependencies.State('reviewer_decision', 'value'),
-     dash.dependencies.State('reviewer_comments', 'value')])
-def get_record_event_options(click_submit, click_previous, click_next, 
-                             set_pageid, page_order, decision_value, comments_value):
+     dash.dependencies.State('reviewer_comments', 'value'),
+     dash.dependencies.State('adjudication_mode', 'value'),
+     ])
+def get_record_event_options(click_submit, click_previous, click_next, set_pageid,
+                             page_order, decision_value, comments_value, adjudication_mode):
     """
     Dynamically update the labels and stored variables given the current
     record and event.
@@ -208,13 +224,17 @@ def get_record_event_options(click_submit, click_previous, click_next,
 
             if decision_value == "Bookmark":
                 try:
-                    res = Bookmark.objects.get(waveform=waveform, user=current_user)
+                    if adjudication_mode:
+                        res = Bookmark.objects.get(waveform=waveform, is_adjudication=True)
+                    else:
+                        res = Bookmark.objects.get(waveform=waveform, user=current_user)
+
                     current_bookmark = [res.comments]
                     proposed_bookmark = [comments_value]
 
                     if current_bookmark != proposed_bookmark:
                         bookmark = Bookmark(
-                            user=current_user, waveform=waveform,
+                            user=current_user, waveform=waveform, is_adjudication=adjudication_mode,
                             comments=comments_value, bookmark_date=submit_time
                         )
                         bookmark.update()
@@ -222,19 +242,25 @@ def get_record_event_options(click_submit, click_previous, click_next,
                 except Bookmark.DoesNotExist:
                     bookmark = Bookmark(
                         user=current_user, waveform=waveform,
-                        comments=comments_value, bookmark_date=submit_time
+                        comments=comments_value, bookmark_date=submit_time,
+                        is_adjudication=adjudication_mode
                     )
                     bookmark.update()
                 
                 try:
-                    Annotation.objects.get(waveform=waveform, user=current_user).delete()
+                    if adjudication_mode:
+                        Annotation.objects.get(waveform=waveform, is_adjudication=True).delete()
+                    else:
+                        Annotation.objects.get(waveform=waveform, user=current_user).delete()
                 except Annotation.DoesNotExist:
                     pass
             else:
                 try:
-                    res = Annotation.objects.get(
-                        waveform=waveform, user=current_user
-                    )
+                    if adjudication_mode:
+                        res = Annotation.objects.get(waveform=waveform, is_adjudication=True)
+                    else:
+                        res = Annotation.objects.get(waveform=waveform, user=current_user)
+                    
                     current_annotation = [res.decision, res.comments]
                     proposed_annotation = [decision_value, comments_value]
                     # Only save annotation if something has changed
@@ -242,7 +268,7 @@ def get_record_event_options(click_submit, click_previous, click_next,
                         annotation = Annotation(
                             user=current_user, waveform=waveform,
                             decision=decision_value, comments=comments_value,
-                            decision_date=submit_time, is_adjudication=False,
+                            decision_date=submit_time, is_adjudication=adjudication_mode,
                         )
                         annotation.update()
                 except Annotation.DoesNotExist:
@@ -250,12 +276,15 @@ def get_record_event_options(click_submit, click_previous, click_next,
                     annotation = Annotation(
                             user=current_user, waveform=waveform,
                             decision=decision_value, comments=comments_value,
-                            decision_date=submit_time, is_adjudication=False,
+                            decision_date=submit_time, is_adjudication=adjudication_mode,
                         )
                     annotation.update()
                 
                 try:
-                    Bookmark.objects.get(waveform=waveform, user=current_user).delete()
+                    if adjudication_mode:
+                        Bookmark.objects.get(waveform=waveform, is_adjudication=True).delete()
+                    else:
+                        Bookmark.objects.get(waveform=waveform, user=current_user).delete()
                 except Bookmark.DoesNotExist:
                     pass
 
@@ -324,12 +353,52 @@ def get_record_event_options(click_submit, click_previous, click_next,
 
 
 @app.callback(
+    [dash.dependencies.Output('annotation_table', 'style'),
+     dash.dependencies.Output('annotation_table_contents', 'children'),],
+    [dash.dependencies.Input('set_pageid', 'value')],
+    [dash.dependencies.State('page_order', 'value'),
+     dash.dependencies.State('adjudication_mode', 'value')])
+def display_adjudication(set_pageid, page_order, adjudication_mode):
+    if adjudication_mode:
+        waveform = WaveformEvent.objects.get(pk=page_order[set_pageid])
+        annotations = Annotation.objects.filter(waveform=waveform)
+
+        return_table = [
+            # Header
+            html.Tr([
+                html.Th(col) for col in ['User' , 'Decision' , 'Decision Date' , 'Comments']
+            ], style={'text-align': 'left'})
+            
+        ]
+
+        for annotation in annotations:
+            if annotation.is_adjudication:
+                style={'color': 'blue', 'font-weight': 'bold'}
+            else:
+                style={}
+            
+            return_table.append(
+                html.Tr([
+                    html.Td(annotation.user.username),
+                    html.Td(annotation.decision),
+                    html.Td(annotation.decision_date.strftime('%B %d, %Y %I:%M %p')),
+                    html.Td(annotation.comments),
+                ], style=style)
+            )
+
+        return [{'display': 'block'}, return_table]
+    else:
+        return [{'display': 'none'}, []]
+
+
+@app.callback(
     [dash.dependencies.Output('the_graph', 'figure'),
      dash.dependencies.Output('reviewer_decision', 'value'),
      dash.dependencies.Output('reviewer_comments', 'value')],
     [dash.dependencies.Input('set_pageid', 'value')],
-    [dash.dependencies.State('page_order', 'value')])
-def update_graph(set_pageid, page_order):
+    [dash.dependencies.State('page_order', 'value'),
+     dash.dependencies.State('adjudication_mode', 'value')])
+def update_graph(set_pageid, page_order, adjudication_mode):
     """
     Run the app and render the waveforms using the chosen initial conditions.
 
@@ -374,22 +443,38 @@ def update_graph(set_pageid, page_order):
     # Clear the reviewer decision and comments if none has been created or load
     # them otherwise when loading a new record and event.
     if (dropdown_event != '') and (dropdown_event is not None) and (current_user != ''):
-        # Get the decision
         user = User.objects.get(username=current_user)
-        try:
-            res = Annotation.objects.get(
-                user=user, waveform=display_waveform, is_adjudication=False
-            )
-            return_decision = res.decision
-            return_comments = res.comments
-        except Annotation.DoesNotExist:
+        if adjudication_mode:
             try:
-                res = Bookmark.objects.get(user=user, waveform=display_waveform)
-                return_decision = "Bookmark"
+                res = Annotation.objects.get(
+                    waveform=display_waveform, is_adjudication=True
+                )
+                return_decision = res.decision
                 return_comments = res.comments
-            except Bookmark.DoesNotExist:
-                return_decision = None
-                return_comments = ''
+            except Annotation.DoesNotExist:
+                try:
+                    res = Bookmark.objects.get(user=user, waveform=display_waveform, is_adjudication=True)
+                    return_decision = "Bookmark"
+                    return_comments = res.comments
+                except Bookmark.DoesNotExist:
+                    return_decision = None
+                    return_comments = ''
+        else:
+            # Get the decision
+            try:
+                res = Annotation.objects.get(
+                    user=user, waveform=display_waveform, is_adjudication=False
+                )
+                return_decision = res.decision
+                return_comments = res.comments
+            except Annotation.DoesNotExist:
+                try:
+                    res = Bookmark.objects.get(user=user, waveform=display_waveform)
+                    return_decision = "Bookmark"
+                    return_comments = res.comments
+                except Bookmark.DoesNotExist:
+                    return_decision = None
+                    return_comments = ''
     else:
         return_decision = None
         return_comments = ''

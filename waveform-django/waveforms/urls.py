@@ -1,7 +1,6 @@
 from django.urls import include, path
 # Needed to render the graph
 from waveforms.dash_apps.finished_apps import waveform_vis
-from waveforms.dash_apps.finished_apps import waveform_vis_adjudicate
 
 from waveforms import views
 

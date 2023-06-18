@@ -281,7 +281,7 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
         page_index = 0
     
     dash_context = {
-        'is_adjudicator': {'value': False},
+        'adjudication_mode': {'value': False},
         'set_pageid': {'value': page_index},
         'page_order': {'value': all_waveforms},
     }
@@ -457,8 +457,6 @@ def admin_console(request):
     all_users = User.objects.all()
     invited_users = InvitedEmails.objects.all()
 
-    # import pdb; pdb.set_trace()
-
     return render(request, 'waveforms/admin_console.html',
                   {'user': user, 'invited_users': invited_users,
                    'categories': categories, 'all_users': all_users,
@@ -490,18 +488,49 @@ def adjudicator_console(request, set_project='', set_record='', set_event=''):
         and their adjudication platform.
 
     """
-    user = User.objects.get(username=request.user.username)
-    if not user.is_adjudicator:
-        return redirect('waveform_published_home')
+    user = User.objects.get(username=request.user)
 
+    if user.is_adjudicator == False:
+        return HttpResponseForbidden('<h1>You do not have access to this page</h1>')
+    
+    max_annotated = WaveformEvent.objects.annotate(num_annotations=Count('annotation')).filter(num_annotations__gte=base.NUM_ANNOTATORS)
+    unadjudicated = max_annotated.filter(num_annotations=base.NUM_ANNOTATORS).annotate(num_diff_decisions=Count('annotation__decision', distinct=True))
+    conflicts = unadjudicated.filter(num_diff_decisions__gt=1)
+
+    bookmarked = Bookmark.objects.filter(is_adjudication=True)
+    conflicts = conflicts.exclude(bookmark__is_adjudication=True)
+    adjudicated = max_annotated.filter(num_annotations=base.NUM_ANNOTATORS + 1)
+
+    bookmarked = [bookmark.waveform.pk for bookmark in bookmarked]
+    conflicts = [waveform.pk for waveform in conflicts]
+    adjudicated = [waveform.pk for waveform in adjudicated]
+
+    all_waveforms = bookmarked + conflicts + adjudicated
+
+    if len(all_waveforms) == 0:
+        return redirect('render_adjudications')
+
+    if set_project and set_record and set_event:
+        try:
+            waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+            if waveform.pk not in all_waveforms:
+                return HttpResponseForbidden('<h1>This Waveform does not yet require adjudication</h1>')
+        except WaveformEvent.DoesNotExist:
+            return HttpResponseNotFound('<h1>Waveform not found</h1>')
+        
+        page_index = all_waveforms.index(waveform.pk)
+    
+    else:
+        page_index = 0
+    
     dash_context = {
-        'set_project': {'value': set_project},
-        'set_record': {'value': set_record},
-        'set_event': {'value': set_event}
+        'adjudication_mode': {'value': True},
+        'set_pageid': {'value': page_index},
+        'page_order': {'value': all_waveforms},
     }
 
-    return render(request, 'waveforms/adjudicator_console.html',
-                  {'user': user, 'dash_context': dash_context})
+    return render(request, 'waveforms/home.html', {'user': user,
+                                                   'dash_context': dash_context})
 
 
 @login_required
@@ -522,118 +551,65 @@ def render_adjudications(request):
     # Make sure the user has access
     user = User.objects.get(username=request.user.username)
     if not user.is_adjudicator:
-        return redirect('waveform_published_home')
+        return HttpResponseForbidden('<h1>You do not have access to this feature.</h1>')
 
-    # Get info of all non-adjudicated annotations assuming non-unique event names
-    # Do not include rejected annotations
-    non_adjudicated_anns = Annotation.objects.filter(
-        is_adjudication=False, decision__in=['True', 'False', 'Uncertain']
-    ).order_by(
-        '-decision_date'
-    ).values(
-        'project', 'record', 'event'
-    )
-    all_info = [tuple(ann.values()) for ann in non_adjudicated_anns]
-    unique_anns = Counter(all_info).keys()
-    ann_counts = Counter(all_info).values()
-    # Get completed annotations (should be two but I guess could be more if
-    # glitch or old data)
-    completed_anns = [c[0] for c in list(zip(unique_anns,ann_counts)) if c[1]>=2]
+    max_annotated = WaveformEvent.objects.annotate(num_annotations=Count('annotation')).filter(num_annotations__gte=base.NUM_ANNOTATORS)
+    unadjudicated = max_annotated.filter(num_annotations=base.NUM_ANNOTATORS).annotate(num_diff_decisions=Count('annotation__decision', distinct=True))
+    conflicts = unadjudicated.filter(num_diff_decisions__gt=1)
 
-    # Find out which ones are conflicting
-    conflicting_anns = []
-    # Collect the unfinished adjudications
-    incomplete_adjudications = []
-    for c in completed_anns:
-        # Get all the annotations for this event
-        all_anns = Annotation.objects.filter(
-            project=c[0], record=c[1], event=c[2]
-        )
-        is_adjudicated = True in [a.is_adjudication for a in all_anns]
-        if not is_adjudicated:
-            # Make sure the annotations are complete
-            current_anns = all_anns.filter(is_adjudication=False).values_list('decision', flat=True)
-            is_conflicting = len(set(current_anns)) >= 2
-            # Make sure there are conflicting decisions and no adjudications already
-            if is_conflicting:
-                conflicting_anns.append(c)
-                # Add the unfinished adjudications
-                temp_anns = all_anns.values_list(
-                    'project', 'record', 'event', 'user__username',
-                    'decision', 'comments', 'decision_date'
-                )
-                incomplete_adjudications.append([list(ann) for ann in temp_anns])
-
-    # Get info of all adjudicated annotations
-    adjudicated_anns = Annotation.objects.filter(
-        is_adjudication=True
-    ).order_by(
-        '-decision_date'
-    ).values_list(
-        'project', 'record', 'event'
-    )
-    # Collect the finished adjudications
-    complete_adjudications = []
-    for current_ann in adjudicated_anns:
-        all_anns = Annotation.objects.filter(
-            project=current_ann[0], record=current_ann[1], event=current_ann[2]
-        ).values_list(
-            'project', 'record', 'event', 'user__username', 'decision',
-            'comments', 'decision_date'
-        )
-        complete_adjudications.append([list(ann) for ann in all_anns])
-
-    search = {}
-    if request.GET.get('record'):
-        # TODO: only works if > 0 of each adjudication
-        all_inc_recs = [v[0][1] for v in incomplete_adjudications]
-        all_com_recs = [v[0][1] for v in complete_adjudications]
-        results = {
-            'com' : [complete_adjudications[i] for i,x in enumerate(all_com_recs) if x==request.GET['record']],
-            'inc' : [incomplete_adjudications[i] for i,x in enumerate(all_inc_recs) if x==request.GET['record']]
-        }
-        if list(results.values()) == [None, None]:
-            messages.error(request, 'Record not found')
-        else:
-            search = {k:v for k,v in results.items() if v}
-
-    # TODO: let the user decide the max annotations per page?
-    n_complete = len(complete_adjudications)
-    complete_page_num = request.GET.get('complete_page')
-    if complete_page_num == 'all':
-        pag_complete = Paginator(tuple(complete_adjudications), len(complete_adjudications))
-    else:
-        pag_complete = Paginator(tuple(complete_adjudications), 5)
-    complete_page = pag_complete.get_page(complete_page_num)
-    complete_adjudications = complete_page
-
-    n_incomplete = len(incomplete_adjudications)
-    incomplete_page_num = request.GET.get('incomplete_page')
-    if incomplete_page_num == 'all':
-        pag_incomplete = Paginator(tuple(incomplete_adjudications), len(incomplete_adjudications))
-    else:
-        pag_incomplete = Paginator(tuple(incomplete_adjudications), 5)
-    incomplete_page = pag_incomplete.get_page(incomplete_page_num)
-    incomplete_adjudications = incomplete_page
-
-    categories = [
-        'event',
-        'user',
-        'decision',
-        'comments',
-        'decision_date'
+    waveform_list = [
+        conflicts.filter(bookmark__is_adjudication=True), # Bookmarked
+        conflicts.exclude(bookmark__is_adjudication=True), # Conflicts w/o bookmark
+        max_annotated.filter(num_annotations=base.NUM_ANNOTATORS + 1) # Adjudicated
     ]
-    total_anns = len(adjudicated_anns) + len(conflicting_anns)
-    all_anns_frac = f'{len(adjudicated_anns)}/{total_anns}'
+    
+    waveform_values = [list(set(waveforms.values_list('project', 'record'))) for waveforms in waveform_list]
 
+    page_numbers = [
+        request.GET.get('bookmarked_page'),
+        request.GET.get('conflicts_page'),
+        request.GET.get('adjudicated_page'),
+    ]
+
+    page_info = []
+    display_values = []
+    max_values_per_page = 3
+
+    for i in range(len(waveform_values)):
+        if page_numbers[i]:        
+            if page_numbers[i].isdigit():
+                paginated_list = Paginator(waveform_values[i], max_values_per_page)
+                results = paginated_list.get_page(int(page_numbers[i]))
+            else:
+                paginated_list = Paginator(waveform_values[i], len(waveform_values[i]))
+                results = paginated_list.get_page(1)
+        else:
+            paginated_list = Paginator(waveform_values[i], max_values_per_page)
+            results = paginated_list.get_page(1)
+        
+        page_info.append(results)
+        proj_list = []
+        rec_list = []
+        for result in results.object_list:
+            proj_list.append(result[0])
+            rec_list.append(result[1])
+        
+        display_values.append(waveform_list[i].filter(project__in=proj_list, record__in=rec_list))
+
+    # Categories to display for the annotations
+    categories = [
+        'User',
+        'Decision',
+        'Decision Date',
+        'Comments',
+    ]
+
+    progress = f"{len(waveform_list[2])}/{len(waveform_list[0]) + len(waveform_list[1]) + len(waveform_list[2])}"
+    
     return render(request, 'waveforms/adjudications.html',
-                  {'user': user, 'all_anns_frac': all_anns_frac,
-                   'categories': categories, 'search': search,
-                   'n_complete': n_complete, 'n_incomplete': n_incomplete,
-                   'complete_page': complete_page,
-                   'incomplete_page': incomplete_page,
-                   'incomplete_adjudications': incomplete_adjudications,
-                   'complete_adjudications': complete_adjudications})
+                  {'user': user, 'categories': categories, 'page_info': page_info,
+                    'bookmarked': display_values[0], 'conflicts': display_values[1], 
+                    'adjudicated': display_values[2], 'progress': progress})
 
 
 @login_required
@@ -656,15 +632,16 @@ def delete_adjudication(request, set_project, set_record, set_event):
     """
     try:
         # Should only be one adjudication per project, record, and event
-        adjudication = Annotation.objects.get(
-            project=set_project,
-            record=set_record,
-            event=set_event,
-            is_adjudication=True
-        )
+        waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+        adjudication = Annotation.objects.get(waveform=waveform, is_adjudication=True)
         adjudication.delete()
     except Annotation.DoesNotExist:
+        waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+        bookmark = Bookmark.objects.get(waveform=waveform, is_adjudication=True)
+        bookmark.delete()
+    except WaveformEvent.DoesNotExist:
         pass
+
     return render_adjudications(request)
 
 
@@ -814,7 +791,6 @@ def delete_annotation(request, set_project, set_record, set_event):
 
     """
     user = User.objects.get(username=request.user)
-    print(f"set project: {set_project}\t set record: {set_record}\t set event: {set_event}")
     try:
         annotation = Annotation.objects.get(
             user=user,

@@ -251,7 +251,7 @@ class Annotation(models.Model):
         """
 
         try:
-            annotation = Annotation.objects.get(user=self.user, waveform=self.waveform)
+            annotation = Annotation.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
             annotation.decision = self.decision
             annotation.comments = self.comments
             annotation.decision_date = self.decision_date
@@ -268,6 +268,7 @@ class Bookmark(models.Model):
     waveform = models.ForeignKey('WaveformEvent', on_delete=models.CASCADE, default=None)
     comments = models.TextField(default='')
     bookmark_date = models.DateTimeField(null=True, blank=False)
+    is_adjudication = models.BooleanField(default=False, null=True)
     class Meta:
         ordering = ['waveform__project', 'waveform__record', 'waveform__event']
         constraints = [
@@ -289,7 +290,7 @@ class Bookmark(models.Model):
         """
         try:
             bookmark = Bookmark.objects.get(
-                user=self.user, waveform=self.waveform
+                user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication
             )
             bookmark.comments = self.comments
             bookmark.bookmark_date = self.bookmark_date

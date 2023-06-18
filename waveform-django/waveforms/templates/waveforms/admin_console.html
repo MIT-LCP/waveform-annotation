@@ -189,29 +189,29 @@
         <br />
       </div>
 
-      {% if final_decisions.count > 0 %}
-      <div id="final_decisions">
-        <h2>Final Decisions</h2>
-      </div>
-      {% if page_info.0 %}
-      <div class="page-links">
-        {% if page_info.0.has_previous %}
-        <a href="{% url 'admin_console' %}?final_decisions_page={{ page_info.0.previous_page_number }}#final_decisions">Previous
-          Page</a>&emsp;
-        {% endif %}
-        {% if page_info.0.has_next %}
-        <a href="{% url 'admin_console' %}?final_decisions_page={{ page_info.0.next_page_number }}#final_decisions">Next
-          Page</a>&emsp;
-        {% endif %}
-        {% if request.GET.final_decisions_page == 'all' %}
-        <a href="{% url 'admin_console' %}?final_decisions_page=1#final_decisions">Show pages</a>
-        {% endif %}
-        {% if page_info.0.has_next or page_info.0.has_previous %}
-        <a href="{% url 'admin_console' %}?final_decisions_page=all#final_decisions">Show all</a>
-        {% endif %}
-      </div>
+    {% if final_decisions.count > 0 %}
+    <div id="final_decisions">
+      <h2>Final Decisions</h2>
+    </div>
+    {% if page_info.0 %}
+    <div class="page-links">
+      {% if page_info.0.has_previous %}
+      <a href="{% url 'admin_console' %}?final_decisions_page={{ page_info.0.previous_page_number }}#final_decisions">Previous
+        Page</a>&emsp;
       {% endif %}
-<div id="Conflict-Decisions">
+      {% if page_info.0.has_next %}
+      <a href="{% url 'admin_console' %}?final_decisions_page={{ page_info.0.next_page_number }}#final_decisions">Next
+        Page</a>&emsp;
+      {% endif %}
+      {% if request.GET.final_decisions_page == 'all' %}
+      <a href="{% url 'admin_console' %}?final_decisions_page=1#final_decisions">Show pages</a>
+      {% endif %}
+      {% if page_info.0.has_next or page_info.0.has_previous %}
+      <a href="{% url 'admin_console' %}?final_decisions_page=all#final_decisions">Show all</a>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div id="Final-Decisions">
     {% for waveform in final_decisions%}
       {% ifchanged waveform.project waveform.record %}
         {% if not forloop.first %}
@@ -328,24 +328,24 @@
   <br>
   
   {% if in_progress.count > 0 %}
-    <div id="in_progress_decisions">
-      <h2>Decisions in Progress</h2>
+    <div id="awaiting-all-decisions">
+      <h2>Awaiting All Decisions</h2>
     </div>
     {% if page_info.2 %}
     <div class="page-links">
       {% if page_info.2.has_previous %}
-      <a href="{% url 'admin_console' %}?in_progress_page={{ page_info.2.previous_page_number }}#in_progress_decisions">Previous
+      <a href="{% url 'admin_console' %}?in_progress_page={{ page_info.2.previous_page_number }}#awaiting-all-decisions">Previous
         Page</a>&emsp;
       {% endif %}
       {% if page_info.2.has_next %}
-      <a href="{% url 'admin_console' %}?in_progress_page={{ page_info.2.next_page_number }}#in_progress_decisions">Next
+      <a href="{% url 'admin_console' %}?in_progress_page={{ page_info.2.next_page_number }}#awaiting-all-decisions">Next
         Page</a>&emsp;
       {% endif %}
       {% if request.GET.in_progress_page == 'all' %}
-      <a href="{% url 'admin_console' %}?in_progress_page=1#in_progress_decisions">Show pages</a>
+      <a href="{% url 'admin_console' %}?in_progress_page=1#awaiting-all-decisions">Show pages</a>
       {% endif %}
       {% if page_info.2.has_next or page_info.2.has_previous %}
-      <a href="{% url 'admin_console' %}?in_progress_page=all#in_progress_decisions">Show all</a>
+      <a href="{% url 'admin_console' %}?in_progress_page=all#awaiting-all-decisions">Show all</a>
       {% endif %}
     </div>
     {% endif %}
