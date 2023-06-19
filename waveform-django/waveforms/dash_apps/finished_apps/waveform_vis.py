@@ -86,51 +86,55 @@ app.layout = html.Div([
                 id='event_text',
                 children=html.Span([''], style={'fontSize': event_fontsize})
             ),
-            # The reviewer decision section
-            html.Label(['Enter decision here:'],
-                       style={'font-size': label_fontsize}),
-            dcc.RadioItems(
-                id='reviewer_decision',
-                options=[
-                    {'label': 'True (alarm is correct)', 'value': 'True'},
-                    {'label': 'False (alarm is incorrect)', 'value': 'False'},
-                    {'label': 'Uncertain', 'value': 'Uncertain'},
-                    {'label': 'Reject (alarm is un-readable)', 'value': 'Reject'},
-                    {'label': 'Bookmark for Later', 'value': 'Bookmark'}
-                ],
-                labelStyle={'display': 'block'},
-                style={'width': sidebar_width},
-                persistence=False
-            ),
-            html.Br(),
-            # The reviewer comment section
-            html.Label(['Enter comments here:'],
-                       style={'font-size': label_fontsize}),
-            html.Div(
-                dcc.Textarea(id='reviewer_comments',
-                             style={
-                                'width': comment_box_width,
-                                'height': comment_box_height,
-                                'font-size': label_fontsize
-                             })
-            ),
-            # Submit annotation decision and comments
-            html.Button('Submit',
-                        id='submit_annotation',
-                        style={'height': button_height,
-                               'width': submit_width,
-                               'font-size': 'large'}),
-            # Select previous or next annotation
-            html.Button('\u2190',
-                        id='previous_annotation',
-                        style={'height': button_height,
-                               'width': arrow_width,
-                               'font-size': 'large'}),
-            html.Button('\u2192',
-                        id='next_annotation',
-                        style={'height': button_height,
-                               'width': arrow_width,
-                               'font-size': 'large'}),
+            html.Div([
+                # The reviewer decision section
+                html.Label(['Enter decision here:'],
+                        style={'font-size': label_fontsize}),
+                dcc.RadioItems(
+                    id='reviewer_decision',
+                    options=[
+                        {'label': 'True (alarm is correct)', 'value': 'True'},
+                        {'label': 'False (alarm is incorrect)', 'value': 'False'},
+                        {'label': 'Uncertain', 'value': 'Uncertain'},
+                        {'label': 'Reject (alarm is un-readable)', 'value': 'Reject'},
+                        {'label': 'Bookmark for Later', 'value': 'Bookmark'}
+                    ],
+                    labelStyle={'display': 'block'},
+                    style={'width': sidebar_width},
+                    persistence=False
+                ),
+                html.Br(),
+                # The reviewer comment section
+                html.Label(['Enter comments here:'],
+                        style={'font-size': label_fontsize}),
+                html.Div(
+                    dcc.Textarea(id='reviewer_comments',
+                                style={
+                                    'width': comment_box_width,
+                                    'height': comment_box_height,
+                                    'font-size': label_fontsize
+                                })
+                ),
+                # Submit annotation decision and comments
+                html.Button('Submit',
+                            id='submit_annotation',
+                            style={'height': button_height,
+                                'width': submit_width,
+                                'font-size': 'large'}),
+                # Select previous or next annotation
+                html.Button('\u2190',
+                            id='previous_annotation',
+                            style={'height': button_height,
+                                'width': arrow_width,
+                                'font-size': 'large'}),
+                html.Button('\u2192',
+                            id='next_annotation',
+                            style={'height': button_height,
+                                'width': arrow_width,
+                                'font-size': 'large'}),
+
+            ], style={'display': 'none'}, id='annotation_buttons'),
+
         ], style={'display': 'inline-block', 'vertical-align': 'top',
                   'width': '20vw', 'margin-left': '10vw',
                   'padding-top': '2%'}),
@@ -147,6 +151,7 @@ app.layout = html.Div([
     dcc.Input(id='set_pageid', type='hidden', persistence=False, value=''),
     dcc.Input(id='page_order', type='hidden', persistence=False, value=''),
     dcc.Input(id='adjudication_mode', type='hidden', persistence=False, value=''),
+    dcc.Input(id='admin_mode', type='hidden', persistence=False, value=''),
 ])
 
 
@@ -227,7 +232,7 @@ def get_record_event_options(click_submit, click_previous, click_next, set_pagei
                     if adjudication_mode:
                         res = Bookmark.objects.get(waveform=waveform, is_adjudication=True)
                     else:
-                        res = Bookmark.objects.get(waveform=waveform, user=current_user)
+                        res = Bookmark.objects.get(waveform=waveform, user=current_user, is_adjudication=False)
 
                     current_bookmark = [res.comments]
                     proposed_bookmark = [comments_value]
@@ -247,19 +252,17 @@ def get_record_event_options(click_submit, click_previous, click_next, set_pagei
                     )
                     bookmark.update()
                 
-                try:
-                    if adjudication_mode:
+                if adjudication_mode:
+                    try:
                         Annotation.objects.get(waveform=waveform, is_adjudication=True).delete()
-                    else:
-                        Annotation.objects.get(waveform=waveform, user=current_user).delete()
-                except Annotation.DoesNotExist:
-                    pass
+                    except Annotation.DoesNotExist:
+                        pass
             else:
                 try:
                     if adjudication_mode:
                         res = Annotation.objects.get(waveform=waveform, is_adjudication=True)
                     else:
-                        res = Annotation.objects.get(waveform=waveform, user=current_user)
+                        res = Annotation.objects.get(waveform=waveform, user=current_user, is_adjudication=False)
                     
                     current_annotation = [res.decision, res.comments]
                     proposed_annotation = [decision_value, comments_value]
@@ -280,13 +283,11 @@ def get_record_event_options(click_submit, click_previous, click_next, set_pagei
                         )
                     annotation.update()
                 
-                try:
-                    if adjudication_mode:
+                if adjudication_mode:
+                    try:
                         Bookmark.objects.get(waveform=waveform, is_adjudication=True).delete()
-                    else:
-                        Bookmark.objects.get(waveform=waveform, user=current_user).delete()
-                except Bookmark.DoesNotExist:
-                    pass
+                    except Bookmark.DoesNotExist:
+                        pass
 
         # Going backward in the list
         if click_id == 'previous_annotation':
@@ -354,41 +355,52 @@ def get_record_event_options(click_submit, click_previous, click_next, set_pagei
 
 @app.callback(
     [dash.dependencies.Output('annotation_table', 'style'),
-     dash.dependencies.Output('annotation_table_contents', 'children'),],
+     dash.dependencies.Output('annotation_table_contents', 'children'),
+     dash.dependencies.Output('annotation_buttons', 'style')],
     [dash.dependencies.Input('set_pageid', 'value')],
     [dash.dependencies.State('page_order', 'value'),
-     dash.dependencies.State('adjudication_mode', 'value')])
-def display_adjudication(set_pageid, page_order, adjudication_mode):
-    if adjudication_mode:
+     dash.dependencies.State('adjudication_mode', 'value'),
+     dash.dependencies.State('admin_mode', 'value')])
+def mode_displays(set_pageid, page_order, adjudication_mode, admin_mode):
+    """
+    Callback function to set waveform display items for various modes.
+    """
+    annotation_table = {'display': 'none'}
+    annotation_table_contents = []
+    annotation_buttons = {'display': 'block'}
+
+    if adjudication_mode or admin_mode:
         waveform = WaveformEvent.objects.get(pk=page_order[set_pageid])
         annotations = Annotation.objects.filter(waveform=waveform)
-
-        return_table = [
-            # Header
-            html.Tr([
-                html.Th(col) for col in ['User' , 'Decision' , 'Decision Date' , 'Comments']
-            ], style={'text-align': 'left'})
-            
-        ]
-
-        for annotation in annotations:
-            if annotation.is_adjudication:
-                style={'color': 'blue', 'font-weight': 'bold'}
-            else:
-                style={}
-            
-            return_table.append(
+        if annotations.count() > 0:
+            return_table = [
+                # Header
                 html.Tr([
-                    html.Td(annotation.user.username),
-                    html.Td(annotation.decision),
-                    html.Td(annotation.decision_date.strftime('%B %d, %Y %I:%M %p')),
-                    html.Td(annotation.comments),
-                ], style=style)
-            )
+                    html.Th(col) for col in ['User' , 'Decision' , 'Decision Date' , 'Comments']
+                ], style={'text-align': 'left'})
+                
+            ]
+            for annotation in annotations:
+                if annotation.is_adjudication:
+                    style={'color': 'blue', 'font-weight': 'bold'}
+                else:
+                    style={}
+                
+                return_table.append(
+                    html.Tr([
+                        html.Td(annotation.user.username),
+                        html.Td(annotation.decision),
+                        html.Td(annotation.decision_date.strftime('%B %d, %Y %I:%M %p')),
+                        html.Td(annotation.comments),
+                    ], style=style)
+                )
+            annotation_table = {'display': 'block'}
+            annotation_table_contents = return_table
+    
+    if admin_mode:
+        annotation_buttons = {'display': 'none'}
 
-        return [{'display': 'block'}, return_table]
-    else:
-        return [{'display': 'none'}, []]
+    return [annotation_table, annotation_table_contents, annotation_buttons]
 
 
 @app.callback(

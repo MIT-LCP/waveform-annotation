@@ -8,7 +8,7 @@
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
     <span style="font-size: 20px; float: right;">{{ progress }}</span>
-    <br/>
+    <br/><br/>
   </div>
 
   {% if bookmarked.count > 0 %}
@@ -79,8 +79,8 @@
     <br>
     {% endfor %}
   </div>
-  {% endif %}
   <br>
+  {% endif %}
 
   {% if conflicts.count > 0 %}
   <div id="conflicts">
@@ -148,8 +148,8 @@
     <br>
     {% endfor %}
   </div>
-  {% endif %}
   <br>
+  {% endif %}
   {% if adjudicated.count > 0 %}
   <div id="adjudicated">
     <h2>Adjudicated Waveforms</h2>
@@ -199,7 +199,7 @@
       </tr>
 
       {% for annotation in waveform.annotation_set.all %}
-      <tr {% if annotation.is_adjudication %} style="color:blue; font-weight: bold;" {% endif %}>
+      <tr {% if annotation.is_adjudication %} style="color:purple; font-weight: bold;" {% endif %}>
         <td>
           {{ annotation.user.username }}
         </td>

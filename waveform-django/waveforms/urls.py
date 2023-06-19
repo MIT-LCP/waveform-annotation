@@ -13,6 +13,7 @@ urlpatterns = [
     path('adjudications/', views.render_adjudications, name='render_adjudications'),
     path('adjudications/delete/<set_project>/<set_record>/<set_event>/', views.delete_adjudication, name='delete_adjudication'),
     path('admin_console/', views.admin_console, name='admin_console'),
+    path('admin_console/view/<set_project>/<set_record>/<set_event>/', views.admin_waveform_viewer, name='admin_waveform_viewer'),
     path('adjudicator_console/', views.adjudicator_console, name='adjudicator_console'),
     path('assignment/', views.current_assignment, name='current_assignment'),
     path('annotations/delete/<set_project>/<set_record>/<set_event>/', views.delete_annotation, name='delete_annotation'),

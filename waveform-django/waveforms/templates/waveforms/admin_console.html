@@ -189,6 +189,15 @@
         <br />
       </div>
 
+    <div id="Waveform Data Settings">
+      <h2>Waveform Data Settings</h2>
+      <form action="" method="post">
+        {% csrf_token %}
+        <input type="submit" name="load_waveforms" class="btn btn-warning btn-rsp" value="Load Waveforms">
+      </form>
+      <br>
+    </div>
+
     {% if final_decisions.count > 0 %}
     <div id="final_decisions">
       <h2>Final Decisions</h2>
@@ -222,8 +231,8 @@
         <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
       {% endifchanged %}
 
-      <h5 style="float: left;">{{ waveform.event }} (<a
-      href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">View
+      <h5 style="float: left;">{{ waveform.event }}: <i style="color: green;">{{ waveform.decision }}</i>&emsp;(<a
+      href="{% url 'admin_waveform_viewer' waveform.project waveform.record waveform.event %}">View
       waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
       
       <table style="width:100%">
@@ -236,7 +245,7 @@
         </tr>
 
         {% for annotation in waveform.annotation_set.all %}
-        <tr>
+        <tr {% if annotation.is_adjudication %} style="color:purple; font-weight: bold;" {% endif %}>
           <td>
             {{ annotation.user.username }}
           </td>
@@ -255,8 +264,8 @@
       <br>
     {% endfor %}
     </div>
-    {% endif %}
     <br>
+    {% endif %}
     {% if conflicts.count > 0 %}
     <div id="conflicts_decisions">
       <h2>Conflicting Decisions</h2>
@@ -291,8 +300,8 @@
         <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
       {% endifchanged %}
 
-      <h5 style="float: left;">{{ waveform.event }} (<a
-      href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">View
+      <h5 style="float: left;">{{ waveform.event }}&emsp;(<a
+      href="{% url 'admin_waveform_viewer' waveform.project waveform.record waveform.event %}">View
       waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
 
       <table style="width:100%">
@@ -324,8 +333,8 @@
       <br>
     {% endfor %}
     </div>
-  {% endif %}
   <br>
+  {% endif %}
   
   {% if in_progress.count > 0 %}
     <div id="awaiting-all-decisions">
@@ -361,8 +370,8 @@
         <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
       {% endifchanged %}
 
-      <h5 style="float: left;">{{ waveform.event }} (<a
-      href="{% url 'waveform_published_specific' waveform.project waveform.record waveform.event %}">View
+      <h5 style="float: left;">{{ waveform.event }}&emsp;(<a
+      href="{% url 'admin_waveform_viewer' waveform.project waveform.record waveform.event %}">View
       waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
       
       {% if waveform.annotation_set.all.count > 0 %}

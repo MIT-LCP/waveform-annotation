@@ -666,10 +666,8 @@ class WaveformVizTools:
             if count_zero == 0:
                 break
             else:
-                # TODO Potential problem here? Got error TypeError: order_sigs() got multiple values for argument 'exclude_sigs' at v115l v115l_1m
-                # but it went away after submitting again
                 sig_order, n_ekgs = self.order_sigs(
-                    n_ekgs, sig_name, exclude_sigs=exclude_list
+                    sig_name, exclude_list
                 )
                 all_y_vals = self.format_y_vals(
                     sig_order, sig_name, n_ekgs, record, index_start,

@@ -9,6 +9,40 @@ from django.utils import timezone
 from website.settings import base
 
 
+def update_decision(waveform):
+    """
+    Update the decision value of a waveform if it has been annotated max times, or has been adjudicated.
+    """
+    decision_set = set()
+    adjudicated_decision = None
+    annotations = waveform.annotation_set.all()
+    
+    for annotation in annotations:
+        if annotation.is_adjudication:
+            adjudicated_decision = annotation.decision
+            break
+        decision_set.add(annotation.decision)
+    
+    if adjudicated_decision:
+        # Waveform has been adjudicated
+        waveform.decision = adjudicated_decision
+        waveform.save()
+        return
+    
+    if len(annotations) < base.NUM_ANNOTATORS:
+        # Waveform is not done being annotated
+        waveform.decision = 'None'
+    
+    elif len(annotations) == base.NUM_ANNOTATORS:
+        if len(decision_set) == 1:
+            # Unanimous decision
+            waveform.decision = decision_set.pop()
+        else:
+            # Conflicting decisions
+            waveform.decision = 'Conflict'
+    waveform.save()
+
+
 class WaveformEvent(models.Model):
     """
     Defines the model for each waveform event. Contains info about each event that has been assigned.
@@ -17,6 +51,7 @@ class WaveformEvent(models.Model):
     record = models.CharField(max_length=50, unique=False, blank=False)
     event = models.CharField(max_length=50, unique=False, blank=False)
     is_practice = models.BooleanField(default=False)
+    decision = models.CharField(max_length=10, unique=False, default='None')
     
     def __str__(self):
         return f'{self.project}/{self.record}/{self.event}'
@@ -153,24 +188,17 @@ class User(models.Model):
                 - adjudicated
         """
 
-        requested_adjudicated = annotation == 'adjudicated'
-
         if self.practice_status == 'ED':
-            if self.is_admin:
-                all_projects = base.ALL_PROJECTS
-                all_waveforms = WaveformEvent.objects.filter(is_practice=False)
-            else:
-                all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
-                all_waveforms = WaveformEvent.objects.filter(annotators=self, project__in=all_projects, is_practice=False)
+            all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+            all_waveforms = WaveformEvent.objects.filter(annotators=self, project__in=all_projects, is_practice=False)
         else:
-            all_projects = list(base.PRACTICE_SET.keys())
             all_waveforms = WaveformEvent.objects.filter(is_practice=True)
         
         if annotation == 'unannotated':
             return all_waveforms.exclude(bookmark__user=self).exclude(annotation__user=self)
         elif annotation == 'saved':
             return all_waveforms.filter(bookmark__user=self)
-        elif annotation == 'annotated' or annotation == 'adjudicated':
+        elif annotation == 'annotated':
             return all_waveforms.filter(annotation__user=self)
         else:
             return all_waveforms
@@ -251,13 +279,41 @@ class Annotation(models.Model):
         """
 
         try:
-            annotation = Annotation.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
+            if self.is_adjudication:
+                annotation = Annotation.objects.get(waveform=self.waveform, is_adjudication=self.is_adjudication)
+                annotation.user = self.user
+            else:
+                annotation = Annotation.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
             annotation.decision = self.decision
             annotation.comments = self.comments
             annotation.decision_date = self.decision_date
-            annotation.save(update_fields=['decision', 'comments', 'decision_date'])
+            annotation.save(update_fields=['user', 'decision', 'comments', 'decision_date'])
         except Annotation.DoesNotExist:
-            self.save()
+            try:
+                bookmark = Bookmark.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
+                bookmark.delete()
+            except Bookmark.DoesNotExist:
+                pass
+            self.save()        
+        
+        update_decision(self.waveform)
+
+    
+    def delete(self, *args, **kwargs):
+        """
+        Delete the user's annotation.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
+        """
+        super(Annotation, self).delete(*args, **kwargs)
+        update_decision(self.waveform)
 
 
 class Bookmark(models.Model):
@@ -289,14 +345,36 @@ class Bookmark(models.Model):
 
         """
         try:
-            bookmark = Bookmark.objects.get(
-                user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication
-            )
+            bookmark = Bookmark.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
             bookmark.comments = self.comments
             bookmark.bookmark_date = self.bookmark_date
             bookmark.save(update_fields=['comments', 'bookmark_date'])
         except Bookmark.DoesNotExist:
+            try:
+                annotation = Annotation.objects.get(user=self.user, waveform=self.waveform, is_adjudication=self.is_adjudication)
+                annotation.delete()
+            except Annotation.DoesNotExist:
+                pass
             self.save()
+        
+        update_decision(self.waveform)
+    
+
+    def delete(self, *args, **kwargs):
+        """
+        Delete the bookmark and update the decision of the waveform.
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        N/A
+
+        """
+        super(Bookmark, self).delete(*args, **kwargs)
+        update_decision(self.waveform)
 
 
 class UserSettings(models.Model):

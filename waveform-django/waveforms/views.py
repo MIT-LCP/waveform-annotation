@@ -18,7 +18,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.db import IntegrityError
 from django.core.exceptions import FieldError
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from waveforms.forms import GraphSettings, InviteUserForm
 from waveforms.models import Annotation, InvitedEmails, User, UserSettings, WaveformEvent, Bookmark
@@ -43,10 +43,22 @@ def load_waveforms():
             with open(event_file, 'r') as f:
                 event_list = f.read().splitlines()
             for event in event_list:
-                try:
-                    WaveformEvent.objects.create(project=project, record=record, event=event)
-                except IntegrityError:
+                header_path = record_path/f"{event}.mat"
+                if header_path.is_file():
+                    try:
+                        WaveformEvent.objects.create(project=project, record=record, event=event)
+                    except IntegrityError:
+                        pass
+                else:
                     pass
+
+    for event in base.PRACTICE_SET:
+        try:
+            waveform = WaveformEvent.objects.get(project=event[0], record=event[1], event=event[2])
+            waveform.is_practice = True
+            waveform.save()
+        except WaveformEvent.DoesNotExist:
+            pass
 
 
 def user_rank(global_ranks, username):
@@ -282,6 +294,7 @@ def waveform_published_home(request, set_project='', set_record='', set_event=''
     
     dash_context = {
         'adjudication_mode': {'value': False},
+        'admin_mode': {'value': False},
         'set_pageid': {'value': page_index},
         'page_order': {'value': all_waveforms},
     }
@@ -349,9 +362,10 @@ def admin_console(request):
                     contacted.""")
         elif 'end_assignment' in request.POST:
             user = User.objects.get(username=request.POST['user_info'])
-            user.waveforms.clear()
-            
+            waveforms = WaveformEvent.objects.filter(annotators=user, is_practice=False).exclude(annotation__user=user)
+            [w.annotators.remove(user) for w in waveforms]
             return redirect('admin_console')
+        
         elif 'add_admin' in request.POST:
             new_admin = User.objects.get(
                 username__exact=request.POST['add_admin']
@@ -400,16 +414,16 @@ def admin_console(request):
             new_annotator.practice_status = 'BG'
             new_annotator.entrance_score = 'N/A'
             new_annotator.save()
+        elif 'load_waveforms' in request.POST:
+            load_waveforms()
         return redirect('admin_console')
             
-
-    annotated = WaveformEvent.objects.annotate(num_annotations=Count('annotation'))
-    max_anns = annotated.filter(num_annotations=base.NUM_ANNOTATORS).annotate(num_diff_decisions=Count('annotation__decision', distinct=True))
-
+    
+    all_waveforms = WaveformEvent.objects.filter(is_practice=False)
     waveform_list = [
-        max_anns.filter(num_diff_decisions=1), 
-        max_anns.filter(num_diff_decisions__gt=1),
-        annotated.filter(num_annotations__lt=base.NUM_ANNOTATORS),
+        all_waveforms.exclude(decision__in=['None', 'Conflict']), # Final Decisions
+        all_waveforms.filter(decision='Conflict'), # Conflicts
+        all_waveforms.filter(decision='None'), # In Progress
     ]
 
     waveform_values = [list(set(waveforms.values_list('project', 'record'))) for waveforms in waveform_list]
@@ -447,7 +461,7 @@ def admin_console(request):
 
     # Categories to display for the annotations
     categories = [
-        'User',
+        'Annotator Name',
         'Decision',
         'Comments',
         'Decision Date'
@@ -492,16 +506,14 @@ def adjudicator_console(request, set_project='', set_record='', set_event=''):
 
     if user.is_adjudicator == False:
         return HttpResponseForbidden('<h1>You do not have access to this page</h1>')
+
+    all_waveforms = WaveformEvent.objects.filter(is_practice=False)
     
-    max_annotated = WaveformEvent.objects.annotate(num_annotations=Count('annotation')).filter(num_annotations__gte=base.NUM_ANNOTATORS)
-    unadjudicated = max_annotated.filter(num_annotations=base.NUM_ANNOTATORS).annotate(num_diff_decisions=Count('annotation__decision', distinct=True))
-    conflicts = unadjudicated.filter(num_diff_decisions__gt=1)
+    bookmarked = all_waveforms.filter(bookmark__is_adjudication=True)
+    conflicts = all_waveforms.filter(decision='Conflict')
+    adjudicated = all_waveforms.filter(annotation__is_adjudication=True)
 
-    bookmarked = Bookmark.objects.filter(is_adjudication=True)
-    conflicts = conflicts.exclude(bookmark__is_adjudication=True)
-    adjudicated = max_annotated.filter(num_annotations=base.NUM_ANNOTATORS + 1)
-
-    bookmarked = [bookmark.waveform.pk for bookmark in bookmarked]
+    bookmarked = [bookmark.pk for bookmark in bookmarked]
     conflicts = [waveform.pk for waveform in conflicts]
     adjudicated = [waveform.pk for waveform in adjudicated]
 
@@ -525,6 +537,61 @@ def adjudicator_console(request, set_project='', set_record='', set_event=''):
     
     dash_context = {
         'adjudication_mode': {'value': True},
+        'admin_mode': {'value': False},
+        'set_pageid': {'value': page_index},
+        'page_order': {'value': all_waveforms},
+    }
+
+    return render(request, 'waveforms/home.html', {'user': user,
+                                                   'dash_context': dash_context})
+
+
+
+@login_required
+def admin_waveform_viewer(request, set_project='', set_record='', set_event=''):
+    """
+    Allow admins to view any specified waveform
+
+    Parameters
+    ----------
+    set_project: string, optional
+        Preset project dropdown values used for page load
+    set_record : string, optional
+        Preset record dropdown values used for page load.
+    set_event : string, optional
+        Preset event dropdown values used for page load.
+
+    Returns
+    -------
+    N/A : HTML page / template variable
+        HTML webpage responsible for displaying the conflicting annotations
+        and their adjudication platform.
+
+    """
+    user = User.objects.get(username=request.user)
+
+    if user.is_admin == False:
+        return HttpResponseForbidden('<h1>You do not have access to this page</h1>')
+
+    all_waveforms = [w.pk for w in WaveformEvent.objects.filter(is_practice=False)]
+
+    if len(all_waveforms) == 0:
+        return redirect('admin_console')
+
+    if set_project and set_record and set_event:
+        try:
+            waveform = WaveformEvent.objects.get(project=set_project, record=set_record, event=set_event)
+        except WaveformEvent.DoesNotExist:
+            return HttpResponseNotFound('<h1>Waveform not found</h1>')
+        
+        page_index = all_waveforms.index(waveform.pk)
+    
+    else:
+        page_index = 0
+    
+    dash_context = {
+        'adjudication_mode': {'value': False},
+        'admin_mode': {'value': True},
         'set_pageid': {'value': page_index},
         'page_order': {'value': all_waveforms},
     }
@@ -560,7 +627,7 @@ def render_adjudications(request):
     waveform_list = [
         conflicts.filter(bookmark__is_adjudication=True), # Bookmarked
         conflicts.exclude(bookmark__is_adjudication=True), # Conflicts w/o bookmark
-        max_annotated.filter(num_annotations=base.NUM_ANNOTATORS + 1) # Adjudicated
+        max_annotated.filter(annotation__is_adjudication=True) # Adjudicated
     ]
     
     waveform_values = [list(set(waveforms.values_list('project', 'record'))) for waveforms in waveform_list]
@@ -721,7 +788,6 @@ def current_assignment(request):
     if request.method == 'POST':
         # Create a new assignment for current user
         if 'new_assignment' in request.POST:
-            load_waveforms()
             num_events = int(request.POST['num_events'])
             
             # Get waveforms not assigned to user, and not already assigned to max number of annotators
