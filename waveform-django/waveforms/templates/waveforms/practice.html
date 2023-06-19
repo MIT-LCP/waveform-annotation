@@ -42,16 +42,14 @@
         {% else %}
           <h2>Responses</h2>
         {% endif %}
-      {% for project,events in results.items %}
-        {% for event,responses in events.items %}
-          <p>
-	    {{ project }} {{ event }}&emsp; Your answer: {{ responses.1 }}
+      {% for response in results %}
+        <p>
+            {{ response.0 }}&ensp;|&ensp;{{ response.1 }}&ensp;|&ensp;{{ response.2 }}&emsp; Your answer: {{ response.4 }}
             {% if user.is_annotator %} 
-              &emsp;Correct answer: {{ responses.0 }}&emsp; 
-              {% if responses.0 == responses.1 %} &#10004;&#65039; {% else %} &#10060; {% endif %}
-             {% endif %}
-          </p>
-        {% endfor %}
+            &emsp;Correct answer: {{ response.3 }}&emsp; 
+            {% if response.3 == response.4 %} &#10004;&#65039; {% else %} &#10060; {% endif %}
+            {% endif %}
+        </p>
       {% endfor %}
       {% if user.is_annotator %} 
       <p>Score: {{ correct }}/{{ total }}</p>

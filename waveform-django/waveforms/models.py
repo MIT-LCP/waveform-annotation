@@ -101,14 +101,10 @@ class User(models.Model):
     )
 
 
-    def num_annotations(self, project=None):
+    def num_annotations(self):
         """
         Determine the number of annotations for the current user.
 
-        Parameters
-        ----------
-        project : str, optional
-            The desired project from which to query for user annotations.
 
         Returns
         -------
@@ -116,12 +112,7 @@ class User(models.Model):
             The number of annotations for the current user.
 
         """
-        if project:
-            return len(Annotation.objects.filter(user=self, project=project,
-                                                 is_adjudication=False))
-        else:
-            return len(Annotation.objects.filter(user=self,
-                                                 is_adjudication=False))
+        return Annotation.objects.filter(user=self, is_adjudication=False, waveform__is_practice=False).count()
 
 
     def new_settings(self):
@@ -206,14 +197,9 @@ class User(models.Model):
 
     def get_annotations(self, saved=False, is_adjudicated=False):
         if self.practice_status == 'ED':
-            if self.is_admin:
-                all_projects = base.ALL_PROJECTS
-                all_annotations = Annotation.objects.filter(user=self, is_adjudication=is_adjudicated, waveform__is_practice=False)
-            else:
-                all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
-                all_annotations = Annotation.objects.filter(user=self, waveform__project__in=all_projects, is_adjudication=is_adjudicated, waveform__is_practice=False)
+            all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+            all_annotations = Annotation.objects.filter(user=self, waveform__project__in=all_projects, is_adjudication=is_adjudicated, waveform__is_practice=False)
         else:
-            all_projects = list(base.PRACTICE_SET.keys())
             all_annotations = Annotation.objects.filter(user=self, is_adjudication=is_adjudicated, waveform__is_practice=True)
         
         return all_annotations
@@ -221,14 +207,9 @@ class User(models.Model):
 
     def get_bookmarks(self):
         if self.practice_status == 'ED':
-            if self.is_admin:
-                all_projects = base.ALL_PROJECTS
-                all_bookmarks = Bookmark.objects.filter(user=self, waveform__is_practice=False)
-            else:
-                all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
-                all_bookmarks = Bookmark.objects.filter(user=self, waveform__project__in=all_projects, waveform__is_practice=False)
+            all_projects = [p for p in base.ALL_PROJECTS if p not in base.BLACKLIST]
+            all_bookmarks = Bookmark.objects.filter(user=self, waveform__project__in=all_projects, waveform__is_practice=False)
         else:
-            all_projects = list(base.PRACTICE_SET.keys())
             all_bookmarks = Bookmark.objects.filter(user=self, waveform__is_practice=True)
 
         return all_bookmarks 

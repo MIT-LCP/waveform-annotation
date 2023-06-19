@@ -244,9 +244,9 @@ MIN_ASSIGNED = 10
 
 # Events to be used in the practice data set
 PRACTICE_SET = [
-    ('2015_data', 'ge152', 'ge152_9m'),
-    ('2015_data', 'ge151', 'ge151_3m'),
-    ('sample_data', 'v205l', 'v205l_1m'),
+    ['2015_data', 'ge152', 'ge152_9m', 'True'],
+    ['2015_data', 'ge151', 'ge151_3m', 'False'],
+    ['sample_data', 'v205l', 'v205l_1m', 'True'],
 ]
 
 # List of permitted HTML tags and attributes for rich text fields.

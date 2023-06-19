@@ -1054,22 +1054,25 @@ def practice_test(request):
     """
     user = User.objects.get(username=request.user)
 
-    results = {}
+    results = []
     correct = 0
     total = 0
 
-    for project,events in base.PRACTICE_SET.items():
-        results[project] = {}
-        for event,answer in events.items():
-            try:
-                user_response = Annotation.objects.get(
-                    user=user, project=project, event=event,
-                    is_adjudication=False).decision
-            except Annotation.DoesNotExist:
-                user_response = None
-            results[project][event] = (str(answer), user_response)
-            total += 1
-            correct = correct + 1 if str(answer) == user_response else correct + 0
+    user_response = Annotation.objects.filter(user=user)
+
+    for question in base.PRACTICE_SET:
+        proj, rec, evt, ans = question
+        waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
+        try:
+            decision = user_response.get(waveform=waveform).decision
+        except Annotation.DoesNotExist:
+            decision = 'None'
+        
+        if decision == ans:
+            correct += 1
+        total += 1
+
+        results.append(question + [decision])
 
     if request.method == 'POST':
         if 'start-practice' in request.POST:
@@ -1091,14 +1094,13 @@ def practice_test(request):
 
         if 'end-practice' in request.POST:
             # Delete practice events
-            for proj, events in base.PRACTICE_SET.items():
-                for event in events:
-                    try:
-                        Annotation.objects.get(user=user, project=proj,
-                                               event=event,
-                                               is_adjudication=False).delete()
-                    except Annotation.DoesNotExist:
-                        pass
+            for question in base.PRACTICE_SET:
+                proj, rec, evt, ans = question
+                waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
+                try:
+                    Annotation.objects.get(user=user, waveform=waveform).delete()
+                except Annotation.DoesNotExist:
+                    pass
             user.practice_status = 'ED'
             user.save()
             return redirect('current_assignment')
