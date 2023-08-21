@@ -25,6 +25,34 @@ from waveforms.models import Annotation, InvitedEmails, User, UserSettings, Wave
 from website.settings import base
 
 
+def update_practice_set():
+    """
+    Sets waveforms to practice mode. Deletes annotations for waveforms that
+    are no longer in practice mode.
+    """
+    current_practice = set(WaveformEvent.objects.filter(is_practice=True).values_list('pk', flat=True))
+    updated_practice = set()
+    for event in base.PRACTICE_SET:
+        print(f"evt {event}")
+        try:
+            waveform = WaveformEvent.objects.get(project=event[0], record=event[1], event=event[2])
+            updated_practice.add(waveform.pk)
+            waveform.is_practice = True
+            waveform.save()
+        except WaveformEvent.DoesNotExist:
+            pass
+    
+    difference = current_practice.difference(updated_practice)
+    
+    remove_sets = WaveformEvent.objects.filter(pk__in=difference)
+    for waveform in remove_sets:
+        waveform.is_practice = False
+        waveform.save()
+        Annotation.objects.filter(waveform=waveform).delete()
+
+    print(f"DEBUG: {current_practice} | {updated_practice} | {difference}")
+
+
 def load_waveforms():
     """
     Read in each waveform in record-files and create WaveformEvent objects.
@@ -34,14 +62,22 @@ def load_waveforms():
     for project in project_list:
         project_path = record_folder/project
         record_file = project_path/base.RECORDS_FILE
-        with open(record_file, 'r') as f:
-            record_list = f.read().splitlines()
+        try:
+            with open(record_file, 'r') as f:
+                record_list = f.read().splitlines()
+        except FileNotFoundError as e:
+            print(f"{e}")
+            continue
         
         for record in record_list:
             record_path = project_path/record
             event_file = record_path/base.RECORDS_FILE
-            with open(event_file, 'r') as f:
-                event_list = f.read().splitlines()
+            try:
+                with open(event_file, 'r') as f:
+                    event_list = f.read().splitlines()
+            except FileNotFoundError as e:
+                print(f"{e}")
+                continue
             for event in event_list:
                 header_path = record_path/f"{event}.mat"
                 if header_path.is_file():
@@ -52,13 +88,8 @@ def load_waveforms():
                 else:
                     pass
 
-    for event in base.PRACTICE_SET:
-        try:
-            waveform = WaveformEvent.objects.get(project=event[0], record=event[1], event=event[2])
-            waveform.is_practice = True
-            waveform.save()
-        except WaveformEvent.DoesNotExist:
-            pass
+    update_practice_set()
+
 
 
 def user_rank(global_ranks, username):
@@ -233,15 +264,7 @@ def admin_console(request):
             )
             new_annotator.is_annotator = True
             new_annotator.practice_status = 'ED'
-
-            for proj, events in base.PRACTICE_SET.items():
-                for event in events:
-                    try:
-                        Annotation.objects.get(user=new_annotator, project=proj,
-                                            event=event,
-                                            is_adjudication=False).delete()
-                    except Annotation.DoesNotExist:
-                        pass
+            Annotation.objects.filter(user=new_annotator, waveform__is_practice=True).delete()
             new_annotator.save()            
         elif 'remove_annotator' in request.POST:
             new_annotator = User.objects.get(
@@ -253,6 +276,8 @@ def admin_console(request):
             new_annotator.save()
         elif 'load_waveforms' in request.POST:
             load_waveforms()
+        elif 'update_practice_set' in request.POST:
+            update_practice_set()
         return redirect('admin_console')
             
     
@@ -899,7 +924,10 @@ def practice_test(request):
 
     for question in base.PRACTICE_SET:
         proj, rec, evt, ans = question
-        waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
+        try:
+            waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
+        except WaveformEvent.DoesNotExist:
+            continue
         try:
             decision = user_response.get(waveform=waveform).decision
         except Annotation.DoesNotExist:
@@ -933,11 +961,14 @@ def practice_test(request):
             # Delete practice events
             for question in base.PRACTICE_SET:
                 proj, rec, evt, ans = question
-                waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
                 try:
+                    waveform = WaveformEvent.objects.get(project=proj, record=rec, event=evt)
                     Annotation.objects.get(user=user, waveform=waveform).delete()
                 except Annotation.DoesNotExist:
                     pass
+                except WaveformEvent.DoesNotExist:
+                    pass
+
             user.practice_status = 'ED'
             user.save()
             return redirect('current_assignment')

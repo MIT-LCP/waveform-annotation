@@ -14,20 +14,14 @@ def update_decision(waveform):
     Update the decision value of a waveform if it has been annotated max times, or has been adjudicated.
     """
     decision_set = set()
-    adjudicated_decision = None
     annotations = waveform.annotation_set.all()
     
     for annotation in annotations:
         if annotation.is_adjudication:
-            adjudicated_decision = annotation.decision
-            break
+            waveform.decision = annotation.decision
+            waveform.save()
+            return
         decision_set.add(annotation.decision)
-    
-    if adjudicated_decision:
-        # Waveform has been adjudicated
-        waveform.decision = adjudicated_decision
-        waveform.save()
-        return
     
     if len(annotations) < base.NUM_ANNOTATORS:
         # Waveform is not done being annotated
@@ -40,6 +34,9 @@ def update_decision(waveform):
         else:
             # Conflicting decisions
             waveform.decision = 'Conflict'
+    else:
+        # More annotations than annotators
+        waveform.decision = 'Error'
     waveform.save()
 
 
@@ -52,6 +49,7 @@ class WaveformEvent(models.Model):
     event = models.CharField(max_length=50, unique=False, blank=False)
     is_practice = models.BooleanField(default=False)
     decision = models.CharField(max_length=10, unique=False, default='None')
+    date_added = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f'{self.project}/{self.record}/{self.event}'
