@@ -9,13 +9,11 @@ import wfdb
 from waveforms.models import User, UserSettings
 from website.settings import base
 
+from pathlib import Path
+
 
 # Specify the record file locations
-BASE_DIR = base.BASE_DIR
-FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-FILE_LOCAL = os.path.join('record-files')
-PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
-ALL_PROJECTS = base.ALL_PROJECTS
+PROJECT_PATH = Path(base.HEAD_DIR)/'record-files'
 
 # Load in the default variables
 class WaveformVizTools:
@@ -635,15 +633,12 @@ class WaveformVizTools:
 
         """
         # Determine the time of the event (seconds)
-        ann_path = os.path.join(PROJECT_PATH, dropdown_project,
-                                dropdown_record, dropdown_event)
-        ann = wfdb.rdann(ann_path, 'alm')
+        event_path = str(PROJECT_PATH / dropdown_project / dropdown_record / dropdown_event)
+        ann = wfdb.rdann(event_path, 'alm')
         event_time = (ann.sample / ann.fs)[0]
 
         # Determine the signal information
-        record_path = os.path.join(PROJECT_PATH, dropdown_project,
-                                   dropdown_record, dropdown_event)
-        record = wfdb.rdsamp(record_path, return_res=16)
+        record = wfdb.rdsamp(event_path, return_res=16)
         fs = record[1]['fs']
         sig_name = record[1]['sig_name']
         units = record[1]['units']
@@ -672,7 +667,7 @@ class WaveformVizTools:
                 break
             else:
                 sig_order, n_ekgs = self.order_sigs(
-                    n_ekgs, sig_name, exclude_sigs=exclude_list
+                    sig_name, exclude_list
                 )
                 all_y_vals = self.format_y_vals(
                     sig_order, sig_name, n_ekgs, record, index_start,

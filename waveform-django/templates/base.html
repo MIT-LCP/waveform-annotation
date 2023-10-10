@@ -61,57 +61,92 @@
                 Adjudicator Console
               </button>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" href="{% url 'adjudicator_console' %}">Adjudicate More Waveforms</a>
-                <a class="dropdown-item" href="{% url 'render_adjudications' %}">View Adjudications</a>
+                <a class="dropdown-item" href="{% url 'adjudicator_console' %}">Adjudicate Waveform</a>
+                <a class="dropdown-item" href="{% url 'render_adjudications' %}">View Console</a>
               </div>
+            </div>
+          </th>
+        {% endif %}
+        {% url 'viewer_overview' as url %}
+        <th class="text-center col">
+          <div class="dropdown">
+            <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+              <a href="{% url 'viewer_overview' %}" style="font-size: large;">Overview</a>
+            </button>
+          </div>
+        </th>
+        {% if user.is_annotator is True or user.practice_status != 'CO' %} 
+          <th class="text-center col">
+            <div class="dropdown">
+              <button class="btn {% if 'waveforms' in request.path and 'assignment' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'overview' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'assessment' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+                
+                <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
+                  {%if user.practice_status == "ED"%}
+                  Create Annotation
+                  {% else %}
+                  {% if user.is_annotator == False%}
+                    Annotate Assessment Sample
+                  {% else %}
+                    Annotate Practice Sample
+                  {% endif %}
+                  {% endif %}
+                </a>
+              </button>
             </div>
           </th>
         {% endif %}
         <th class="text-center col">
           <div class="dropdown">
-            <button class="btn {% if 'waveforms' in request.path and 'annotations' not in request.path and 'leaderboard' not in request.path and 'practice' not in request.path and 'tutorial' not in request.path and 'settings' not in request.path and 'admin_console' not in request.path and 'adjudicator_console' not in request.path and 'adjudications' not in request.path and 'adjudicate' not in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'waveform_published_home' %}" style="font-size: large;">
-                {%if user.practice_status == "ED"%}
-                Create More Annotations
-                {% else %}
-                Annotate Practice Sample
-                {% endif %}
-              </a>
-            </button>
-          </div>
-        </th>
-        <th class="text-center col">
-          <div class="dropdown">
-            <button class="btn {% if 'waveforms/annotations' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'render_annotations' %}" style="font-size: large;">
+            <button class="btn {% if 'waveforms/assignment' in request.path %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+              <a href="{% url 'current_assignment' %}" style="font-size: large;">
               {%if user.practice_status == "ED"%}
                 Current Assignment
               {% else %}
-                View All Practice Samples
+                {% if user.is_annotator == False%}
+                  View All Assessment Samples
+                {% else %}
+                  View All Practice Samples
+                {% endif %}
               {% endif %}
               </a>
             </button>
           </div>
         </th>
+        
+        {% if user.is_annotator %}
+          {% url 'practice_test' as url %}
+          <th class="text-center col">
+            <div class="dropdown">
+              <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+                <a href="{% url 'practice_test' %}" style="font-size: large;">
+                {%if user.practice_status == "ED"%}
+                  Practice Test
+                {% else %}
+                  Practice Info
+                {% endif %}
+                </a>
+              </button>
+            </div>
+          </th>
+
+        {% else %}
+          {% url 'assessment' as url %}
+          <th class="text-center col">
+            <div class="dropdown">
+              <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
+                <a href="{% url 'assessment' %}" style="font-size: large;">
+                Assessment Info
+                </a>
+              </button>
+            </div>
+          </th>
+
+        {% endif %}
         {% url 'leaderboard' as url %}
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'leaderboard' %}" style="font-size: large;">Leaderboard and Statistics</a>
-            </button>
-          </div>
-        </th>
-        {% url 'practice_test' as url %}
-        <th class="text-center col">
-          <div class="dropdown">
-            <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'practice_test' %}" style="font-size: large;">
-              {%if user.practice_status == "ED"%}
-                Practice Test
-              {% else %}
-                Submit Practice
-              {% endif %}
-              </a>
+              <a href="{% url 'leaderboard' %}" style="font-size: large;">Stats & Leaderboard</a>
             </button>
           </div>
         </th>
@@ -119,7 +154,7 @@
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'viewer_tutorial' %}" style="font-size: large;">Annotator Tutorial</a>
+              <a href="{% url 'viewer_tutorial' %}" style="font-size: large;">Tutorial</a>
             </button>
           </div>
         </th>
@@ -127,7 +162,7 @@
         <th class="text-center col">
           <div class="dropdown">
             <button class="btn {% if request.path == url %} btn-outline-primary {% else %} btn-link {% endif %}" type="button">
-              <a href="{% url 'viewer_settings' %}" style="font-size: large;">Viewer Settings</a>
+              <a href="{% url 'viewer_settings' %}" style="font-size: large;">Settings</a>
             </button>
           </div>
         </th>

@@ -7,222 +7,218 @@
   <h1>All Adjudications</h1>
   <div>
     <span style="font-size: 20px; float: left;">Total Complete</span>
-    <span style="font-size: 20px; float: right;">{{ all_anns_frac }}</span>
-    <br /><br />
+    <span style="font-size: 20px; float: right;">{{ progress }}</span>
+    <br/><br/>
   </div>
-  <div>
-    <h3>Search for record</h3>
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}
-          <p {% if message.tags %} class="{{ message.tags }}" style="color:red;" {% endif %}>{{ message }}</p>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    <form action="{% url 'render_adjudications' %}">
-      <input type="text" id="record" name="record" placeholder="e.g. 003c13" required>
-      <input type="submit" class="btn btn-secondary" value="Search"><br><br>
-    </form>
-    {% if search %}
-      {% for k,info in search.items %}
-        {% if k == "com" %}
-          {% for batch in info %}
-            <div>
-              <table style="width:100%">
-                <!-- Header names of the columns -->
-                <tr>
-                  {% for cat in categories %}
-                    <th>
-                      {{ cat }}
-                    </th>
-                  {% endfor %}
-                  <!-- Assuming only one adjudication per project, record, and event -->
-                  <th>
-                    <a href="{% url 'waveform_published_specific_adjudicate' info.0.0 info.0.1 info.0.2 %}">Edit adjudication</a>
-                  </th>
-                  <th>
-                    <a href="{% url 'delete_adjudication' info.0.0 info.0.1 info.0.2 %}">Delete adjudication</a>
-                  </th>
-                </tr>
-                <!-- Values of each column -->
-                {% for val in batch %}
-                  <tr>
-                    <!-- Assume there is only one adjudication and it is last -->
-                    {% if forloop.last %}
-                      {% for v in val|slice:"2:" %}
-                        <td style="color: red">
-                          {{ v }}
-                        </td>
-                      {% endfor %}
-                    {% else %}
-                      {% for v in val|slice:"2:" %}
-                        <td>
-                          {{ v }}
-                        </td>
-                      {% endfor %}
-                    {% endif %}
-                  </tr>
-                {% endfor %}
-              </table>
-            </div>
-            <br />
-          {% endfor %}
-        {% elif k == "inc" %}
-          {% for batch in info %}
-            <div>
-              <table style="width:100%">
-                <!-- Header names of the columns -->
-                <tr>
-                  {% for cat in categories %}
-                    <th>
-                      {{ cat }}
-                    </th>
-                  {% endfor %}
-                  <th>
-                    <a href="{% url 'waveform_published_specific_adjudicate' batch.0.0 batch.0.1 batch.0.2 %}">Edit adjudication</a>
-                  </th>
-                </tr>
-                <!-- Values of each column -->
-                {% for val in batch %}
-                  <tr>
-                    {% for v in val|slice:"2:" %}
-                      <td>
-                        {{ v }}
-                      </td>
-                    {% endfor %}
-                  </tr>
-                {% endfor %}
-              </table>
-            </div>
-            <br />
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-  </div>
-  <div>
-    <h2>Complete Adjudications</h2>
-  </div>
-  {% if complete_page %}
-    <div class="page-links">
-      {% if complete_page.has_previous %}
-        <a href="{% url 'render_adjudications' %}?complete_page={{ complete_page.previous_page_number }}#complete_adjudications">Previous Page</a>&emsp;
-      {% endif %}
-      {% if complete_page.has_next %}
-        <a href="{% url 'render_adjudications' %}?complete_page={{ complete_page.next_page_number }}#complete_adjudications">Next Page</a>&emsp;
-      {% endif %}
-      {% if request.GET %}
-        {% if request.GET.complete_page == 'all' %}
-          <a href="{% url 'render_adjudications' %}?complete_page=1#complete_adjudications">Show pages</a>
-        {% else %}
-          {% if n_complete > 5 %}
-            <a href="{% url 'render_adjudications' %}?complete_page=all#complete_adjudications">Show all</a>
-          {% endif %}
-        {% endif %}
-      {% else %}
-        {% if n_complete > 5 %}
-          <a href="{% url 'render_adjudications' %}?complete_page=all#complete_adjudications">Show all</a>
-        {% endif %}
-      {% endif %}
-    </div>
-  {% endif %}
-  {% for batch in complete_adjudications %}
-    <div>
-      <table style="width:100%">
-        <!-- Header names of the columns -->
-        <tr>
-          {% for cat in categories %}
-            <th>
-              {{ cat }}
-            </th>
-          {% endfor %}
-          <!-- Assuming only one adjudication per project, record, and event -->
-          <th>
-            <a href="{% url 'waveform_published_specific_adjudicate' batch.0.0 batch.0.1 batch.0.2 %}">Edit adjudication</a>
-          </th>
-          <th>
-            <a href="{% url 'delete_adjudication' batch.0.0 batch.0.1 batch.0.2 %}">Delete adjudication</a>
-          </th>
-        </tr>
-        <!-- Values of each column -->
-        {% for val in batch %}
-          <tr>
-            <!-- Assume there is only one adjudication and it is last -->
-            {% if forloop.last %}
-              {% for v in val|slice:"2:" %}
-                <td style="color: red">
-                  {{ v }}
-                </td>
-              {% endfor %}
-            {% else %}
-              {% for v in val|slice:"2:" %}
-                <td>
-                  {{ v }}
-                </td>
-              {% endfor %}
-            {% endif %}
-          </tr>
-        {% endfor %}
-      </table>
-    </div>
-    <br />
-  {% endfor %}
-  <br />
-  <div>
-    <h2>Incomplete Adjudications</h2>
-  </div>
-  {% if incomplete_page %}
-    <div class="page-links">
-      {% if incomplete_page.has_previous %}
-        <a href="{% url 'render_adjudications' %}?incomplete_page={{ incomplete_page.previous_page_number }}#incomplete_adjudications">Previous Page</a>&emsp;
-      {% endif %}
-      {% if incomplete_page.has_next %}
-        <a href="{% url 'render_adjudications' %}?incomplete_page={{ incomplete_page.next_page_number }}#incomplete_adjudications">Next Page</a>&emsp;
-      {% endif %}
-      {% if request.GET %}
-        {% if request.GET.incomplete_page == 'all' %}
-          <a href="{% url 'render_adjudications' %}?incomplete_page=1#incomplete_adjudications">Show pages</a>
-        {% else %}
-          {% if n_incomplete > 5 %}
-            <a href="{% url 'render_adjudications' %}?incomplete_page=all#incomplete_adjudications">Show all</a>
-          {% endif %}
-        {% endif %}
-      {% else %}
-        {% if n_incomplete > 5 %}
-          <a href="{% url 'render_adjudications' %}?incomplete_page=all#incomplete_adjudications">Show all</a>
-        {% endif %}
-      {% endif %}
-    </div>
-  {% endif %}
-  {% for batch in incomplete_adjudications %}
-    <div>
-      <table style="width:100%">
-        <!-- Header names of the columns -->
-        <tr>
-          {% for cat in categories %}
-            <th>
-              {{ cat }}
-            </th>
-          {% endfor %}
-          <th>
-            <a href="{% url 'waveform_published_specific_adjudicate' batch.0.0 batch.0.1 batch.0.2 %}">Edit adjudication</a>
-          </th>
-        </tr>
-        <!-- Values of each column -->
-        {% for val in batch %}
-          <tr>
-            {% for v in val|slice:"2:" %}
-              <td>
-                {{ v }}
-              </td>
-            {% endfor %}
-          </tr>
-        {% endfor %}
-      </table>
-    </div>
-    <br />
-  {% endfor %}
-</div>
-<br />
 
+  {% if bookmarked.count > 0 %}
+  <div id="bookmarked">
+    <h2>Bookmarked Conflicts</h2>
+  </div>
+  {% if page_info.0 %}
+  <div class="page-links">
+    {% if page_info.0.has_previous %}
+    <a href="{% url 'render_adjudications' %}?bookmarked_page={{ page_info.0.previous_page_number }}#bookmarked">Previous
+      Page</a>&emsp;
+    {% endif %}
+    {% if page_info.0.has_next %}
+    <a href="{% url 'render_adjudications' %}?bookmarked_page={{ page_info.0.next_page_number }}#bookmarked">Next
+      Page</a>&emsp;
+    {% endif %}
+    {% if request.GET.bookmarked_page == 'all' %}
+    <a href="{% url 'render_adjudications' %}?bookmarked_page=1#bookmarked">Show pages</a>
+    {% endif %}
+    {% if page_info.0.has_next or page_info.0.has_previous %}
+    <a href="{% url 'render_adjudications' %}?bookmarked_page=all#bookmarked">Show all</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div id="Bookmarked-Conflicts">
+    {% for waveform in bookmarked%}
+    {% ifchanged waveform.project waveform.record %}
+    {% if not forloop.first %}
+  </div>
+  <hr>
+  {% endif %}
+  <div class="panel">
+    <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
+    {% endifchanged %}
+
+    <h5 style="float: left;">{{ waveform.event }} (<a
+        href="{% url 'waveform_published_specific_adjudicate' waveform.project waveform.record waveform.event %}">View
+        waveform <i class="fa fa-external-link fa-xs"></i></a>&emsp;|&emsp;<a
+        href="{% url 'delete_adjudication' waveform.project waveform.record waveform.event %}">Delete Bookmark
+        <i class="fa fa-trash-o	"></i></a>)</h5>
+
+    <table style="width:100%">
+      <tr>
+        {% for cat in categories %}
+        <th>
+          {{ cat }}
+        </th>
+        {% endfor %}
+      </tr>
+
+      {% for annotation in waveform.annotation_set.all %}
+      <tr>
+        <td>
+          {{ annotation.user.username }}
+        </td>
+        <td>
+          {{ annotation.decision}}
+        </td>
+        <td>
+          {{ annotation.decision_date }}
+        </td>
+        <td>
+          {{ annotation.comments }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <br>
+    {% endfor %}
+  </div>
+  <br>
+  {% endif %}
+
+  {% if conflicts.count > 0 %}
+  <div id="conflicts">
+    <h2>Conflicting Annotations</h2>
+  </div>
+  {% if page_info.1 %}
+  <div class="page-links">
+    {% if page_info.1.has_previous %}
+    <a href="{% url 'render_adjudications' %}?conflicts_page={{ page_info.1.previous_page_number }}#conflicts">Previous
+      Page</a>&emsp;
+    {% endif %}
+    {% if page_info.1.has_next %}
+    <a href="{% url 'render_adjudications' %}?conflicts_page={{ page_info.1.next_page_number }}#conflicts">Next
+      Page</a>&emsp;
+    {% endif %}
+    {% if request.GET.conflicts_page == 'all' %}
+    <a href="{% url 'render_adjudications' %}?conflicts_page=1#conflicts">Show pages</a>
+    {% endif %}
+    {% if page_info.1.has_next or page_info.1.has_previous %}
+    <a href="{% url 'render_adjudications' %}?conflicts_page=all#conflicts">Show all</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div id="Conflicting-Decisions">
+    {% for waveform in conflicts%}
+    {% ifchanged waveform.project waveform.record %}
+    {% if not forloop.first %}
+  </div>
+  <hr>
+  {% endif %}
+  <div class="panel">
+    <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
+    {% endifchanged %}
+
+    <h5 style="float: left;">{{ waveform.event }} (<a
+        href="{% url 'waveform_published_specific_adjudicate' waveform.project waveform.record waveform.event %}">View
+        waveform <i class="fa fa-external-link fa-xs"></i></a>)</h5>
+
+    <table style="width:100%">
+      <tr>
+        {% for cat in categories %}
+        <th>
+          {{ cat }}
+        </th>
+        {% endfor %}
+      </tr>
+
+      {% for annotation in waveform.annotation_set.all %}
+      <tr>
+        <td>
+          {{ annotation.user.username }}
+        </td>
+        <td>
+          {{ annotation.decision}}
+        </td>
+        <td>
+          {{ annotation.decision_date }}
+        </td>
+        <td>
+          {{ annotation.comments }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <br>
+    {% endfor %}
+  </div>
+  <br>
+  {% endif %}
+  {% if adjudicated.count > 0 %}
+  <div id="adjudicated">
+    <h2>Adjudicated Waveforms</h2>
+  </div>
+  {% if page_info.2 %}
+  <div class="page-links">
+    {% if page_info.2.has_previous %}
+    <a href="{% url 'render_adjudications' %}?adjudicated_page={{ page_info.2.previous_page_number }}#adjudicated">Previous
+      Page</a>&emsp;
+    {% endif %}
+    {% if page_info.2.has_next %}
+    <a href="{% url 'render_adjudications' %}?adjudicated_page={{ page_info.2.next_page_number }}#adjudicated">Next
+      Page</a>&emsp;
+    {% endif %}
+    {% if request.GET.adjudicated_page == 'all' %}
+    <a href="{% url 'render_adjudications' %}?adjudicated_page=1#adjudicated">Show pages</a>
+    {% endif %}
+    {% if page_info.2.has_next or page_info.2.has_previous %}
+    <a href="{% url 'render_adjudications' %}?adjudicated_page=all#adjudicated">Show all</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div id="Adjudicated-Events">
+    {% for waveform in adjudicated%}
+    {% ifchanged waveform.project waveform.record %}
+    {% if not forloop.first %}
+  </div>
+  <hr>
+  {% endif %}
+  <div class="panel">
+    <h4 style="float: left;">{{ waveform.project}}:&emsp;{{ waveform.record }}</h4><br /><br />
+    {% endifchanged %}
+
+    <h5 style="float: left;">{{ waveform.event }} (<a
+        href="{% url 'waveform_published_specific_adjudicate' waveform.project waveform.record waveform.event %}">View
+        waveform <i class="fa fa-external-link fa-xs"></i></a>&emsp;|&emsp;<a
+        href="{% url 'delete_adjudication' waveform.project waveform.record waveform.event %}">Delete Adjudication
+        <i class="fa fa-trash-o	"></i></a>)</h5>
+
+    <table style="width:100%">
+      <tr>
+        {% for cat in categories %}
+        <th>
+          {{ cat }}
+        </th>
+        {% endfor %}
+      </tr>
+
+      {% for annotation in waveform.annotation_set.all %}
+      <tr {% if annotation.is_adjudication %} style="color:purple; font-weight: bold;" {% endif %}>
+        <td>
+          {{ annotation.user.username }}
+        </td>
+        <td>
+          {{ annotation.decision}}
+        </td>
+        <td>
+          {{ annotation.decision_date }}
+        </td>
+        <td>
+          {{ annotation.comments }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <br>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <br>
+</div>
 {% endblock %}

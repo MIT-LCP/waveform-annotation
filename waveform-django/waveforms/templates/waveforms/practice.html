@@ -3,41 +3,77 @@
 
 {% block content %}
 <div class="container">
-  <h2>Answer practice questions</h2>
+  
+  {% if user.is_annotator == False%}
+      <h2>Entry Assessment</h2>
+  {% else %}
+      <h2>Answer practice questions</h2>
+  {% endif %}
   <div class="instructions">
   <h3>Instructions</h3>
-  </div>
-  <div><ul>
-    <li>You will be assigned a set of {{ total }} waveform events to complete.</li>
-    <li>You can come return to this page whenever you are ready to view the answers.</li>
-    <li>This assessment will not be timed or graded, and may be exited at any time by pressing the "End Practice" button below.</li>
-    <li>When you wish to continue working on the main dataset, simply press the "End Practice" button below. You will resume working on your active assignment.</li>
-    <li>You may take the practice test as many times as you wish, but <b>your score will be lost after you end the practice session.</b></li>
+
+  {% if user.is_annotator == False%}
+    <div><ul>
+      <li>You have been assigned a set of {{ total }} waveform events to annotate, which can be accessed on the "View All Exam Samples" Page.</li>
+      <li>This assessment will not be timed, but the staff will see the results of this assessment.</li>
+      <li>You may return to this page at any time.</li>
+      <li>When you are ready to submit your exam, simply press the "Submit Assessment" button below. Your responses will be sent to the administrators.</li>
+      <li><b><i>You cannot change your answers once you submit.</i></b></li></li>
+    </ul></div>
+    <div>
+  {% else %}
+    <div><ul>
+      <li>You will be assigned a set of {{ total }} waveform events to complete.</li>
+      <li>This assessment will not be timed or graded, and may be exited at any time by pressing the "End Practice" button below.</li>
+      <li>You may return to this page whenever you are ready to view the answers.</li>
+      <li>When you wish to continue working on the main dataset, simply press the "End Practice" button below. You will resume working on your active assignment.</li>
+      <li>You may take the practice test as many times as you wish, but <b>your score will be lost after you end the practice session.</b></li>
   </ul></div>
   <div>
+  {% endif %}
+
+  </div>
+
+
+
     {% if user.practice_status == "CO" %}
-      <h2>Results</h2>
-      {% for project,events in results.items %}
-        {% for event,responses in events.items %}
-          <p>
-	    {{ project }} {{ event }}&emsp; Correct answer: {{ responses.0 }}&emsp; Your answer: {{ responses.1 }}
-            {% if responses.0 == responses.1 %} &#10004;&#65039; {% else %} &#10060; {% endif %}
-          </p>
-        {% endfor %}
+        {% if user.is_annotator == True %}
+          <h2>Results</h2>
+        {% else %}
+          <h2>Responses</h2>
+        {% endif %}
+      {% for response in results %}
+        <p>
+            {{ response.0 }}&ensp;|&ensp;{{ response.1 }}&ensp;|&ensp;{{ response.2 }}&emsp; Your answer: {{ response.4 }}
+            {% if user.is_annotator %} 
+            &emsp;Correct answer: {{ response.3 }}&emsp; 
+            {% if response.3 == response.4 %} &#10004;&#65039; {% else %} &#10060; {% endif %}
+            {% endif %}
+        </p>
       {% endfor %}
+      {% if user.is_annotator %} 
       <p>Score: {{ correct }}/{{ total }}</p>
+      {% else %}
+      <i>Score is hidden until the staff review your responses</i>
+      {% endif %}
     {% endif %}
   </div>
   <div>
     <form action="" method="post">
       {% csrf_token %}
       {% if user.practice_status == "BG" %}
-        <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
+        {% if user.is_annotator == True %}
+          <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Practice">
+        {% else %}
+          <input type="submit" name="submit-practice" class="btn btn-primary btn-rsp" value="Submit Assessment">
+        {% endif %}
       {% endif %}
       {% if user.practice_status == "ED" %}
         <input type="submit" name="start-practice" class="btn btn-primary btn-rsp" value="Begin Practice">
       {% else %}
-        <input type="submit" name="end-practice" class="btn btn-warning btn-rsp" value="End Practice">
+        {% if user.is_annotator == True%}
+          <input type="submit" name="end-practice" class="btn btn-warning btn-rsp" value="End Practice">
+        {% endif %}
       {% endif %}
     </form>
   </div>
